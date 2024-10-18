@@ -1,46 +1,8 @@
-import networkx as nx
 import numpy as np
 
 from CVRP.coordinates_demand_manager import CoordinatesDemandManager
 from MMAS.aco import ACO
-from MMAS.utils import create_graph_from_manager
 
-
-def print_hi(name):
-    G = nx.DiGraph()
-
-    G.add_edge("A", "B", cost=2)
-    G.add_edge("B", "C", cost=2)
-    G.add_edge("A", "H", cost=2)
-    G.add_edge("H", "G", cost=2)
-    G.add_edge("C", "F", cost=1)
-    G.add_edge("F", "G", cost=1)
-    G.add_edge("G", "F", cost=1)
-    G.add_edge("F", "C", cost=1)
-    G.add_edge("C", "D", cost=10)
-    G.add_edge("E", "D", cost=2)
-    G.add_edge("G", "E", cost=2)
-
-    source = "A"
-    destination = "D"
-
-    dijkstra_path = nx.dijkstra_path(G, source, destination)
-    dijkstra_cost = nx.path_weight(G, dijkstra_path, "cost")
-
-    aco = ACO(G, ant_max_steps=100, num_iterations=100, ant_random_spawn=True)
-
-    aco_path, aco_cost = aco.find_shortest_path(
-        source,
-        destination,
-        num_ants=100,
-    )
-
-    print(f"Dijkstra - path: {dijkstra_path}, cost: {dijkstra_cost}")
-    print(f"ACO - path: {aco_path}, cost: {aco_cost}")
-
-
-
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     # Define the coordinates and demand
     data = np.array([
@@ -79,6 +41,15 @@ if __name__ == '__main__':
     manager = CoordinatesDemandManager(data)
     manager.calculate_distances()
 
-    manager.calculate_distances()  # Asegúrate de que las distancias estén calculadas
-    G = create_graph_from_manager(manager)
+    G = manager.create_graph_from_manager()
 
+    aco = ACO(G, ant_max_steps=100, num_iterations=100, ant_random_spawn=True)
+    source = "1"
+    destination = "5"
+    aco_path, aco_cost = aco.find_shortest_path(
+        source,
+        destination,
+        num_ants=100,
+    )
+
+    print(f"ACO - path: {aco_path}, cost: {aco_cost}")

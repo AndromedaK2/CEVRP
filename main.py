@@ -3,6 +3,8 @@ import numpy as np
 
 from CVRP.coordinates_demand_manager import CoordinatesDemandManager
 from MMAS.aco import ACO
+from MMAS.utils import create_graph_from_manager
+
 
 def print_hi(name):
     G = nx.DiGraph()
@@ -77,7 +79,6 @@ if __name__ == '__main__':
     manager = CoordinatesDemandManager(data)
     manager.calculate_distances()
 
-
-    print(manager.get_distances())
-
+    manager.calculate_distances()  # Asegúrate de que las distancias estén calculadas
+    G = create_graph_from_manager(manager)
 

@@ -28,14 +28,14 @@ if __name__ == '__main__':
         [20, 129, 189, 2500],
         [21, 155, 185, 1800],
         [22, 139, 182, 700],
-        [23, 137, 193, 0],  # Estación de carga (demanda 0)
-        [24, 137, 213, 0],  # Estación de carga (demanda 0)
-        [25, 137, 234, 0],  # Estación de carga (demanda 0)
-        [26, 137, 254, 0],  # Estación de carga (demanda 0)
-        [27, 155, 193, 0],  # Estación de carga (demanda 0)
-        [28, 155, 213, 0],  # Estación de carga (demanda 0)
-        [29, 155, 234, 0],  # Estación de carga (demanda 0)
-        [30, 155, 254, 0]  # Estación de carga (demanda 0)
+     #   [23, 137, 193, 0],  # Estación de carga (demanda 0)
+     #   [24, 137, 213, 0],  # Estación de carga (demanda 0)
+     #   [25, 137, 234, 0],  # Estación de carga (demanda 0)
+     #   [26, 137, 254, 0],  # Estación de carga (demanda 0)
+     #   [27, 155, 193, 0],  # Estación de carga (demanda 0)
+     #   [28, 155, 213, 0],  # Estación de carga (demanda 0)
+     #   [29, 155, 234, 0],  # Estación de carga (demanda 0)
+     #   [30, 155, 254, 0]  # Estación de carga (demanda 0)
     ])
 
     manager = CoordinatesDemandManager(data)
@@ -45,11 +45,11 @@ if __name__ == '__main__':
 
     aco = ACO(G, ant_max_steps=100, num_iterations=100, ant_random_spawn=True)
     source = "1"
-    destination = "5"
+    destination = "10"
     aco_path, aco_cost = aco.find_shortest_path(
         source,
         destination,
-        num_ants=100,
+        num_ants=4,
     )
 
     print(f"ACO - path: {aco_path}, cost: {aco_cost}")

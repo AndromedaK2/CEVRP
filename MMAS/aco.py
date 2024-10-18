@@ -25,16 +25,16 @@ class ACO:
     # Search ants
     search_ants: List[Ant] = field(default_factory=list)
     # limit τ_max
-    max_pheromone_value: float = 1.0
+    max_pheromone_level: float = 1.0
     # limit τ_min
-    min_pheromone_value: float = 0.02
+    min_pheromone_level: float = 0.02
 
 
     def __post_init__(self):
         self.graph_api = GraphApi(self.graph, self.evaporation_rate)
         # Initialize all edges of the graph with a maximum pheromone value
         for edge in self.graph.edges:
-            self.graph_api.set_edge_pheromones(edge[0], edge[1], self.max_pheromone_value)
+            self.graph_api.set_edge_pheromones(edge[0], edge[1], self.max_pheromone_level)
 
     def _deploy_forward_search_ants(self) -> None:
         """Deploy forward search ants in the graph"""

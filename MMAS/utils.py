@@ -29,3 +29,6 @@ def roulette_wheel_selection(probabilities: Dict[str, float]) -> str:
     raise Exception("Edge case for roulette wheel selection")
 
 
+def boundaries_pheromones_levels_validate(pheromone_value: float, max_pheromone_level: float, min_pheromone_level: float) -> float:
+    """Returns pheromones levels within a certain range."""
+    return max(min_pheromone_level, min(pheromone_value, max_pheromone_level))

@@ -1,6 +1,6 @@
 import numpy as np
 
-from CVRP.coordinates_demand_manager import CoordinatesDemandManager
+from Shared.coordinates_demand_manager import CoordinatesDemandManager
 from MMAS.aco import ACO
 
 if __name__ == '__main__':
@@ -45,11 +45,9 @@ if __name__ == '__main__':
 
     aco = ACO(G, ant_max_steps=100, num_iterations=100, ant_random_spawn=True)
     source = "1"
-    destination = "10"
     aco_path, aco_cost = aco.find_shortest_path(
         source,
-        destination,
-        num_ants=4,
+        num_ants=4
     )
 
     print(f"ACO - path: {aco_path}, cost: {aco_cost}")

@@ -9,7 +9,6 @@ from MMAS.graph_api import GraphApi
 class Ant:
     graph_api: GraphApi
     source: str
-    destination: str
     # Pheromone bias
     alpha: float = 0.7
     # Edge cost bias

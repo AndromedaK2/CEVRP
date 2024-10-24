@@ -15,7 +15,7 @@ class ACO:
     # Number of cycles/waves of search ants to be deployed
     num_iterations: int
     # Indicates if the search ants should spawn at random nodes in the graph
-    ant_random_spawn: bool = True
+    ant_random_spawn: bool = False
     # Evaporation rate (rho)
     evaporation_rate: float = 0.1
     # Pheromone bias
@@ -40,10 +40,11 @@ class ACO:
         """Deploy forward search ants in the graph"""
         for ant in self.search_ants:
             for _ in range(self.ant_max_steps):
+                ant.take_step()
                 if ant.reached_destination():
                     ant.is_fit = True
                     break
-                ant.take_step()
+
 
     def _deploy_backward_search_ants(self) -> None:
         """Deploy fit search ants back towards their source node while dropping pheromones on the path"""
@@ -61,23 +62,17 @@ class ACO:
 
         Args:
             source (str): The source node in the graph
-            destination (str): The destination node in the graph
             num_ants (int): The number of ants to be spawned
         """
         for _ in range(self.num_iterations):
             self.search_ants.clear()
 
             for _ in range(num_ants):
-                spawn_point = (
-                    random.choice(self.graph_api.get_all_nodes())
-                    if self.ant_random_spawn
-                    else source
-                )
+                spawn_point = source
 
                 ant = Ant(
                     self.graph_api,
                     spawn_point,
-                    destination,
                     alpha=self.alpha,
                     beta=self.beta,
                 )
@@ -99,7 +94,6 @@ class ACO:
         ant = Ant(
             self.graph_api,
             source,
-            destination,
             is_solution_ant=True,
         )
         while not ant.reached_destination():
@@ -109,14 +103,12 @@ class ACO:
     def find_shortest_path(
         self,
         source: str,
-        destination: str,
         num_ants: int,
     ) -> Tuple[List[str], float]:
         """Finds the shortest path from the source to the destination in the graph
 
         Args:
             source (str): The source node in the graph
-            destination (str): The destination node in the graph
             num_ants (int): The number of search ants to be deployed
 
         Returns:
@@ -125,8 +117,7 @@ class ACO:
         """
         self._deploy_search_ants(
             source,
-            destination,
-            num_ants,
+            num_ants
         )
-        solution_ant = self._deploy_solution_ant(source, destination)
+        solution_ant = self._deploy_solution_ant(source)
         return solution_ant.path, solution_ant.path_cost

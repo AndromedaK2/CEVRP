@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
 @dataclass
-class Restriction:
+class CVRP:
     def max_capacity_vehicle(self):
         return ''

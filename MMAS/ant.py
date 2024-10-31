@@ -23,6 +23,12 @@ class Ant:
     is_fit: bool = False
     # Indicates if the ant is the pheromone-greedy solution ant
     is_solution_ant: bool = False
+    # Indicates the max capacity of each ant (vehicle)
+    max_capacity_vehicle: int = 0
+    # Indicates the capacity of all customers
+    total_capacity_customers: int = 0
+
+
 
     def __post_init__(self) -> None:
         # Set the spawn node as the current and first node
@@ -48,6 +54,22 @@ class Ant:
             for node in self.graph_api.get_neighbors(self.current_node)
             if node not in self.visited_nodes
         ]
+
+    def _get_unvisited_neighbors_with_demand(self) -> List[Dict[str, int]]:
+        """Returns a list of unvisited neighbors of the current node, along with each neighbor's demand.
+
+        Returns:
+            List[Dict[str, int]]: A list of dictionaries containing each unvisited neighbor and its demand.
+        """
+        unvisited_neighbors_with_demand = []
+
+        neighbors_with_demand = self.graph_api.get_neighbors_with_demand(self.current_node)
+
+        for neighbor_info in neighbors_with_demand:
+            if neighbor_info['node'] not in self.visited_nodes and  self.total_capacity_customers > neighbor_info['demand'] :
+                unvisited_neighbors_with_demand.append(neighbor_info)
+
+        return unvisited_neighbors_with_demand
 
     def _compute_all_edges_desirability(
             self,
@@ -110,6 +132,7 @@ class Ant:
             [str, None]: The computed next node to be visited by the ant or None if no possible moves
         """
         unvisited_neighbors = self._get_unvisited_neighbors()
+
 
         if self.is_solution_ant:
             if len(unvisited_neighbors) == 0:

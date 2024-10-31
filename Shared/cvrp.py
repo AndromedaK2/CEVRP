@@ -1,6 +1,7 @@
-from dataclasses import dataclass
 
-@dataclass
-class CVRP:
-    def max_capacity_vehicle(self):
-        return ''
+
+def filter_unvisited_neighbors_by_cargo_demand(self, neighbors,  cargo_demand):
+
+    return ''
+
+

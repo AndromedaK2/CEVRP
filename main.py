@@ -43,7 +43,7 @@ if __name__ == '__main__':
 
     G = manager.create_graph_from_manager()
 
-    aco = ACO(G, ant_max_steps=100, num_iterations=100, ant_random_spawn=True)
+    aco = ACO(G, ant_max_steps=100, num_iterations=100, ant_random_spawn=True, max_capacity_vehicle=1000)
     source = "1"
     aco_path, aco_cost = aco.find_shortest_path(
         source,

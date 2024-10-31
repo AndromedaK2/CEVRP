@@ -29,6 +29,26 @@ class GraphApi:
     def get_neighbors(self, node: str) -> List[str]:
         return list(self.graph.neighbors(node))
 
+    def get_neighbors_with_demand(self, node: str) -> List[dict]:
+        """Returns a list of neighbors for a given node, along with each neighbor's demand.
+
+        Args:
+            node (str): The node for which to find neighbors.
+
+        Returns:
+            List[dict]: A list of dictionaries containing neighbor nodes and their demand.
+        """
+        if node not in self.graph:
+            return []
+
+        neighbors_with_demand = []
+        for neighbor in self.graph.neighbors(node):
+            demand = self.graph.nodes[neighbor].get('demand')
+            neighbors_with_demand.append({'node': neighbor, 'demand': demand})
+
+        return neighbors_with_demand
+
+
     def visualize_graph(self, shortest_path: List[str]) -> None:
         for edge in self.graph.edges:
             source, destination = edge[0], edge[1]

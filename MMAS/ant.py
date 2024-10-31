@@ -35,7 +35,7 @@ class Ant:
         Returns:
             bool: returns True if the ant has reached the destination
         """
-        return self.current_node == self.destination
+        return self.current_node == self.source
 
     def _get_unvisited_neighbors(self) -> List[str]:
         """Returns a subset of the neighbors of the node which are unvisited
@@ -114,7 +114,7 @@ class Ant:
         if self.is_solution_ant:
             if len(unvisited_neighbors) == 0:
                 raise Exception(
-                    f"No path found from {self.source} to {self.destination}"
+                    f"No path found from {self.source}"
                 )
 
             # The final/solution ant greedily chooses the next node with the highest pheromone value

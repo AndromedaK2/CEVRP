@@ -55,7 +55,6 @@ class ACO:
     def _deploy_search_ants(
         self,
         source: str,
-        destination: str,
         num_ants: int,
     ) -> None:
         """Deploy search ants that traverse the graph to find the shortest path

@@ -3,6 +3,7 @@ from typing import Dict, List, Set, Union
 
 from MMAS import utils
 from MMAS.graph_api import GraphApi
+from MMAS.path import Path
 
 
 @dataclass
@@ -16,7 +17,9 @@ class Ant:
     # Set of nodes that have been visited by the ant
     visited_nodes: Set = field(default_factory=set)
     # Path taken by the ant so far
-    path: List[str] = field(default_factory=list)
+    path: Path = field(default_factory=list)
+    # All Paths taken by the ant so far
+    paths: List[Path] = field(default_factory=list)
     # Cost of the path taken by the ant so far
     path_cost: float = 0.0
     # Indicates if the ant has reached the destination (fit) or not (unfit)
@@ -159,20 +162,21 @@ class Ant:
 
     def take_step(self) -> None:
         """Compute and update the ant position"""
-        # Mark the current node as visited
-        self.visited_nodes.add(self.current_node)
 
         # Pick the next node of the ant
         next_node = self._choose_next_node()
 
-        # Check if ant is stuck at current node
-        if not next_node:
-            # TODO: optimization: set ant as unfit
-            return
-
         self.path.append(next_node)
-        self.path_cost += self.graph_api.get_edge_cost(self.current_node, next_node)
-        self.current_node = next_node
+        if next_node == self.source:
+            # add path to candidate solution of paths
+            self.paths.append(self.path)
+            self.path_cost = 0.0
+
+        else:
+            # Mark the current node as visited
+            self.visited_nodes.add(self.current_node)
+            self.path_cost += self.graph_api.get_edge_cost(self.current_node, next_node)
+            self.current_node = next_node
 
     def deposit_pheromones_on_path(self) -> None:
         """Updates the pheromones along all the edges in the path"""

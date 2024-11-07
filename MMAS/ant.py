@@ -75,13 +75,16 @@ class Ant:
 
         return unvisited_neighbors_with_demand
 
-    def _get_total_demand_of_unvisited_neighbors(self) -> int:
-        """Calculates and returns the total demand of all unvisited neighbors.
+    def _get_total_demand_of_neighbors(self,neighbors_with_demand: List[Dict[str, int]]) -> int:
+        """Calculates and returns the total demand of a given list of neighbors.
+
+        Args:
+            neighbors_with_demand (List[Dict[str, int]]): A list of dictionaries containing each neighbor and its demand.
 
         Returns:
-            int: The sum of the demands of all unvisited neighbors.
+            int: The sum of the demands of all the given neighbors.
         """
-        return sum(neighbor_info['demand'] for neighbor_info in self._get_unvisited_neighbors_with_demand())
+        return sum(neighbor_info['demand'] for neighbor_info in neighbors_with_demand)
 
     def _compute_all_edges_desirability(
             self,

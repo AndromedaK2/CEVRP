@@ -6,7 +6,6 @@ from MMAS.constants import *
 from MMAS.graph_api import GraphApi
 from MMAS.path import Path
 
-
 @dataclass
 class Ant:
     graph_api: GraphApi
@@ -28,10 +27,11 @@ class Ant:
     # Indicates if the ant is the pheromone-greedy solution ant
     is_solution_ant: bool = False
     # Variable Indicates the max capacity
-    max_capacity_current_vehicle: int = 0
+    limit_load_current_vehicle: int = 0
     # Indicates the capacity of all customers
     total_capacity_customers: int = 0
-
+    # Quantity of vehicles used at the moment
+    vehicle_counter: int = 0
 
     def __post_init__(self) -> None:
         # Set the spawn node as the current and first node
@@ -46,18 +46,6 @@ class Ant:
         """
         return self.current_node == self.source
 
-    def _get_unvisited_neighbors(self) -> List[str]:
-        """Returns a subset of the neighbors of the node which are unvisited
-
-        Returns:
-            List[str]: A list of all the unvisited neighbors
-        """
-        return [
-            node
-            for node in self.graph_api.get_neighbors(self.current_node)
-            if node not in self.visited_nodes
-        ]
-
     def _get_unvisited_neighbors_with_demand(self) -> List[Dict[str, int]]:
         """Returns a list of unvisited neighbors of the current node, along with each neighbor's demand.
 
@@ -70,7 +58,7 @@ class Ant:
 
         for neighbor_info in neighbors_with_demand:
             if (neighbor_info['node'] not in self.visited_nodes and
-                    neighbor_info['demand'] <=  LOAD_LIMIT_VEHICLE - self.max_capacity_current_vehicle):
+                    neighbor_info['demand'] <=  LOAD_LIMIT_VEHICLE - self.limit_load_current_vehicle):
                 unvisited_neighbors_with_demand.append(neighbor_info)
 
         return unvisited_neighbors_with_demand
@@ -86,89 +74,29 @@ class Ant:
         """
         return sum(neighbor_info['demand'] for neighbor_info in neighbors_with_demand)
 
-    def _compute_all_edges_desirability(
-            self,
-            unvisited_neighbors: List[str],
-    ) -> float:
-        """Computes the denominator of the transition probability equation for the ant
-
-        Args:
-            unvisited_neighbors (List[str]): All unvisited neighbors of the current node
-
-        Returns:
-            float: The summation of all the outgoing edges (to unvisited nodes) from the current node
-        """
-        total = 0.0
-        for neighbor in unvisited_neighbors:
-            edge_pheromones = self.graph_api.get_edge_pheromones(
-                self.current_node, neighbor
-            )
-            edge_cost = self.graph_api.get_edge_cost(self.current_node, neighbor)
-            total += utils.compute_edge_desirability(
-                edge_pheromones, edge_cost, self.alpha, self.beta
-            )
-
-        return total
-
-    def _calculate_edge_probabilities(
-            self, unvisited_neighbors: List[str]
-    ) -> Dict[str, float]:
-        """Computes the transition probabilities of all the edges from the current node
-
-        Args:
-            unvisited_neighbors (List[str]): A list of unvisited neighbors of the current node
-
-        Returns:
-            Dict[str, float]: A dictionary mapping nodes to their transition probabilities
-        """
-        probabilities: Dict[str, float] = {}
-
-        all_edges_desirability = self._compute_all_edges_desirability(
-            unvisited_neighbors
-        )
-
-        for neighbor in unvisited_neighbors:
-            edge_pheromones = self.graph_api.get_edge_pheromones(
-                self.current_node, neighbor
-            )
-            edge_cost = self.graph_api.get_edge_cost(self.current_node, neighbor)
-
-            current_edge_desirability = utils.compute_edge_desirability(
-                edge_pheromones, edge_cost, self.alpha, self.beta
-            )
-            probabilities[neighbor] = current_edge_desirability / all_edges_desirability
-
-        return probabilities
-
-    def _choose_next_node(self) -> Union[str, None]:
+    def _choose_next_node(self) -> int | str:
         """Choose the next node to be visited by the ant
 
         Returns:
             [str, None]: The computed next node to be visited by the ant or None if no possible moves
         """
-        unvisited_neighbors = self._get_unvisited_neighbors()
-        unvisited_neighbors2 = self._get_unvisited_neighbors_with_demand()
 
+        unvisited_neighbors = self._get_unvisited_neighbors_with_demand()
 
         if self.is_solution_ant:
             if len(unvisited_neighbors) == 0:
-                raise Exception(
-                    f"No path found from {self.source}"
-                )
-
-            # The final/solution ant greedily chooses the next node with the highest pheromone value
+                raise Exception(f"No path found from {self.source}")
             return max(
                 unvisited_neighbors,
-                key=lambda neighbor: self.graph_api.get_edge_pheromones(
-                    self.current_node, neighbor
-                ),
-            )
+                key=lambda neighbor: self.graph_api.get_edge_pheromones(self.current_node, neighbor['node'])
+            )['node']
 
         # Check if ant has no possible nodes to move to
         if len(unvisited_neighbors) == 0:
             return None
 
-
+        if self._get_total_demand_of_neighbors(unvisited_neighbors) <= LOAD_LIMIT_VEHICLE * (FLEET - self.vehicle_counter - 1):
+            return self.source
 
         probabilities = self._calculate_edge_probabilities(unvisited_neighbors)
 
@@ -200,3 +128,57 @@ class Ant:
             u, v = self.path.nodes[i], self.path.nodes[i + 1]
             new_pheromone_value = 1 / self.path_cost
             self.graph_api.deposit_pheromones(u, v, new_pheromone_value)
+
+    def _compute_all_edges_desirability(
+            self,
+            neighbors_with_demand: List[Dict[str, int]],
+    ) -> float:
+        """Computes the denominator of the transition probability equation for the ant
+
+        Args:
+            unvisited_neighbors (List[str]): All unvisited neighbors of the current node
+
+        Returns:
+            float: The summation of all the outgoing edges (to unvisited nodes) from the current node
+        """
+        total = 0.0
+        for neighbor in neighbors_with_demand:
+            edge_pheromones = self.graph_api.get_edge_pheromones(
+                self.current_node, str(neighbor['node'])
+            )
+            edge_cost = self.graph_api.get_edge_cost(self.current_node, str(neighbor['node']))
+            total += utils.compute_edge_desirability(
+                edge_pheromones, edge_cost, self.alpha, self.beta
+            )
+
+        return total
+
+    def _calculate_edge_probabilities(
+            self, neighbors_with_demand: List[Dict[str, int]],
+    ) -> Dict[str, float]:
+        """Computes the transition probabilities of all the edges from the current node
+
+        Args:
+            unvisited_neighbors (List[str]): A list of unvisited neighbors of the current node
+
+        Returns:
+            Dict[str, float]: A dictionary mapping nodes to their transition probabilities
+        """
+        probabilities: Dict[str, float] = {}
+
+        all_edges_desirability = self._compute_all_edges_desirability(
+            neighbors_with_demand
+        )
+
+        for neighbor in neighbors_with_demand:
+            edge_pheromones = self.graph_api.get_edge_pheromones(
+                self.current_node, str(neighbor['node'])
+            )
+            edge_cost = self.graph_api.get_edge_cost(self.current_node, str(neighbor['node']))
+
+            current_edge_desirability = utils.compute_edge_desirability(
+                edge_pheromones, edge_cost, self.alpha, self.beta
+            )
+            probabilities[str(neighbor['node'])] = current_edge_desirability / all_edges_desirability
+
+        return probabilities

@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Set, Union
 
 from MMAS import utils
+from MMAS.constants import *
 from MMAS.graph_api import GraphApi
 from MMAS.path import Path
 
@@ -26,13 +27,10 @@ class Ant:
     is_fit: bool = False
     # Indicates if the ant is the pheromone-greedy solution ant
     is_solution_ant: bool = False
-    # Constant Indicates the max capacity of each ant (vehicle)
-    MAX_CAPACITY_VEHICLE: int = 0
     # Variable Indicates the max capacity
     max_capacity_current_vehicle: int = 0
     # Indicates the capacity of all customers
     total_capacity_customers: int = 0
-
 
 
     def __post_init__(self) -> None:
@@ -71,10 +69,19 @@ class Ant:
         neighbors_with_demand = self.graph_api.get_neighbors_with_demand(self.current_node)
 
         for neighbor_info in neighbors_with_demand:
-            if neighbor_info['node'] not in self.visited_nodes and  self.total_capacity_customers > neighbor_info['demand'] :
+            if (neighbor_info['node'] not in self.visited_nodes and
+                    neighbor_info['demand'] <=  LOAD_LIMIT_VEHICLE - self.max_capacity_current_vehicle):
                 unvisited_neighbors_with_demand.append(neighbor_info)
 
         return unvisited_neighbors_with_demand
+
+    def _get_total_demand_of_unvisited_neighbors(self) -> int:
+        """Calculates and returns the total demand of all unvisited neighbors.
+
+        Returns:
+            int: The sum of the demands of all unvisited neighbors.
+        """
+        return sum(neighbor_info['demand'] for neighbor_info in self._get_unvisited_neighbors_with_demand())
 
     def _compute_all_edges_desirability(
             self,
@@ -137,6 +144,7 @@ class Ant:
             [str, None]: The computed next node to be visited by the ant or None if no possible moves
         """
         unvisited_neighbors = self._get_unvisited_neighbors()
+        unvisited_neighbors2 = self._get_unvisited_neighbors_with_demand()
 
 
         if self.is_solution_ant:
@@ -156,6 +164,8 @@ class Ant:
         # Check if ant has no possible nodes to move to
         if len(unvisited_neighbors) == 0:
             return None
+
+
 
         probabilities = self._calculate_edge_probabilities(unvisited_neighbors)
 
@@ -177,6 +187,7 @@ class Ant:
         else:
             # Mark the current node as visited
             self.visited_nodes.add(self.current_node)
+            self.path.nodes.append(self.current_node)
             self.path_cost += self.graph_api.get_edge_cost(self.current_node, next_node)
             self.current_node = next_node
 

@@ -30,8 +30,6 @@ class ACO:
     min_pheromone_level: float = 0.02
     # capacity
     max_capacity_vehicle: int = 0
-    # Constant Indicates total vehicles
-    FLEET: int = 0
     # Indicates a counter of vehicles used up to now
     counter_vehicles: int = 0
 
@@ -46,6 +44,7 @@ class ACO:
         for ant in self.search_ants:
             for _ in range(self.ant_max_steps):
                 ant.take_step()
+                """Stop Criteria"""
                 if ant.reached_destination():
                     ant.is_fit = True
                     break
@@ -79,7 +78,6 @@ class ACO:
                     spawn_point,
                     alpha=self.alpha,
                     beta=self.beta,
-                    max_capacity_vehicle=self.max_capacity_vehicle
                 )
                 self.search_ants.append(ant)
 

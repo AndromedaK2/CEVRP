@@ -171,7 +171,7 @@ class Ant:
         # Pick the next node of the ant
         next_node = self._choose_next_node()
 
-        self.path.append(next_node)
+        self.path.nodes.append(next_node)
         if next_node == self.source:
             # add path to candidate solution of paths
             self.paths.append(self.path)
@@ -185,7 +185,7 @@ class Ant:
 
     def deposit_pheromones_on_path(self) -> None:
         """Updates the pheromones along all the edges in the path"""
-        for i in range(len(self.path) - 1):
-            u, v = self.path[i], self.path[i + 1]
+        for i in range(len(self.path.nodes) - 1):
+            u, v = self.path.nodes[i], self.path.nodes[i + 1]
             new_pheromone_value = 1 / self.path_cost
             self.graph_api.deposit_pheromones(u, v, new_pheromone_value)

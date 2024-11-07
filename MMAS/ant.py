@@ -17,7 +17,7 @@ class Ant:
     # Set of nodes that have been visited by the ant
     visited_nodes: Set = field(default_factory=set)
     # Path taken by the ant so far
-    path: Path = field(default_factory=list)
+    path: Path = field(default_factory=Path)
     # All Paths taken by the ant so far
     paths: List[Path] = field(default_factory=list)
     # Cost of the path taken by the ant so far
@@ -30,13 +30,18 @@ class Ant:
     max_capacity_vehicle: int = 0
     # Indicates the capacity of all customers
     total_capacity_customers: int = 0
+    # Indicates total vehicles
+    total_vehicles: int = 0
+
+
+        
 
 
 
     def __post_init__(self) -> None:
         # Set the spawn node as the current and first node
         self.current_node = self.source
-        self.path.append(self.source)
+        self.path.nodes.append(self.source)
 
     def reached_destination(self) -> bool:
         """Returns if the ant has reached the destination node in the graph

@@ -26,15 +26,12 @@ class Ant:
     is_fit: bool = False
     # Indicates if the ant is the pheromone-greedy solution ant
     is_solution_ant: bool = False
-    # Indicates the max capacity of each ant (vehicle)
-    max_capacity_vehicle: int = 0
+    # Constant Indicates the max capacity of each ant (vehicle)
+    MAX_CAPACITY_VEHICLE: int = 0
+    # Variable Indicates the max capacity
+    max_capacity_current_vehicle: int = 0
     # Indicates the capacity of all customers
     total_capacity_customers: int = 0
-    # Indicates total vehicles
-    total_vehicles: int = 0
-
-
-        
 
 
 

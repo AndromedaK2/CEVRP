@@ -27,7 +27,8 @@ class CoordinatesDemandManager:
         g = nx.DiGraph()
 
         for _, row in self.cities.iterrows():
-            g.add_node(int(row['ID']), pos=(row['X'], row['Y']), demand=row['Demand'])
+            demand = row['Demand'] if pd.notnull(row['Demand']) else 0
+            g.add_node(str(row['ID']), pos=(row['X'], row['Y']), demand=demand)
 
         distances = self.get_distances()
         for i in distances.index:

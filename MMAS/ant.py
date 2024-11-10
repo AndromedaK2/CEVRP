@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, List, Set, Union
+from typing import Dict, List, Set
 
 from MMAS import utils
 from MMAS.constants import *
@@ -32,6 +32,8 @@ class Ant:
     total_capacity_customers: int = 0
     # Quantity of vehicles used at the moment
     vehicle_counter: int = 0
+    # Current Node
+    current_node: str = ""
 
     def __post_init__(self) -> None:
         # Set the spawn node as the current and first node
@@ -46,33 +48,24 @@ class Ant:
         """
         return self.current_node == self.source
 
-    def _get_unvisited_neighbors_with_demand(self) -> List[Dict[str, int]]:
-        """Returns a list of unvisited neighbors of the current node, along with each neighbor's demand.
+    def take_step(self) -> None:
+        """Compute and update the ant position"""
 
-        Returns:
-            List[Dict[str, int]]: A list of dictionaries containing each unvisited neighbor and its demand.
-        """
-        unvisited_neighbors_with_demand = []
+        # Pick the next node of the ant
+        next_node = self._choose_next_node()
 
-        neighbors_with_demand = self.graph_api.get_neighbors_with_demand(self.current_node)
+        self.path.nodes.append(next_node)
+        if next_node == self.source:
+            # add path to candidate solution of paths
+            self.paths.append(self.path)
+            self.path_cost = 0.0
 
-        for neighbor_info in neighbors_with_demand:
-            if (neighbor_info['node'] not in self.visited_nodes and
-                    neighbor_info['demand'] <=  LOAD_LIMIT_VEHICLE - self.limit_load_current_vehicle):
-                unvisited_neighbors_with_demand.append(neighbor_info)
-
-        return unvisited_neighbors_with_demand
-
-    def _get_total_demand_of_neighbors(self,neighbors_with_demand: List[Dict[str, int]]) -> int:
-        """Calculates and returns the total demand of a given list of neighbors.
-
-        Args:
-            neighbors_with_demand (List[Dict[str, int]]): A list of dictionaries containing each neighbor and its demand.
-
-        Returns:
-            int: The sum of the demands of all the given neighbors.
-        """
-        return sum(neighbor_info['demand'] for neighbor_info in neighbors_with_demand)
+        else:
+            # Mark the current node as visited
+            self.visited_nodes.add(self.current_node)
+            self.path.nodes.append(self.current_node)
+            self.path_cost += self.graph_api.get_edge_cost(self.current_node, next_node)
+            self.current_node = next_node
 
     def _choose_next_node(self) -> int | str:
         """Choose the next node to be visited by the ant
@@ -103,24 +96,33 @@ class Ant:
         # Pick the next node based on the roulette wheel selection technique
         return utils.roulette_wheel_selection(probabilities)
 
-    def take_step(self) -> None:
-        """Compute and update the ant position"""
+    def _get_unvisited_neighbors_with_demand(self) -> List[Dict[str, int]]:
+        """Returns a list of unvisited neighbors of the current node, along with each neighbor's demand.
 
-        # Pick the next node of the ant
-        next_node = self._choose_next_node()
+        Returns:
+            List[Dict[str, int]]: A list of dictionaries containing each unvisited neighbor and its demand.
+        """
+        unvisited_neighbors_with_demand = []
 
-        self.path.nodes.append(next_node)
-        if next_node == self.source:
-            # add path to candidate solution of paths
-            self.paths.append(self.path)
-            self.path_cost = 0.0
+        neighbors_with_demand = self.graph_api.get_neighbors_with_demand(self.current_node)
 
-        else:
-            # Mark the current node as visited
-            self.visited_nodes.add(self.current_node)
-            self.path.nodes.append(self.current_node)
-            self.path_cost += self.graph_api.get_edge_cost(self.current_node, next_node)
-            self.current_node = next_node
+        for neighbor_info in neighbors_with_demand:
+            if (neighbor_info['node'] not in self.visited_nodes and
+                    neighbor_info['demand'] <=  LOAD_LIMIT_VEHICLE - self.limit_load_current_vehicle):
+                unvisited_neighbors_with_demand.append(neighbor_info)
+
+        return unvisited_neighbors_with_demand
+
+    def _get_total_demand_of_neighbors(self,neighbors_with_demand: List[Dict[str, int]]) -> int:
+        """Calculates and returns the total demand of a given list of neighbors.
+
+        Args:
+            neighbors_with_demand (List[Dict[str, int]]): A list of dictionaries containing each neighbor and its demand.
+
+        Returns:
+            int: The sum of the demands of all the given neighbors.
+        """
+        return sum(neighbor_info['demand'] for neighbor_info in neighbors_with_demand)
 
     def deposit_pheromones_on_path(self) -> None:
         """Updates the pheromones along all the edges in the path"""

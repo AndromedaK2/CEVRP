@@ -27,7 +27,7 @@ class Ant:
     # Indicates if the ant is the pheromone-greedy solution ant
     is_solution_ant: bool = False
     # Variable Indicates the max capacity
-    limit_load_current_vehicle: int = 0
+    limit_load_current_vehicle: float = 0
     # Indicates the capacity of all customers
     total_capacity_customers: int = 0
     # Quantity of vehicles used at the moment
@@ -59,11 +59,12 @@ class Ant:
             # add path to candidate solution of paths
             self.paths.append(self.path)
             self.path_cost = 0.0
+            self.limit_load_current_vehicle = 0
+            self.vehicle_counter += 1
 
         else:
             # Mark the current node as visited
             self.visited_nodes.add(self.current_node)
-            self.path.nodes.append(self.current_node)
             self.path_cost += self.graph_api.get_edge_cost(self.current_node, next_node)
             self.current_node = next_node
 

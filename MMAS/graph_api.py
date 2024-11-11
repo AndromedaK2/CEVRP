@@ -10,10 +10,17 @@ class GraphApi:
     evaporation_rate: float
 
     def set_edge_pheromones(self, u: str, v: str, pheromone_value: float) -> None:
-        self.graph[u][v]["pheromones"] = pheromone_value
+        if self.graph.has_edge(u, v):
+            self.graph[u][v]["pheromones"] = pheromone_value
+            print(self.graph[u])
+        else:
+            raise ValueError(f"No existe una arista entre {u} y {v}. No se puede asignar el valor de feromonas.")
 
     def get_edge_pheromones(self, u: str, v: str) -> float:
-        return self.graph[u][v]["pheromones"]
+        if self.graph.has_edge(u, v):
+            return self.graph[u][v].get("pheromones", 0.0)  # Devuelve `0.0` si no hay feromonas definidas
+        else:
+            raise ValueError(f"No existe una arista entre {u} y {v}")
 
     def deposit_pheromones(self, u: str, v: str, pheromone_amount: float) -> None:
         self.graph[u][v]["pheromones"] += max(
@@ -21,7 +28,10 @@ class GraphApi:
         )
 
     def get_edge_cost(self, u: str, v: str) -> float:
-        return self.graph[u][v]["cost"]
+        if self.graph.has_edge(u, v):
+            return self.graph[u][v].get("cost", float('inf'))  # Devuelve `inf` si no hay costo definido
+        else:
+            raise ValueError(f"No existe una arista entre {u} y {v}")
 
     def get_all_nodes(self) -> List[str]:
         return list(self.graph.nodes)

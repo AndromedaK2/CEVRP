@@ -17,11 +17,11 @@ class ACO:
     # Indicates if the search ants should spawn at random nodes in the graph
     ant_random_spawn: bool = False
     # Evaporation rate (rho)
-    evaporation_rate: float = 0.1
+    evaporation_rate: float = 0.98
     # Pheromone bias
-    alpha: float = 0.7
+    alpha: float = 1.0
     # Edge cost bias
-    beta: float = 0.3
+    beta: float = 2.0
     # Search ants
     search_ants: List[Ant] = field(default_factory=list)
     # limit τ_max
@@ -30,8 +30,7 @@ class ACO:
     min_pheromone_level: float = 0.02
     # capacity
     max_capacity_vehicle: int = 0
-    # Indicates a counter of vehicles used up to now
-    counter_vehicles: int = 0
+
 
     def __post_init__(self):
         self.graph_api = GraphApi(self.graph, self.evaporation_rate)
@@ -45,9 +44,9 @@ class ACO:
             for _ in range(self.ant_max_steps):
                 ant.take_step()
                 """Stop Criteria"""
-                if ant.reached_destination():
+                """if ant.reached_destination():
                     ant.is_fit = True
-                    break
+                    break"""
 
 
     def _deploy_backward_search_ants(self) -> None:
@@ -84,7 +83,7 @@ class ACO:
             self._deploy_forward_search_ants()
             self._deploy_backward_search_ants()
 
-    def _deploy_solution_ant(self, source: str, destination: str) -> Ant:
+    def _deploy_solution_ant(self, source: str) -> Ant:
         """Deploy the pheromone-greedy solution to find the shortest path
 
         Args:

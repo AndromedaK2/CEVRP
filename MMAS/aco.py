@@ -29,6 +29,7 @@ class ACO:
     # limit τ_min
     min_pheromone_level: float = 0.02
 
+
     def __post_init__(self):
         self.graph_api = GraphApi(self.graph, self.evaporation_rate)
         # Initialize all edges of the graph with a maximum pheromone value

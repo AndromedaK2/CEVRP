@@ -28,9 +28,6 @@ class ACO:
     max_pheromone_level: float = 1.0
     # limit τ_min
     min_pheromone_level: float = 0.02
-    # capacity
-    max_capacity_vehicle: int = 0
-
 
     def __post_init__(self):
         self.graph_api = GraphApi(self.graph, self.evaporation_rate)

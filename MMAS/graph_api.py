@@ -12,7 +12,6 @@ class GraphApi:
     def set_edge_pheromones(self, u: str, v: str, pheromone_value: float) -> None:
         if self.graph.has_edge(u, v):
             self.graph[u][v]["pheromones"] = pheromone_value
-            print(self.graph[u])
         else:
             raise ValueError(f"No existe una arista entre {u} y {v}. No se puede asignar el valor de feromonas.")
 
@@ -58,6 +57,8 @@ class GraphApi:
 
         return neighbors_with_demand
 
+    def get_demand_node(self, node: str | int ) -> float:
+        return self.graph.nodes[node].get('demand',0)
 
     def visualize_graph(self, shortest_path: List[str]) -> None:
         for edge in self.graph.edges:

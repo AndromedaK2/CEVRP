@@ -58,14 +58,13 @@ class Ant:
         if next_node == self.source:
             # add path to candidate solution of paths
             self.paths.append(self.path)
-            self.path_cost = 0.0
             self.limit_load_current_vehicle = 0
             self.vehicle_counter += 1
-
         else:
             # Mark the current node as visited
             self.visited_nodes.add(self.current_node)
             self.path_cost += self.graph_api.get_edge_cost(self.current_node, next_node)
+            self.limit_load_current_vehicle =+ self.graph_api.get_demand_node(next_node)
             self.current_node = next_node
 
     def _choose_next_node(self) -> int | str:

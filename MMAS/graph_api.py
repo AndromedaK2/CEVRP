@@ -28,7 +28,7 @@ class GraphApi:
 
     def get_edge_cost(self, u: str, v: str) -> float:
         if self.graph.has_edge(u, v):
-            return self.graph[u][v].get("cost", float('inf'))  # Devuelve `inf` si no hay costo definido
+            return self.graph[u][v].get("cost", 0.0)
         else:
             raise ValueError(f"No existe una arista entre {u} y {v}")
 

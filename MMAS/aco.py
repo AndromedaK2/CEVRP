@@ -77,8 +77,7 @@ class ACO:
         """Deploy fit search ants back towards their source node while dropping pheromones on the path"""
         for ant in self.search_ants:
             if ant.is_fit:
-                ant.deposit_pheromones_on_path()
-
+                ant.deposit_pheromones_on_paths()
 
     def _deploy_solution_ant(self, source: str) -> Ant:
         """Deploy the pheromone-greedy solution to find the shortest path
@@ -98,7 +97,6 @@ class ACO:
         while not ant.reached_destination():
             ant.take_step()
         return ant
-
 
     def find_shortest_path(
         self,

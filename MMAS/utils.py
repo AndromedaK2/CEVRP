@@ -2,12 +2,10 @@ import random
 from typing import Dict
 
 
-
 def compute_edge_desirability(
     pheromone_value: float, edge_cost: float, alpha: float, beta: float
 ) -> float:
     return pow(pheromone_value, alpha) * pow((1 / edge_cost), beta)
-
 
 def roulette_wheel_selection(probabilities: Dict[str, float]) -> str:
     """source: https://en.wikipedia.org/wiki/Fitness_proportionate_selection"""
@@ -27,7 +25,6 @@ def roulette_wheel_selection(probabilities: Dict[str, float]) -> str:
         if current > pick:
             return node
     raise Exception("Edge case for roulette wheel selection")
-
 
 def boundaries_pheromones_levels_validate(pheromone_value: float, max_pheromone_level: float, min_pheromone_level: float) -> float:
     """Returns pheromones levels within a certain range."""

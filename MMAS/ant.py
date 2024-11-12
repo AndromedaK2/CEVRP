@@ -64,6 +64,7 @@ class Ant:
             # Mark the current node as visited
             self.visited_nodes.add(self.current_node)
             self.path_cost += self.graph_api.get_edge_cost(self.current_node, next_node)
+            self.path.path_cost += self.path_cost
             self.limit_load_current_vehicle += self.graph_api.get_demand_node(next_node)
             self.current_node = next_node
 
@@ -124,12 +125,13 @@ class Ant:
         """
         return sum(neighbor_info['demand'] for neighbor_info in neighbors_with_demand)
 
-    def deposit_pheromones_on_path(self) -> None:
-        """Updates the pheromones along all the edges in the path"""
-        for i in range(len(self.path.nodes) - 1):
-            u, v = self.path.nodes[i], self.path.nodes[i + 1]
-            new_pheromone_value = 1 / self.path_cost
-            self.graph_api.deposit_pheromones(u, v, new_pheromone_value)
+    def deposit_pheromones_on_paths(self) -> None:
+        """Updates the pheromones along all the edges in the paths."""
+        for path in self.paths:  # Itera sobre cada ruta en la lista paths
+            for i in range(len(path.nodes) - 1):
+                u, v = path.nodes[i], path.nodes[i + 1]
+                new_pheromone_value = 1 / path.path_cost  # Asegúrate de que cada path tenga un atributo path_cost
+                self.graph_api.deposit_pheromones(u, v, new_pheromone_value)
 
     def _compute_all_edges_desirability(
             self,

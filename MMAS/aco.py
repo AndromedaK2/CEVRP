@@ -29,29 +29,11 @@ class ACO:
     # limit τ_min
     min_pheromone_level: float = 0.02
 
-
     def __post_init__(self):
         self.graph_api = GraphApi(self.graph, self.evaporation_rate)
         # Initialize all edges of the graph with a maximum pheromone value
         for edge in self.graph.edges:
             self.graph_api.set_edge_pheromones(edge[0], edge[1], self.max_pheromone_level)
-
-    def _deploy_forward_search_ants(self) -> None:
-        """Deploy forward search ants in the graph"""
-        for ant in self.search_ants:
-            for _ in range(self.ant_max_steps):
-                ant.take_step()
-                """Stop Criteria"""
-                """if ant.reached_destination():
-                    ant.is_fit = True
-                    break"""
-
-
-    def _deploy_backward_search_ants(self) -> None:
-        """Deploy fit search ants back towards their source node while dropping pheromones on the path"""
-        for ant in self.search_ants:
-            if ant.is_fit:
-                ant.deposit_pheromones_on_path()
 
     def _deploy_search_ants(
         self,
@@ -81,6 +63,23 @@ class ACO:
             self._deploy_forward_search_ants()
             self._deploy_backward_search_ants()
 
+    def _deploy_forward_search_ants(self) -> None:
+        """Deploy forward search ants in the graph"""
+        for ant in self.search_ants:
+            for _ in range(self.ant_max_steps):
+                ant.take_step()
+                """Stop Criteria"""
+                """if ant.reached_destination():
+                    ant.is_fit = True
+                    break"""
+
+    def _deploy_backward_search_ants(self) -> None:
+        """Deploy fit search ants back towards their source node while dropping pheromones on the path"""
+        for ant in self.search_ants:
+            if ant.is_fit:
+                ant.deposit_pheromones_on_path()
+
+
     def _deploy_solution_ant(self, source: str) -> Ant:
         """Deploy the pheromone-greedy solution to find the shortest path
 
@@ -99,6 +98,7 @@ class ACO:
         while not ant.reached_destination():
             ant.take_step()
         return ant
+
 
     def find_shortest_path(
         self,

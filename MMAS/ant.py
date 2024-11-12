@@ -87,7 +87,7 @@ class Ant:
 
         # Check if ant has no possible nodes to move to
         if len(unvisited_neighbors) == 0:
-            return None
+            return self.source
 
         if self._get_total_demand_of_neighbors(unvisited_neighbors) <= LOAD_LIMIT_VEHICLE * (FLEET - self.vehicle_counter - 1):
             return self.source

@@ -28,6 +28,8 @@ class ACO:
     max_pheromone_level: float = 1.0
     # limit τ_min
     min_pheromone_level: float = 0.02
+    # best global solution
+    best_path: List[Path] = field(default_factory=list)
 
     def __post_init__(self):
         self.graph_api = GraphApi(self.graph, self.evaporation_rate)
@@ -69,9 +71,9 @@ class ACO:
             for _ in range(self.ant_max_steps):
                 ant.take_step()
                 """Stop Criteria"""
-                """if ant.reached_destination():
+                if ant.reached_destination():
                     ant.is_fit = True
-                    break"""
+                    break
 
     def _deploy_backward_search_ants(self) -> None:
         """Deploy fit search ants back towards their source node while dropping pheromones on the path"""

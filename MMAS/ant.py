@@ -41,12 +41,12 @@ class Ant:
         self.path.nodes.append(self.source)
 
     def reached_destination(self) -> bool:
-        """Returns if the ant has reached the destination node in the graph
+        """Checks if the ant has visited all nodes in the graph.
 
         Returns:
-            bool: returns True if the ant has reached the destination
+            bool: True if the ant has visited all required nodes, otherwise False.
         """
-        return self.current_node == self.source
+        return len(self.visited_nodes) >= len(self.graph_api.graph.nodes)
 
     def take_step(self) -> None:
         """Compute and update the ant position"""
@@ -55,20 +55,22 @@ class Ant:
         next_node = self._choose_next_node()
 
         self.path.nodes.append(next_node)
+        self.visited_nodes.add(self.current_node)
         if next_node == self.source:
             # add path to candidate solution of paths
             self.paths.append(self.path)
+            self.path = Path()
+            self.path.nodes.append(next_node)
             self.limit_load_current_vehicle = 0
             self.vehicle_counter += 1
         else:
             # Mark the current node as visited
-            self.visited_nodes.add(self.current_node)
             self.path_cost += self.graph_api.get_edge_cost(self.current_node, next_node)
             self.path.path_cost += self.path_cost
             self.limit_load_current_vehicle += self.graph_api.get_demand_node(next_node)
             self.current_node = next_node
 
-    def _choose_next_node(self) -> int | str:
+    def _choose_next_node(self) -> int | str :
         """Choose the next node to be visited by the ant
 
         Returns:
@@ -127,10 +129,10 @@ class Ant:
 
     def deposit_pheromones_on_paths(self) -> None:
         """Updates the pheromones along all the edges in the paths."""
-        for path in self.paths:  # Itera sobre cada ruta en la lista paths
+        for path in self.paths:
             for i in range(len(path.nodes) - 1):
                 u, v = path.nodes[i], path.nodes[i + 1]
-                new_pheromone_value = 1 / path.path_cost  # Asegúrate de que cada path tenga un atributo path_cost
+                new_pheromone_value = 1 / path.path_cost
                 self.graph_api.deposit_pheromones(u, v, new_pheromone_value)
 
     def _compute_all_edges_desirability(

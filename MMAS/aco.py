@@ -104,7 +104,7 @@ class ACO:
         self,
         source: str,
         num_ants: int,
-    ) -> Tuple[Path, float]:
+    ):
         """Finds the shortest path from the source to the destination in the graph
 
         Args:

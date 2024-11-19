@@ -120,4 +120,4 @@ class ACO:
             num_ants
         )
         solution_ant = self._deploy_solution_ant(source)
-        return solution_ant.path, solution_ant.path_cost
+        return solution_ant.paths, solution_ant.path_cost

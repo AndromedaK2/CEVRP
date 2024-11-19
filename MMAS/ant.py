@@ -46,7 +46,10 @@ class Ant:
         Returns:
             bool: True if the ant has visited all required nodes, otherwise False.
         """
-        return len(self.visited_nodes) >= len(self.graph_api.graph.nodes)
+        total_visited_nodes = len(self.visited_nodes)
+        total_nodes = len(self.graph_api.graph.nodes)
+        return total_visited_nodes >= total_nodes
+
 
     def take_step(self) -> None:
         """Compute and update the ant position"""
@@ -81,7 +84,7 @@ class Ant:
 
         if self.is_solution_ant:
             if len(unvisited_neighbors) == 0:
-                raise Exception(f"No path found from {self.source}")
+                return self.source
             return max(
                 unvisited_neighbors,
                 key=lambda neighbor: self.graph_api.get_edge_pheromones(self.current_node, neighbor['node'])

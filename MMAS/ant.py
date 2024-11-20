@@ -94,7 +94,7 @@ class Ant:
         if len(unvisited_neighbors) == 0:
             return self.source
 
-        if self._get_total_demand_of_neighbors(unvisited_neighbors) <= LOAD_LIMIT_VEHICLE * (FLEET - self.vehicle_counter - 1):
+        if self.graph_api.get_total_demand_of_neighbors(unvisited_neighbors) <= LOAD_LIMIT_VEHICLE * (FLEET - self.vehicle_counter - 1):
             return self.source
 
         probabilities = self._calculate_edge_probabilities(unvisited_neighbors)
@@ -119,16 +119,6 @@ class Ant:
 
         return unvisited_neighbors_with_demand
 
-    def _get_total_demand_of_neighbors(self,neighbors_with_demand: List[Dict[str, int]]) -> int:
-        """Calculates and returns the total demand of a given list of neighbors.
-
-        Args:
-            neighbors_with_demand (List[Dict[str, int]]): A list of dictionaries containing each neighbor and its demand.
-
-        Returns:
-            int: The sum of the demands of all the given neighbors.
-        """
-        return sum(neighbor_info['demand'] for neighbor_info in neighbors_with_demand)
 
     def deposit_pheromones_on_paths(self) -> None:
         """Updates the pheromones along all the edges in the paths."""

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Dict
 import networkx as nx
 import matplotlib.pyplot as plt
 
@@ -56,6 +56,17 @@ class GraphApi:
             neighbors_with_demand.append({'node': neighbor, 'demand': demand})
 
         return neighbors_with_demand
+
+    def get_total_demand_of_neighbors(self,neighbors_with_demand: List[Dict[str, int]]) -> int:
+        """Calculates and returns the total demand of a given list of neighbors.
+
+        Args:
+            neighbors_with_demand (List[Dict[str, int]]): A list of dictionaries containing each neighbor and its demand.
+
+        Returns:
+            int: The sum of the demands of all the given neighbors.
+        """
+        return sum(neighbor_info['demand'] for neighbor_info in neighbors_with_demand)
 
     def get_demand_node(self, node: str | int ) -> float:
         return self.graph.nodes[node].get('demand',0)

@@ -9,6 +9,7 @@ import pandas as pd
 class CoordinatesDemandManager:
     data: np.ndarray
     distances: Optional[np.ndarray] = None
+    graph = nx.DiGraph()
 
     def __post_init__(self):
         self.cities = pd.DataFrame(self.data, columns=['ID', 'X', 'Y', 'Demand'])
@@ -35,12 +36,12 @@ class CoordinatesDemandManager:
             for j in distances.columns:
                 if i != j:  # auto-bucles
                     g.add_edge(str(i), str(j), cost=distances.loc[i, j])
-
+        self.graph = g
         return g
 
-    def show_graph(G):
-        print(f"Número de nodos: {G.number_of_nodes()}")
-        print(f"Número de aristas: {G.number_of_edges()}")
+    def show_graph(self):
+        print(f"Número de nodos: {self.graph.number_of_nodes()}")
+        print(f"Número de aristas: {self.graph.number_of_edges()}")
         print("\nAlgunas aristas del grafo:")
-        for i, (u, v, data) in enumerate(G.edges(data=True)):
+        for i, (u, v, data) in enumerate(self.graph.edges(data=True)):
             print(f"Arista de {u} a {v} con costo {data['cost']:.2f}")

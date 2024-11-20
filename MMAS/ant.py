@@ -2,8 +2,8 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Set
 
 from MMAS import utils
-from MMAS.constants import *
-from MMAS.graph_api import GraphApi
+from Shared.constants import *
+from Shared.graph_api import GraphApi
 from MMAS.path import Path
 
 @dataclass

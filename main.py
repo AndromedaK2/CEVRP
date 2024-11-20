@@ -49,5 +49,5 @@ if __name__ == '__main__':
         source,
         num_ants=4
     )
-
+    manager.show_graph()
     print(f"ACO - path: {aco_path}, cost: {aco_cost}")

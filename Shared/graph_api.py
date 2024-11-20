@@ -57,7 +57,8 @@ class GraphApi:
 
         return neighbors_with_demand
 
-    def get_total_demand_of_neighbors(self,neighbors_with_demand: List[Dict[str, int]]) -> int:
+    @staticmethod
+    def get_total_demand_of_neighbors(neighbors_with_demand: List[Dict[str, int]]) -> int:
         """Calculates and returns the total demand of a given list of neighbors.
 
         Args:

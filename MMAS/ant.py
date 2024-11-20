@@ -50,7 +50,6 @@ class Ant:
         total_nodes = len(self.graph_api.graph.nodes)
         return total_visited_nodes >= total_nodes
 
-
     def take_step(self) -> None:
         """Compute and update the ant position"""
 
@@ -69,7 +68,7 @@ class Ant:
         else:
             # Mark the current node as visited
             self.path_cost += self.graph_api.get_edge_cost(self.current_node, next_node)
-            self.path.path_cost += self.path_cost
+            self.path.path_cost += self.graph_api.get_edge_cost(self.current_node, next_node)
             self.limit_load_current_vehicle += self.graph_api.get_demand_node(next_node)
             self.current_node = next_node
 
@@ -118,7 +117,6 @@ class Ant:
                 unvisited_neighbors_with_demand.append(neighbor_info)
 
         return unvisited_neighbors_with_demand
-
 
     def deposit_pheromones_on_paths(self) -> None:
         """Updates the pheromones along all the edges in the paths."""

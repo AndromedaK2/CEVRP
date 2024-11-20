@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Tuple
 import networkx as nx
 
 from MMAS.ant import Ant
@@ -102,7 +102,7 @@ class ACO:
         self,
         source: str,
         num_ants: int,
-    ):
+    ) -> Tuple[ List[Path], float]:
         """Finds the shortest path from the source to the destination in the graph
 
         Args:

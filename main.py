@@ -50,4 +50,6 @@ if __name__ == '__main__':
         num_ants=4
     )
 
+    aco.graph_api.visualize_graph(aco_path)
+
     print(f"ACO - path: {aco_path}, cost: {aco_cost}")

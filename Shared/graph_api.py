@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import List, Dict
 import networkx as nx
 import matplotlib.pyplot as plt
+from itertools import cycle
 
 
 @dataclass
@@ -73,35 +74,59 @@ class GraphApi:
         return self.graph.nodes[node].get('demand',0)
 
     def visualize_graph(self, shortest_path: List[str]) -> None:
-        for edge in self.graph.edges:
-            source, destination = edge[0], edge[1]
-            self.graph[source][destination]["pheromones"] = round(
-                self.graph[source][destination]["pheromones"]
+        """Visualizes only the paths present in the shortest_path, highlighted with distinguishable colors.
+
+        Args:
+            shortest_path (List[str]): The nodes in the shortest path.
+        """
+
+        # Define the layout for the graph
+        pos = nx.spring_layout(self.graph, seed=2)  # Change layout if needed
+
+        # Adjust the figure size
+        plt.figure(figsize=(30, 15))  # Increase figure size for better visibility
+
+        # Draw only the nodes involved in the shortest path (remove others)
+        nodes_in_path = set(shortest_path)
+        nx.draw_networkx_nodes(self.graph, pos, nodelist=nodes_in_path, node_color="lightblue", node_size=1000)
+
+        # Get a cycle of distinguishable colors from matplotlib's "tab10" palette
+        color_cycle = cycle(plt.cm.tab10.colors)
+
+        # Split the shortest_path into separate subpaths when consecutive "1"s are found
+        paths = []
+        current_path = []
+
+        for node in shortest_path:
+            if node == "1" and current_path and current_path[-1] == "1":
+                # When a consecutive "1" is found, start a new subpath
+                paths.append(current_path)
+                current_path = [node]  # Start a new subpath with the current "1"
+            else:
+                current_path.append(node)
+
+        # Append the last path
+        if current_path:
+            paths.append(current_path)
+
+        # Draw only the edges present in the shortest path
+        for path in paths:
+            color = next(color_cycle)  # Get the next color in the cycle
+            nx.draw_networkx_edges(
+                self.graph,
+                pos,
+                edgelist=list(zip(path, path[1:])),
+                edge_color=color,  # Use the color from the tab10 palette
+                width=4,
             )
 
-        pos = nx.spring_layout(self.graph, seed=2)
-        nx.draw(self.graph, pos, width=4)
+        # Add node labels for the nodes in the shortest path
+        # Create a dictionary of node labels only for the nodes in the path
+        labels = {node: node for node in nodes_in_path}
+        nx.draw_networkx_labels(self.graph, pos, labels=labels, font_size=14, font_color="black")
 
-        nx.draw_networkx_nodes(self.graph, pos, node_size=700)
-
-        # nx.draw_networkx_edges(G, pos, width=2)
-        nx.draw_networkx_edges(
-            self.graph,
-            pos,
-            edgelist=list(zip(shortest_path, shortest_path[1:])),
-            edge_color="r",
-            width=4,
-        )
-
-        # node labels
-        nx.draw_networkx_labels(self.graph, pos, font_size=20)
-        # edge cost labels
-        edge_labels = nx.get_edge_attributes(self.graph, "pheromones")
-        nx.draw_networkx_edge_labels(self.graph, pos, edge_labels)
-
-        ax = plt.gca()
-        ax.margins(0.08)
+        # Display the graph
+        plt.gca().margins(0.1)
         plt.axis("off")
         plt.tight_layout()
         plt.show()
-

@@ -36,9 +36,9 @@ class ACO:
             self.graph_api.set_edge_pheromones(edge[0], edge[1], self.max_pheromone_level)
 
     def _deploy_search_ants(
-        self,
-        source: str,
-        num_ants: int,
+            self,
+            source: str,
+            num_ants: int,
     ) -> None:
         """Deploy search ants that traverse the graph to find the shortest path
 
@@ -97,10 +97,10 @@ class ACO:
         return ant
 
     def find_shortest_path(
-        self,
-        source: str,
-        num_ants: int,
-    ) -> Tuple[ List[Path], float]:
+            self,
+            source: str,
+            num_ants: int,
+    ) -> Tuple[List[str], float]:
         """Finds the shortest path from the source to the destination in the graph
 
         Args:
@@ -108,12 +108,16 @@ class ACO:
             num_ants (int): The number of search ants to be deployed
 
         Returns:
-            List[str]: The shortest path found by the ants
-            float: The cost of the computed shortest path
+            Tuple[List[str], float]: A list of concatenated paths as strings and the total cost
         """
-        self._deploy_search_ants(
-            source,
-            num_ants
-        )
+        # Deploy search ants to explore the graph
+        self._deploy_search_ants(source, num_ants)
+
+        # Deploy the solution ant to find the optimal path
         solution_ant = self._deploy_solution_ant(source)
-        return solution_ant.paths, solution_ant.path_cost
+
+        # Flatten all nodes from all paths into a single list
+        flattened_nodes = [node for path in solution_ant.paths for node in path.nodes]
+
+        # Return the flattened list of nodes and the total cost
+        return flattened_nodes, solution_ant.path_cost

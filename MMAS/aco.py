@@ -14,8 +14,6 @@ class ACO:
     ant_max_steps: int
     # Number of cycles/waves of search ants to be deployed
     num_iterations: int
-    # Indicates if the search ants should spawn at random nodes in the graph
-    ant_random_spawn: bool = False
     # Evaporation rate (rho)
     evaporation_rate: float = 0.98
     # Pheromone bias

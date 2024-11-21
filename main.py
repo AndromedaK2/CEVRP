@@ -1,5 +1,6 @@
 import numpy as np
 
+from Shared.benchmark import get_benchmark
 from Shared.coordinates_demand_manager import CoordinatesDemandManager
 from MMAS.aco import ACO
 
@@ -49,6 +50,8 @@ if __name__ == '__main__':
         source,
         num_ants=4
     )
+
+    get_benchmark()
 
     aco.graph_api.visualize_graph(aco_path)
 

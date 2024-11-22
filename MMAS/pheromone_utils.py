@@ -1,3 +1,4 @@
+import math
 import random
 from typing import Dict
 
@@ -32,21 +33,51 @@ def boundaries_pheromones_levels_validate(pheromone_value: float, max_pheromone_
 
 def calculate_phi_max(rho: float, f: float, xgb: float) -> float:
     """
-    Calcula φmax según la fórmula dada.
+    Calculates φmax based on the given formula.
 
     Args:
-        rho (float): Coeficiente de evaporación (0 < rho < 1).
-        f (float): Parámetro asociado a la función objetivo.
-        xgb (float): Solución global mejor (costo de la distancia).
+        rho (float): Evaporation coefficient (0 < rho < 1).
+        f (float): Parameter associated with the objective function.
+        xgb (float): Global best solution (distance cost).
 
     Returns:
-        float: Valor calculado de φmax.
+        float: Calculated value of φmax.
     """
     if rho <= 0 or rho >= 1:
-        raise ValueError("El valor de rho debe estar en el rango (0, 1).")
+        raise ValueError("The value of rho must be in the range (0, 1).")
 
-    # Calcular φmax
-    phi_max = 1 / ((1 - rho) * f)
+    # Calculate φmax
+    phi_max = 1 / ((1 - rho) * xgb)
 
-    # Retornar φmax y xgb (solución global mejor)
-    return phi_max, xgb
+    # Return φmax and xgb (global best solution)
+    return phi_max
+
+
+def calculate_phi_min(phi_max: float, n: int, pr: float) -> float:
+    """
+    Calculates φmin using the n-th root of pr.
+
+    Args:
+        phi_max (float): Calculated value of φmax.
+        n (int): Index of the root (n-th root).
+        pr (float): Probability or related parameter.
+
+    Returns:
+        float: Calculated value of φmin.
+    """
+    if n <= 2:
+        raise ValueError("The value of n must be greater than 2.")
+    if pr <= 0 or pr > 1:
+        raise ValueError("The value of pr must be in the range (0, 1].")
+
+    # Calculate the n-th root of pr
+    nth_root_pr = math.pow(pr, 1 / n)
+
+    # Calculate numerator and denominator
+    numerator = 1 - (1 / nth_root_pr)
+    denominator = (n / 2) - 1
+
+    # Calculate φmin
+    phi_min = phi_max * (numerator / denominator) * (1 / nth_root_pr)
+
+    return phi_min

@@ -29,3 +29,24 @@ def roulette_wheel_selection(probabilities: Dict[str, float]) -> str:
 def boundaries_pheromones_levels_validate(pheromone_value: float, max_pheromone_level: float, min_pheromone_level: float) -> float:
     """Returns pheromones levels within a certain range."""
     return max(min_pheromone_level, min(pheromone_value, max_pheromone_level))
+
+def calculate_phi_max(rho: float, f: float, xgb: float) -> float:
+    """
+    Calcula φmax según la fórmula dada.
+
+    Args:
+        rho (float): Coeficiente de evaporación (0 < rho < 1).
+        f (float): Parámetro asociado a la función objetivo.
+        xgb (float): Solución global mejor (costo de la distancia).
+
+    Returns:
+        float: Valor calculado de φmax.
+    """
+    if rho <= 0 or rho >= 1:
+        raise ValueError("El valor de rho debe estar en el rango (0, 1).")
+
+    # Calcular φmax
+    phi_max = 1 / ((1 - rho) * f)
+
+    # Retornar φmax y xgb (solución global mejor)
+    return phi_max, xgb

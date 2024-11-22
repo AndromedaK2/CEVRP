@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Dict, List, Set
 
-from MMAS import utils
+from MMAS import pheromone_utils
 from Shared.constants import *
 from Shared.graph_api import GraphApi
 from MMAS.path import Path
@@ -99,7 +99,7 @@ class Ant:
         probabilities = self._calculate_edge_probabilities(unvisited_neighbors)
 
         # Pick the next node based on the roulette wheel selection technique
-        return utils.roulette_wheel_selection(probabilities)
+        return pheromone_utils.roulette_wheel_selection(probabilities)
 
     def _get_unvisited_neighbors_with_demand(self) -> List[Dict[str, int]]:
         """Returns a list of unvisited neighbors of the current node, along with each neighbor's demand.
@@ -144,7 +144,7 @@ class Ant:
                 self.current_node, str(neighbor['node'])
             )
             edge_cost = self.graph_api.get_edge_cost(self.current_node, str(neighbor['node']))
-            total += utils.compute_edge_desirability(
+            total += pheromone_utils.compute_edge_desirability(
                 edge_pheromones, edge_cost, self.alpha, self.beta
             )
 
@@ -173,7 +173,7 @@ class Ant:
             )
             edge_cost = self.graph_api.get_edge_cost(self.current_node, str(neighbor['node']))
 
-            current_edge_desirability = utils.compute_edge_desirability(
+            current_edge_desirability = pheromone_utils.compute_edge_desirability(
                 edge_pheromones, edge_cost, self.alpha, self.beta
             )
             probabilities[str(neighbor['node'])] = current_edge_desirability / all_edges_desirability

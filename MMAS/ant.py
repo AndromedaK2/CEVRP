@@ -6,6 +6,7 @@ from Shared.constants import *
 from Shared.graph_api import GraphApi
 from MMAS.path import Path
 
+
 @dataclass
 class Ant:
     graph_api: GraphApi
@@ -14,6 +15,8 @@ class Ant:
     alpha: float = 0.7
     # Edge cost bias
     beta: float = 0.3
+    # Evaporation rate
+    evaporation_rate: float = 0.98
     # Set of nodes that have been visited by the ant
     visited_nodes: Set = field(default_factory=set)
     # Path taken by the ant so far
@@ -72,7 +75,7 @@ class Ant:
             self.limit_load_current_vehicle += self.graph_api.get_demand_node(next_node)
             self.current_node = next_node
 
-    def _choose_next_node(self) -> int | str :
+    def _choose_next_node(self) -> int | str:
         """Choose the next node to be visited by the ant
 
         Returns:
@@ -93,7 +96,8 @@ class Ant:
         if len(unvisited_neighbors) == 0:
             return self.source
 
-        if self.graph_api.get_total_demand_of_neighbors(unvisited_neighbors) <= LOAD_LIMIT_VEHICLE * (FLEET - self.vehicle_counter - 1):
+        if self.graph_api.get_total_demand_of_neighbors(unvisited_neighbors) <= LOAD_LIMIT_VEHICLE * (
+                FLEET - self.vehicle_counter - 1):
             return self.source
 
         probabilities = self._calculate_edge_probabilities(unvisited_neighbors)
@@ -113,7 +117,7 @@ class Ant:
 
         for neighbor_info in neighbors_with_demand:
             if (neighbor_info['node'] not in self.visited_nodes and
-                    neighbor_info['demand'] <=  LOAD_LIMIT_VEHICLE - self.limit_load_current_vehicle):
+                    neighbor_info['demand'] <= LOAD_LIMIT_VEHICLE - self.limit_load_current_vehicle):
                 unvisited_neighbors_with_demand.append(neighbor_info)
 
         return unvisited_neighbors_with_demand
@@ -123,7 +127,10 @@ class Ant:
         for path in self.paths:
             for i in range(len(path.nodes) - 1):
                 u, v = path.nodes[i], path.nodes[i + 1]
-                new_pheromone_value = 1 / path.path_cost
+                new_pheromone_value = pheromone_utils.calculate_pheromone_value(self.evaporation_rate,
+                                                                                self.graph_api.get_edge_pheromones(u,v),
+                                                                                self.path_cost,
+                                                                                self.graph_api.get_length_graph())
                 self.graph_api.deposit_pheromones(u, v, new_pheromone_value)
 
     def _compute_all_edges_desirability(

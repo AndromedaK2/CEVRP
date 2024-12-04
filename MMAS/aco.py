@@ -57,6 +57,7 @@ class ACO:
                     spawn_point,
                     alpha=self.alpha,
                     beta=self.beta,
+                    evaporation_rate = self.evaporation_rate
                 )
                 self.search_ants.append(ant)
 

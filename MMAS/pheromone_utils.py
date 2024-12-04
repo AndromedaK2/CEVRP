@@ -4,9 +4,10 @@ from typing import Dict
 
 
 def compute_edge_desirability(
-    pheromone_value: float, edge_cost: float, alpha: float, beta: float
+        pheromone_value: float, edge_cost: float, alpha: float, beta: float
 ) -> float:
     return pow(pheromone_value, alpha) * pow((1 / edge_cost), beta)
+
 
 def roulette_wheel_selection(probabilities: Dict[str, float]) -> str:
     """source: https://en.wikipedia.org/wiki/Fitness_proportionate_selection"""
@@ -17,8 +18,6 @@ def roulette_wheel_selection(probabilities: Dict[str, float]) -> str:
     """ probabilities = {"A": 0.3, "B": 0.5, "C": 0.2}
         ordered       = {"B": 0.5, "A": 0.3, "C": 0.2}
     """
-
-
     pick = random.random()
     current = 0.0
     for node, fitness in sorted_probabilities.items():
@@ -27,11 +26,14 @@ def roulette_wheel_selection(probabilities: Dict[str, float]) -> str:
             return node
     raise Exception("Edge case for roulette wheel selection")
 
-def boundaries_pheromones_levels_validate(pheromone_value: float, max_pheromone_level: float, min_pheromone_level: float) -> float:
-    """Returns pheromones levels within a certain range."""
-    return max(min_pheromone_level, min(pheromone_value, max_pheromone_level))
 
-def calculate_phi_max(rho: float, f: float, xgb: float) -> float:
+def boundaries_pheromones_levels_validate(pheromone_value: float, max_pheromone_level: float,
+                                          min_pheromone_level: float) -> float:
+    """Returns pheromones levels within a certain range."""
+    return min(max(pheromone_value, min_pheromone_level), max_pheromone_level)
+
+
+def calculate_phi_max(rho: float, xgb: float) -> float:
     """
     Calculates φmax based on the given formula.
 
@@ -53,7 +55,7 @@ def calculate_phi_max(rho: float, f: float, xgb: float) -> float:
     return phi_max
 
 
-def calculate_phi_min(phi_max: float, n: int, pr: float) -> float:
+def calculate_phi_min(phi_max: float, n: int, pr: float = 0.05) -> float:
     """
     Calculates φmin using the n-th root of pr.
 
@@ -81,3 +83,10 @@ def calculate_phi_min(phi_max: float, n: int, pr: float) -> float:
     phi_min = phi_max * (numerator / denominator) * (1 / nth_root_pr)
 
     return phi_min
+
+
+def calculate_pheromone_value(evaporation_rate: float, pheromone_value: float, path_cost: float, total_customers: int):
+    new_pheromone_value = (evaporation_rate * pheromone_value) + (1 / path_cost)
+    max_pheromone_level = calculate_phi_max(evaporation_rate, path_cost)
+    min_pheromone_level = calculate_phi_min(max_pheromone_level, total_customers)
+    return boundaries_pheromones_levels_validate(new_pheromone_value, max_pheromone_level, min_pheromone_level)

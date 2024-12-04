@@ -23,9 +23,7 @@ class GraphApi:
             raise ValueError(f"No existe una arista entre {u} y {v}")
 
     def deposit_pheromones(self, u: str, v: str, pheromone_amount: float) -> None:
-        self.graph[u][v]["pheromones"] += max(
-            (1 - self.evaporation_rate) + pheromone_amount, 1e-13
-        )
+        self.graph[u][v]["pheromones"] = pheromone_amount
 
     def get_edge_cost(self, u: str, v: str) -> float:
         if self.graph.has_edge(u, v):
@@ -35,6 +33,9 @@ class GraphApi:
 
     def get_all_nodes(self) -> List[str]:
         return list(self.graph.nodes)
+
+    def get_length_graph(self) -> int:
+        return self.graph.nodes.__len__()
 
     def get_neighbors(self, node: str) -> List[str]:
         return list(self.graph.neighbors(node))
@@ -53,7 +54,7 @@ class GraphApi:
 
         neighbors_with_demand = []
         for neighbor in self.graph.neighbors(node):
-            demand = self.graph.nodes[neighbor].get('demand',0)
+            demand = self.graph.nodes[neighbor].get('demand', 0)
             neighbors_with_demand.append({'node': neighbor, 'demand': demand})
 
         return neighbors_with_demand
@@ -70,8 +71,8 @@ class GraphApi:
         """
         return sum(neighbor_info['demand'] for neighbor_info in neighbors_with_demand)
 
-    def get_demand_node(self, node: str | int ) -> float:
-        return self.graph.nodes[node].get('demand',0)
+    def get_demand_node(self, node: str | int) -> float:
+        return self.graph.nodes[node].get('demand', 0)
 
     def visualize_graph(self, shortest_path: List[str]) -> None:
         """Visualizes only the paths present in the shortest_path, highlighted with distinguishable colors.

@@ -37,6 +37,8 @@ class Ant:
     vehicle_counter: int = 0
     # Current Node
     current_node: str = ""
+    # Best path
+    best_path_cost: float = 0
 
     def __post_init__(self) -> None:
         # Set the spawn node as the current and first node
@@ -129,7 +131,7 @@ class Ant:
                 u, v = path.nodes[i], path.nodes[i + 1]
                 new_pheromone_value = pheromone_utils.calculate_pheromone_value(self.evaporation_rate,
                                                                                 self.graph_api.get_edge_pheromones(u,v),
-                                                                                self.path_cost,
+                                                                                self.best_path_cost,
                                                                                 self.graph_api.get_length_graph())
                 self.graph_api.deposit_pheromones(u, v, new_pheromone_value)
 

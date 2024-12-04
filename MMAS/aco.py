@@ -28,6 +28,8 @@ class ACO:
     min_pheromone_level: float = 0.02
     # best global solution
     best_path: List[Path] = field(default_factory=list)
+    # best global solution path
+    best_path_cost: float = 384.67
 
     def __post_init__(self):
         self.graph_api = GraphApi(self.graph, self.evaporation_rate)
@@ -57,7 +59,8 @@ class ACO:
                     spawn_point,
                     alpha=self.alpha,
                     beta=self.beta,
-                    evaporation_rate = self.evaporation_rate
+                    evaporation_rate = self.evaporation_rate,
+                    best_path_cost=self.best_path_cost
                 )
                 self.search_ants.append(ant)
 
@@ -69,6 +72,9 @@ class ACO:
         for ant in self.search_ants:
             for _ in range(self.ant_max_steps):
                 ant.take_step()
+                if self.best_path_cost > ant.path_cost:
+                    self.best_path_cost = ant.path_cost
+                    self.best_path = ant.paths.copy()
                 """Stop Criteria"""
                 if ant.reached_destination():
                     ant.is_fit = True

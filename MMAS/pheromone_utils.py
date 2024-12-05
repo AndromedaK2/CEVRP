@@ -39,7 +39,6 @@ def calculate_phi_max(rho: float, xgb: float) -> float:
 
     Args:
         rho (float): Evaporation coefficient (0 < rho < 1).
-        f (float): Parameter associated with the objective function.
         xgb (float): Global best solution (distance cost).
 
     Returns:

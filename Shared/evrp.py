@@ -36,7 +36,14 @@ class EVRP:
         self.depot_section = depot_section
 
     @staticmethod
-    def parse_evrp_instance_from_file(file_path: str) -> "EVRP":
+    def parse_evrp_instance_from_file(file_path: str, include_stations: bool = False) -> "EVRP":
+        """
+        Lee una instancia EVRP desde un archivo y la parsea en un objeto EVRP.
+
+        :param file_path: Ruta al archivo de texto con la instancia EVRP.
+        :param include_stations: Indica si incluir estaciones de carga (demandas cero).
+        :return: Instancia de EVRP.
+        """
         with open(file_path, 'r') as file:
             lines = file.readlines()
 
@@ -72,12 +79,12 @@ class EVRP:
                 key, value = line.split(": ", 1)
                 instance_data[key.strip()] = value.strip()
 
-        # Crear arreglo numpy con coordenadas y demandas
         node_coord_array = []
         for coord in node_coord_list:
             node_id = coord[0]
             demand = demand_dict.get(node_id, 0)  # Si no hay demanda, se asigna 0
-            node_coord_array.append(coord + [demand])  # Agregar demanda como último valor
+            if node_id == 1 or include_stations or demand > 0:  # Siempre incluir el depósito
+                node_coord_array.append(coord + [demand])  # Agregar demanda como último valor
 
         node_coord_section = np.array(node_coord_array)
 

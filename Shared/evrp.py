@@ -38,12 +38,13 @@ class EVRP:
     @staticmethod
     def parse_evrp_instance_from_file(file_path: str, include_stations: bool = False) -> "EVRP":
         """
-        Lee una instancia EVRP desde un archivo y la parsea en un objeto EVRP.
+                Reads an EVRP instance from a file and parses it into an EVRP object.
 
-        :param file_path: Ruta al archivo de texto con la instancia EVRP.
-        :param include_stations: Indica si incluir estaciones de carga (demandas cero).
-        :return: Instancia de EVRP.
+                :param file_path: Path to the text file containing the EVRP instance.
+                :param include_stations: Indicates whether to include charging stations (zero demands).
+                :return: EVRP instance.
         """
+
         with open(file_path, 'r') as file:
             lines = file.readlines()
 
@@ -109,14 +110,15 @@ class EVRP:
     @staticmethod
     def drain_battery(current_battery: float, distance_cost: int, energy_consumption: float) -> float:
         """
-        Reduce la batería restante en función del costo de distancia y el consumo de energía.
+        Reduces the remaining battery based on the distance cost and energy consumption.
         """
+
         new_current_battery = current_battery - (distance_cost * energy_consumption)
         return max(0.0, new_current_battery)  # Evitar batería negativa
 
     @property
     def charge_battery(self) -> float:
         """
-        Retorna la capacidad máxima de la batería para esta instancia.
+        Returns the maximum battery capacity for this instance.
         """
         return self.energy_capacity

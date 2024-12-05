@@ -22,7 +22,7 @@ class CoordinatesDemandManager:
         if self.distances is not None:
             return pd.DataFrame(self.distances, index=self.cities['ID'], columns=self.cities['ID'])
         else:
-            raise ValueError("Las distancias no han sido calculadas. Llama a calculate_distances primero.")
+            raise ValueError("Distances have not been calculated. Call calculate_distances first.")
 
     def create_graph_from_manager(self):
         g = nx.DiGraph()
@@ -34,14 +34,15 @@ class CoordinatesDemandManager:
         distances = self.get_distances()
         for i in distances.index:
             for j in distances.columns:
-                if i != j:  # auto-bucles
+                if i != j:  # auto-loops
                     g.add_edge(str(i), str(j), cost=distances.loc[i, j])
         self.graph = g
         return g
 
     def show_graph(self):
-        print(f"Número de nodos: {self.graph.number_of_nodes()}")
-        print(f"Número de aristas: {self.graph.number_of_edges()}")
-        print("\nAlgunas aristas del grafo:")
+        print(f"Number of nodes: {self.graph.number_of_nodes()}")
+        print(f"Number of edges: {self.graph.number_of_edges()}")
+        print("\nSome edges of the graph:")
         for i, (u, v, data) in enumerate(self.graph.edges(data=True)):
-            print(f"Arista de {u} a {v} con costo {data['cost']:.2f}")
+            print(f"Edge from {u} to {v} with cost {data['cost']:.2f}")
+

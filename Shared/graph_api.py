@@ -35,7 +35,7 @@ class GraphApi:
         return list(self.graph.nodes)
 
     def get_length_graph(self) -> int:
-        return self.graph.nodes.__len__()
+        return len(self.graph.nodes)
 
     def get_neighbors(self, node: str) -> List[str]:
         return list(self.graph.neighbors(node))

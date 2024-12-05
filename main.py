@@ -3,6 +3,7 @@ import numpy as np
 from Shared.benchmark import get_benchmark
 from Shared.coordinates_demand_manager import CoordinatesDemandManager
 from MMAS.aco import ACO
+from Shared.evrp import EVRP
 
 if __name__ == '__main__':
     # Define the coordinates and demand
@@ -38,6 +39,12 @@ if __name__ == '__main__':
      #   [29, 155, 234, 0],  # Estación de carga (demanda 0)
      #   [30, 155, 254, 0]  # Estación de carga (demanda 0)
     ])
+
+    file_path = "Shared/Instances/E-n22-k4.evrp"  # Cambia esta ruta al archivo real.
+    evrp_instance = EVRP.parse_evrp_instance_from_file(file_path)
+
+    print(f"Coordenadas de nodos: {evrp_instance.node_coord_section}")
+
 
     manager = CoordinatesDemandManager(data)
     manager.calculate_distances()

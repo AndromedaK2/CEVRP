@@ -1,8 +1,9 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, Field
 from typing import List, Tuple
 import networkx as nx
 
 from MMAS.ant import Ant
+from Shared.evrp import EVRP
 from Shared.graph_api import GraphApi
 from MMAS.path import Path
 
@@ -30,6 +31,8 @@ class ACO:
     best_path: List[Path] = field(default_factory=list)
     # best global solution path
     best_path_cost: float = 384.67
+    # evrp instance
+    evrp_instance: EVRP = field(default_factory=EVRP)
 
     def __post_init__(self):
         self.graph_api = GraphApi(self.graph, self.evaporation_rate)
@@ -72,13 +75,13 @@ class ACO:
         for ant in self.search_ants:
             for _ in range(self.ant_max_steps):
                 ant.take_step()
-                if self.best_path_cost > ant.path_cost:
-                    self.best_path_cost = ant.path_cost
-                    self.best_path = ant.paths.copy()
                 """Stop Criteria"""
                 if ant.reached_destination():
                     ant.is_fit = True
                     break
+            if self.best_path_cost > ant.path_cost:
+                self.best_path_cost = ant.path_cost
+                self.best_path = ant.paths.copy()
 
     def _deploy_backward_search_ants(self) -> None:
         """Deploy fit search ants back towards their source node while dropping pheromones on the path"""
@@ -121,10 +124,10 @@ class ACO:
         self._deploy_search_ants(source, num_ants)
 
         # Deploy the solution ant to find the optimal path
-        solution_ant = self._deploy_solution_ant(source)
+        # solution_ant = self._deploy_solution_ant(source)
 
         # Flatten all nodes from all paths into a single list
-        flattened_nodes = [node for path in solution_ant.paths for node in path.nodes]
+        flattened_nodes = [node for path in self.best_path for node in path.nodes]
 
         # Return the flattened list of nodes and the total cost
-        return flattened_nodes, solution_ant.path_cost
+        return flattened_nodes, self.best_path_cost

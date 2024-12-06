@@ -59,11 +59,12 @@ if __name__ == '__main__':
     G = manager.create_graph_from_manager()
 
     # ACO solver
-    aco = ACO(G, ant_max_steps=100, num_iterations=100)
-    source = "1"
+    aco = ACO(G, ant_max_steps=100, num_iterations=100, best_path_cost=evrp_instance.optimal_value,
+              evrp_instance=evrp_instance)
+    source:str =  "1"
     aco_path, aco_cost = aco.find_shortest_path(
         source,
-        num_ants=4
+        num_ants=100,
     )
 
     # Benchmark and visualization

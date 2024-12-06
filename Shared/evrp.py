@@ -76,16 +76,16 @@ class EVRP:
                 stations_coord_section.append(int(line.strip()))
             elif section == "DEPOT_SECTION":
                 depot_section.append(int(line.strip()))
-            elif line:  # Líneas de metadatos (fuera de las secciones)
+            elif line:
                 key, value = line.split(": ", 1)
                 instance_data[key.strip()] = value.strip()
 
         node_coord_array = []
         for coord in node_coord_list:
             node_id = coord[0]
-            demand = demand_dict.get(node_id, 0)  # Si no hay demanda, se asigna 0
-            if node_id == 1 or include_stations or demand > 0:  # Siempre incluir el depósito
-                node_coord_array.append(coord + [demand])  # Agregar demanda como último valor
+            demand = demand_dict.get(node_id, 0)
+            if node_id == 1 or include_stations or demand > 0:
+                node_coord_array.append(coord + [demand])
 
         node_coord_section = np.array(node_coord_array)
 
@@ -114,7 +114,7 @@ class EVRP:
         """
 
         new_current_battery = current_battery - (distance_cost * energy_consumption)
-        return max(0.0, new_current_battery)  # Evitar batería negativa
+        return max(0.0, new_current_battery)
 
     @property
     def charge_battery(self) -> float:

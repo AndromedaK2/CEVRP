@@ -63,7 +63,8 @@ class ACO:
                     alpha=self.alpha,
                     beta=self.beta,
                     evaporation_rate = self.evaporation_rate,
-                    best_path_cost=self.best_path_cost
+                    best_path_cost=self.best_path_cost,
+                    evrp_instance=self.evrp_instance,
                 )
                 self.search_ants.append(ant)
 

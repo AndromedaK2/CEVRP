@@ -1,39 +1,26 @@
+from dataclasses import dataclass, field
+
 import numpy as np
 from typing import List, Dict
 
 
+@dataclass
 class EVRP:
-    def __init__(self,
-                 name: str,
-                 comment: str,
-                 instance_type: str,
-                 optimal_value: float,
-                 vehicles: int,
-                 dimension: int,
-                 stations: int,
-                 capacity: int,
-                 energy_capacity: int,
-                 energy_consumption: float,
-                 edge_weight_format: str,
-                 node_coord_section: np.ndarray,
-                 demand_section: Dict[int, int],
-                 stations_coord_section: List[int],
-                 depot_section: List[int]):
-        self.name = name
-        self.comment = comment
-        self.instance_type = instance_type
-        self.optimal_value = optimal_value
-        self.vehicles = vehicles
-        self.dimension = dimension
-        self.stations = stations
-        self.capacity = capacity
-        self.energy_capacity = energy_capacity
-        self.energy_consumption = energy_consumption
-        self.edge_weight_format = edge_weight_format
-        self.node_coord_section = node_coord_section
-        self.demand_section = demand_section
-        self.stations_coord_section = stations_coord_section
-        self.depot_section = depot_section
+    name: str = "Default Name"
+    comment: str = "Default Comment"
+    instance_type: str = "Default Type"
+    optimal_value: float = 0.0
+    vehicles: int = 1
+    dimension: int = 1
+    stations: int = 0
+    capacity: int = 1000
+    energy_capacity: int = 100
+    energy_consumption: float = 1.0
+    edge_weight_format: str = "Default Format"
+    node_coord_section: np.ndarray = field(default_factory=lambda: np.array([]))
+    demand_section: Dict[int, int] = field(default_factory=dict)
+    stations_coord_section: List[int] = field(default_factory=list)
+    depot_section: List[int] = field(default_factory=list)
 
     @staticmethod
     def parse_evrp_instance_from_file(file_path: str, include_stations: bool = False) -> "EVRP":

@@ -30,7 +30,7 @@ class ACO:
     # best global solution
     best_path: List[Path] = field(default_factory=list)
     # best global solution path
-    best_path_cost: float = 384.67
+    best_path_cost: float = 0.0
     # evrp instance
     evrp_instance: EVRP = field(default_factory=EVRP)
 

@@ -18,7 +18,7 @@ class GraphApi:
 
     def get_edge_pheromones(self, u: str, v: str) -> float:
         if self.graph.has_edge(u, v):
-            return self.graph[u][v].get("pheromones", 0.0)  # Devuelve `0.0` si no hay feromonas definidas
+            return self.graph[u][v].get("pheromones", 0.0)
         return 0.0
 
     def deposit_pheromones(self, u: str, v: str, pheromone_amount: float) -> None:

@@ -40,6 +40,29 @@ class ACO:
         for edge in self.graph.edges:
             self.graph_api.set_edge_pheromones(edge[0], edge[1], self.max_pheromone_level)
 
+    def find_shortest_path(
+            self,
+            source: str,
+            num_ants: int,
+    ) -> Tuple[List[str], float]:
+        """Finds the shortest path from the source to the destination in the graph
+
+        Args:
+            source (str): The source node in the graph
+            num_ants (int): The number of search ants to be deployed
+
+        Returns:
+            Tuple[List[str], float]: A list of concatenated paths as strings and the total cost
+        """
+        # Deploy search ants to explore the graph
+        self._deploy_search_ants(source, num_ants)
+
+        # Flatten all nodes from all paths into a single list
+        flattened_nodes = [node for path in self.best_path for node in path.nodes]
+
+        # Return the flattened list of nodes and the total cost
+        return flattened_nodes, self.best_path_cost
+
     def _deploy_search_ants(
             self,
             source: str,
@@ -90,26 +113,3 @@ class ACO:
             if ant.is_fit:
                 ant.deposit_pheromones_on_paths()
 
-
-    def find_shortest_path(
-            self,
-            source: str,
-            num_ants: int,
-    ) -> Tuple[List[str], float]:
-        """Finds the shortest path from the source to the destination in the graph
-
-        Args:
-            source (str): The source node in the graph
-            num_ants (int): The number of search ants to be deployed
-
-        Returns:
-            Tuple[List[str], float]: A list of concatenated paths as strings and the total cost
-        """
-        # Deploy search ants to explore the graph
-        self._deploy_search_ants(source, num_ants)
-
-        # Flatten all nodes from all paths into a single list
-        flattened_nodes = [node for path in self.best_path for node in path.nodes]
-
-        # Return the flattened list of nodes and the total cost
-        return flattened_nodes, self.best_path_cost

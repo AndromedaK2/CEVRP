@@ -96,13 +96,10 @@ class Ant:
                 key=lambda neighbor: self.graph_api.get_edge_pheromones(self.current_node, neighbor['node'])
             )['node']
 
-        # Check if ant has no possible nodes to move to
-        if len(unvisited_neighbors) == 0:
-            return self.source
 
         if self.graph_api.get_total_demand_of_neighbors(unvisited_neighbors) <= self.evrp_instance.capacity * (
-                self.evrp_instance.vehicles - self.vehicle_counter - 1):
-            return self.source
+                (self.evrp_instance.vehicles - self.vehicle_counter) - 1)  or len(unvisited_neighbors) == 0:
+            unvisited_neighbors.append({'node': self.source, 'demand': 0})
 
         probabilities = self._calculate_edge_probabilities(unvisited_neighbors)
 

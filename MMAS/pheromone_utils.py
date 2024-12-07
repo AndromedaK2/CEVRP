@@ -6,6 +6,8 @@ from typing import Dict
 def compute_edge_desirability(
         pheromone_value: float, edge_cost: float, alpha: float, beta: float
 ) -> float:
+    if edge_cost == 0.0:
+        return 0
     return pow(pheromone_value, alpha) * pow((1 / edge_cost), beta)
 
 

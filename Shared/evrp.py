@@ -68,11 +68,30 @@ class EVRP:
                 instance_data[key.strip()] = value.strip()
 
         node_coord_array = []
-        for coord in node_coord_list:
-            node_id = coord[0]
-            demand = demand_dict.get(node_id, 0)
-            if node_id == 1 or include_stations or demand > 0:
+
+        # Check if stations should be included
+        if include_stations:
+            # Process all nodes, including stations
+            for coord in node_coord_list:
+                node_id = coord[0]  # The first value in coord is the node ID
+                demand = demand_dict.get(node_id, 0)
+
+                # If the node is a station, subtract the station coordinates
+                if node_id in stations_coord_section:
+                    station_coord = stations_coord_section[node_id]  # Ensure this is the correct format
+                    coord = [c - station_coord for c in coord]  # Subtract the station's coordinates
+
                 node_coord_array.append(coord + [demand])
+
+        # If stations are not included, only process nodes with demand > 0
+        else:
+            for coord in node_coord_list:
+                node_id = coord[0]  # The first value in coord is the node ID
+                demand = demand_dict.get(node_id, 0)
+
+                # Include node 1 (depot) or nodes with demand > 0
+                if node_id == 1 or demand > 0:
+                    node_coord_array.append(coord + [demand])
 
         node_coord_section = np.array(node_coord_array)
 

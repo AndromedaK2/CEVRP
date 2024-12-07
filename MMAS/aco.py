@@ -80,7 +80,7 @@ class ACO:
                 if ant.reached_destination():
                     ant.is_fit = True
                     break
-            if self.best_path_cost > ant.path_cost:
+            if self.best_path_cost >= ant.path_cost:
                 self.best_path_cost = ant.path_cost
                 self.best_path = ant.paths.copy()
 
@@ -90,22 +90,6 @@ class ACO:
             if ant.is_fit:
                 ant.deposit_pheromones_on_paths()
 
-    def _deploy_solution_ant(self, source: str) -> Ant:
-        """Deploy the pheromone-greedy solution to find the shortest path
-
-        Args:
-            source (str): The source node in the graph
-        Returns:
-            Ant: The solution ant with the computed shortest path and cost
-        """
-        ant = Ant(
-            self.graph_api,
-            source,
-            is_solution_ant=True,
-        )
-        while not ant.reached_destination():
-            ant.take_step()
-        return ant
 
     def find_shortest_path(
             self,
@@ -123,9 +107,6 @@ class ACO:
         """
         # Deploy search ants to explore the graph
         self._deploy_search_ants(source, num_ants)
-
-        # Deploy the solution ant to find the optimal path
-        # solution_ant = self._deploy_solution_ant(source)
 
         # Flatten all nodes from all paths into a single list
         flattened_nodes = [node for path in self.best_path for node in path.nodes]

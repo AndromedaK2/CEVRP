@@ -27,8 +27,6 @@ class Ant:
     path_cost: float = 0.0
     # Indicates if the ant has reached the destination (fit) or not (unfit)
     is_fit: bool = False
-    # Indicates if the ant is the pheromone-greedy solution ant
-    is_solution_ant: bool = False
     # Variable Indicates the max capacity
     limit_load_current_vehicle: float = 0
     # Indicates the capacity of all customers
@@ -88,15 +86,6 @@ class Ant:
 
         unvisited_neighbors = self._get_unvisited_neighbors_with_demand()
 
-        if self.is_solution_ant:
-            if len(unvisited_neighbors) == 0:
-                return self.source
-            return max(
-                unvisited_neighbors,
-                key=lambda neighbor: self.graph_api.get_edge_pheromones(self.current_node, neighbor['node'])
-            )['node']
-
-
         if self.graph_api.get_total_demand_of_neighbors(unvisited_neighbors) <= self.evrp_instance.capacity * (
                 (self.evrp_instance.vehicles - self.vehicle_counter) - 1)  or len(unvisited_neighbors) == 0:
             unvisited_neighbors.append({'node': self.source, 'demand': 0})
@@ -141,7 +130,7 @@ class Ant:
         """Computes the denominator of the transition probability equation for the ant
 
         Args:
-            unvisited_neighbors (List[str]): All unvisited neighbors of the current node
+            neighbors_with_demand (List[str]): All unvisited neighbors of the current node
 
         Returns:
             float: The summation of all the outgoing edges (to unvisited nodes) from the current node
@@ -164,7 +153,7 @@ class Ant:
         """Computes the transition probabilities of all the edges from the current node
 
         Args:
-            unvisited_neighbors (List[str]): A list of unvisited neighbors of the current node
+            neighbors_with_demand (List[str]): A list of unvisited neighbors of the current node
 
         Returns:
             Dict[str, float]: A dictionary mapping nodes to their transition probabilities

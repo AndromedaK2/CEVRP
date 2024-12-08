@@ -25,12 +25,14 @@ class ACO:
     search_ants: List[Ant] = field(default_factory=list)
     # limit τ_max
     max_pheromone_level: float = 1.0
-    # limit τ_min
-    min_pheromone_level: float = 0.02
     # best global solution
     best_path: List[Path] = field(default_factory=list)
     # best global solution path
     best_path_cost: float = 0.0
+    # best global solution
+    second_best_path: List[Path] = field(default_factory=list)
+    # best global solution path
+    second_best_path_cost: float = float('inf')
     # evrp instance
     evrp_instance: EVRP = field(default_factory=EVRP)
 
@@ -45,22 +47,31 @@ class ACO:
             source: str,
             num_ants: int,
     ) -> Tuple[List[str], float]:
-        """Finds the shortest path from the source to the destination in the graph
+        """Finds the shortest path from the source to the destination in the graph.
 
         Args:
-            source (str): The source node in the graph
-            num_ants (int): The number of search ants to be deployed
+            source (str): The source node in the graph.
+            num_ants (int): The number of search ants to be deployed.
 
         Returns:
-            Tuple[List[str], float]: A list of concatenated paths as strings and the total cost
+            Tuple[List[str], float]: A list of concatenated nodes as strings and the total cost.
         """
         # Deploy search ants to explore the graph
         self._deploy_search_ants(source, num_ants)
 
-        # Flatten all nodes from all paths into a single list
-        flattened_nodes = [node for path in self.best_path for node in path.nodes]
 
-        # Return the flattened list of nodes and the total cost
+        # Validate the consistency of the best path's cost
+        calculated_cost = sum(path.path_cost for path in self.best_path)
+        if self.best_path_cost != calculated_cost:
+            # If the best path cost is inconsistent, use the second-best path if available
+            if self.second_best_path and self.second_best_path_cost != float('inf'):
+                flattened_nodes = [node for path in self.second_best_path for node in path.nodes]
+                return flattened_nodes, self.second_best_path_cost
+            # If no second-best path exists, return default values
+            return [], float('inf')
+
+        # If the best path cost is consistent, return it
+        flattened_nodes = [node for path in self.best_path for node in path.nodes]
         return flattened_nodes, self.best_path_cost
 
     def _deploy_search_ants(
@@ -103,9 +114,14 @@ class ACO:
                 if ant.reached_destination():
                     ant.is_fit = True
                     break
-            if self.best_path_cost >= ant.path_cost:
+            if ant.path_cost < self.best_path_cost:
+                self.second_best_path_cost = self.best_path_cost
+                self.second_best_path = self.best_path.copy()
                 self.best_path_cost = ant.path_cost
                 self.best_path = ant.paths.copy()
+            elif ant.path_cost < self.second_best_path_cost:
+                self.second_best_path_cost = ant.path_cost
+                self.second_best_path = ant.paths.copy()
 
     def _deploy_backward_search_ants(self) -> None:
         """Deploy fit search ants back towards their source node while dropping pheromones on the path"""

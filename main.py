@@ -64,7 +64,7 @@ if __name__ == '__main__':
     source:str =  "1"
     aco_path, aco_cost = aco.find_shortest_path(
         source,
-        num_ants=100,
+        num_ants=10,
     )
 
     # Benchmark and visualization

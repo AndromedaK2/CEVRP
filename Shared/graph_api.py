@@ -82,7 +82,7 @@ class GraphApi:
     def visualize_graph(self, shortest_path: List[str]) -> None:
         """Visualizes the graph with a grid background and labeled axes.
 
-        Highlights the shortest_path with distinguishable colors.
+        Handles repetitive nodes in the shortest path, ensuring subpaths close at the depot.
 
         Args:
             shortest_path (List[str]): The nodes in the shortest path.
@@ -96,7 +96,7 @@ class GraphApi:
             raise ValueError("Node positions are missing in the graph. Ensure nodes have a 'pos' attribute.")
 
         # Adjust the figure size
-        plt.figure(figsize=(12, 12))  # Set a square figure for better alignment
+        plt.figure(figsize=(12, 12))
 
         # Add grid and axis lines
         plt.grid(visible=True, which="both", color="gray", linestyle="--", linewidth=0.5, alpha=0.7)
@@ -108,26 +108,38 @@ class GraphApi:
         plt.xlabel("X-axis", fontsize=14)
         plt.ylabel("Y-axis", fontsize=14)
 
+        # Separate the path into subpaths that start and end with "1"
+        paths = []
+        current_path = []
+
+        for node in shortest_path:
+            current_path.append(node)
+            if node == "1" and len(current_path) > 1:  # Close the subpath when reaching "1"
+                paths.append(current_path)
+                current_path = [node]  # Start a new subpath with the current "1"
+
+        if len(current_path) > 1:  # Ensure the last subpath is added if it doesn't end with "1"
+            paths.append(current_path)
+
         # Draw nodes
         nodes_in_path = set(shortest_path)
         nx.draw_networkx_nodes(self.graph, node_positions, nodelist=nodes_in_path, node_color="lightblue",
                                node_size=600)
 
-        # Get a cycle of distinguishable colors
+        # Draw edges for each subpath in distinguishable colors
         color_cycle = cycle(plt.cm.tab10.colors)
-
-        # Draw edges in the shortest path
-        for path_start, path_end in zip(shortest_path[:-1], shortest_path[1:]):
+        for path in paths:
             color = next(color_cycle)
+            edges = list(zip(path, path[1:]))
             nx.draw_networkx_edges(
                 self.graph,
                 node_positions,
-                edgelist=[(path_start, path_end)],
+                edgelist=edges,
                 edge_color=color,
                 width=3,
             )
 
-        # Add labels
+        # Add labels for the nodes
         nx.draw_networkx_labels(self.graph, node_positions, font_size=10, font_color="black")
 
         # Set limits for better visualization

@@ -10,11 +10,9 @@ class GraphApi:
     graph: nx.DiGraph
     evaporation_rate: float
 
-    def set_edge_pheromones(self, u: str, v: str, pheromone_value: float) -> None:
+    def set_edge_pheromones(self, u: str, v: str, pheromone_amount: float) -> None:
         if self.graph.has_edge(u, v):
-            self.graph[u][v]["pheromones"] = pheromone_value
-        else:
-            raise ValueError(f"No existe una arista entre {u} y {v}. No se puede asignar el valor de feromonas.")
+            self.graph[u][v]["pheromones"] = pheromone_amount
 
     def get_edge_pheromones(self, u: str, v: str) -> float:
         if self.graph.has_edge(u, v):

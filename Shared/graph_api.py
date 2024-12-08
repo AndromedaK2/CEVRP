@@ -1,8 +1,11 @@
 from dataclasses import dataclass
 from typing import List, Dict
+from itertools import cycle
+
 import networkx as nx
 import matplotlib.pyplot as plt
-from itertools import cycle
+import matplotlib.colors as mcolors
+
 
 
 @dataclass
@@ -77,6 +80,12 @@ class GraphApi:
     def get_demand_node(self, node: str | int) -> float:
         return self.graph.nodes[node].get('demand', 0)
 
+    import matplotlib.pyplot as plt
+    import matplotlib.colors as mcolors
+    import networkx as nx
+    from itertools import cycle
+    from typing import List
+
     def visualize_graph(self, shortest_path: List[str]) -> None:
         """Visualizes the graph with a grid background and labeled axes.
 
@@ -124,8 +133,11 @@ class GraphApi:
         nx.draw_networkx_nodes(self.graph, node_positions, nodelist=nodes_in_path, node_color="lightblue",
                                node_size=600)
 
+        # Use a color map from matplotlib
+        color_map = list(mcolors.TABLEAU_COLORS.values())  # Get a list of named colors from Tableau color set
+        color_cycle = cycle(color_map)  # Cycle through the colors
+
         # Draw edges for each subpath in distinguishable colors
-        color_cycle = cycle(plt.cm.tab10.colors)
         for path in paths:
             color = next(color_cycle)
             edges = list(zip(path, path[1:]))

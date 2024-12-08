@@ -15,7 +15,7 @@ class GraphApi:
 
     def set_edge_pheromones(self, u: str, v: str, pheromone_amount: float) -> None:
         if self.graph.has_edge(u, v):
-            self.graph[u][v]["pheromones"] = pheromone_amount
+            self.graph.edges[u,v]['pheromones'] = pheromone_amount
 
     def get_edge_pheromones(self, u: str, v: str) -> float:
         if self.graph.has_edge(u, v):
@@ -24,7 +24,7 @@ class GraphApi:
 
     def deposit_pheromones(self, u: str, v: str, pheromone_amount: float) -> None:
         if self.graph.has_edge(u, v):
-            self.graph[u][v]["pheromones"] = pheromone_amount
+            self.graph.edges[u,v]['pheromones'] = pheromone_amount
 
     def get_edge_cost(self, u: str, v: str) -> float:
         if self.graph.has_edge(u, v):

@@ -80,12 +80,6 @@ class GraphApi:
     def get_demand_node(self, node: str | int) -> float:
         return self.graph.nodes[node].get('demand', 0)
 
-    import matplotlib.pyplot as plt
-    import matplotlib.colors as mcolors
-    import networkx as nx
-    from itertools import cycle
-    from typing import List
-
     def visualize_graph(self, shortest_path: List[str]) -> None:
         """Visualizes the graph with a grid background and labeled axes.
 
@@ -121,11 +115,11 @@ class GraphApi:
 
         for node in shortest_path:
             current_path.append(node)
-            if node == "1" and len(current_path) > 1:  # Close the subpath when reaching "1"
+            if node == "1" and len(current_path) > 1:  # Close the sub path when reaching "1"
                 paths.append(current_path)
-                current_path = [node]  # Start a new subpath with the current "1"
+                current_path = [node]  # Start a new sub path with the current "1"
 
-        if len(current_path) > 1:  # Ensure the last subpath is added if it doesn't end with "1"
+        if len(current_path) > 1:  # Ensure the last sub path is added if it doesn't end with "1"
             paths.append(current_path)
 
         # Draw nodes

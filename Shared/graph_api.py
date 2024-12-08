@@ -4,7 +4,7 @@ from itertools import cycle
 
 import networkx as nx
 import matplotlib.pyplot as plt
-import matplotlib.colors as mcolors
+import matplotlib.colors as colors
 
 
 
@@ -128,10 +128,10 @@ class GraphApi:
                                node_size=600)
 
         # Use a color map from matplotlib
-        color_map = list(mcolors.TABLEAU_COLORS.values())  # Get a list of named colors from Tableau color set
+        color_map = list(colors.TABLEAU_COLORS.values())  # Get a list of named colors from Tableau color set
         color_cycle = cycle(color_map)  # Cycle through the colors
 
-        # Draw edges for each subpath in distinguishable colors
+        # Draw edges for each sub path in distinguishable colors
         for path in paths:
             color = next(color_cycle)
             edges = list(zip(path, path[1:]))

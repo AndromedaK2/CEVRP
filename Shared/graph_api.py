@@ -80,59 +80,63 @@ class GraphApi:
         return self.graph.nodes[node].get('demand', 0)
 
     def visualize_graph(self, shortest_path: List[str]) -> None:
-        """Visualizes only the paths present in the shortest_path, highlighted with distinguishable colors.
+        """Visualizes the graph with a grid background and labeled axes.
+
+        Highlights the shortest_path with distinguishable colors.
 
         Args:
             shortest_path (List[str]): The nodes in the shortest path.
         """
 
-        # Define the layout for the graph
-        pos = nx.spring_layout(self.graph, seed=2)  # Change layout if needed
+        # Extract node positions from the graph
+        node_positions = nx.get_node_attributes(self.graph, "pos")
+
+        # Validate the positions
+        if not node_positions:
+            raise ValueError("Node positions are missing in the graph. Ensure nodes have a 'pos' attribute.")
 
         # Adjust the figure size
-        plt.figure(figsize=(30, 15))  # Increase figure size for better visibility
+        plt.figure(figsize=(12, 12))  # Set a square figure for better alignment
 
-        # Draw only the nodes involved in the shortest path (remove others)
+        # Add grid and axis lines
+        plt.grid(visible=True, which="both", color="gray", linestyle="--", linewidth=0.5, alpha=0.7)
+        plt.gca().set_axisbelow(True)  # Draw grid behind other elements
+        plt.axhline(0, color="black", linewidth=1)  # X-axis
+        plt.axvline(0, color="black", linewidth=1)  # Y-axis
+
+        # Label axes
+        plt.xlabel("X-axis", fontsize=14)
+        plt.ylabel("Y-axis", fontsize=14)
+
+        # Draw nodes
         nodes_in_path = set(shortest_path)
-        nx.draw_networkx_nodes(self.graph, pos, nodelist=nodes_in_path, node_color="lightblue", node_size=1000)
+        nx.draw_networkx_nodes(self.graph, node_positions, nodelist=nodes_in_path, node_color="lightblue",
+                               node_size=600)
 
-        # Get a cycle of distinguishable colors from matplotlib's "tab10" palette
+        # Get a cycle of distinguishable colors
         color_cycle = cycle(plt.cm.tab10.colors)
 
-        # Split the shortest_path into separate subpaths when consecutive "1"s are found
-        paths = []
-        current_path = []
-
-        for node in shortest_path:
-            if node == "1" and current_path and current_path[-1] == "1":
-                # When a consecutive "1" is found, start a new subpath
-                paths.append(current_path)
-                current_path = [node]  # Start a new subpath with the current "1"
-            else:
-                current_path.append(node)
-
-        # Append the last path
-        if current_path:
-            paths.append(current_path)
-
-        # Draw only the edges present in the shortest path
-        for path in paths:
-            color = next(color_cycle)  # Get the next color in the cycle
+        # Draw edges in the shortest path
+        for path_start, path_end in zip(shortest_path[:-1], shortest_path[1:]):
+            color = next(color_cycle)
             nx.draw_networkx_edges(
                 self.graph,
-                pos,
-                edgelist=list(zip(path, path[1:])),
-                edge_color=color,  # Use the color from the tab10 palette
-                width=4,
+                node_positions,
+                edgelist=[(path_start, path_end)],
+                edge_color=color,
+                width=3,
             )
 
-        # Add node labels for the nodes in the shortest path
-        # Create a dictionary of node labels only for the nodes in the path
-        labels = {node: node for node in nodes_in_path}
-        nx.draw_networkx_labels(self.graph, pos, labels=labels, font_size=14, font_color="black")
+        # Add labels
+        nx.draw_networkx_labels(self.graph, node_positions, font_size=10, font_color="black")
 
-        # Display the graph
+        # Set limits for better visualization
+        x_values, y_values = zip(*node_positions.values())
+        plt.xlim(min(x_values) - 1, max(x_values) + 1)
+        plt.ylim(min(y_values) - 1, max(y_values) + 1)
+
+        # Show the plot
         plt.gca().margins(0.1)
-        plt.axis("off")
+        plt.axis("on")  # Keep the axes visible
         plt.tight_layout()
         plt.show()

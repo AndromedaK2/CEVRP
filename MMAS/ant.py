@@ -77,7 +77,7 @@ class Ant:
             self.limit_load_current_vehicle += self.graph_api.get_demand_node(next_node)
             self.current_node = next_node
 
-    def _choose_next_node(self) -> int | str:
+    def _choose_next_node(self) -> str :
         """Choose the next node to be visited by the ant
 
         Returns:

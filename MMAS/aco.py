@@ -62,7 +62,7 @@ class ACO:
 
         # Validate the consistency of the best path's cost
         calculated_cost = sum(path.path_cost for path in self.best_path)
-        if self.best_path_cost != calculated_cost:
+        if self.best_path.count == 0 or calculated_cost != self.best_path_cost:
             # If the best path cost is inconsistent, use the second-best path if available
             if self.second_best_path and self.second_best_path_cost != float('inf'):
                 flattened_nodes = [node for path in self.second_best_path for node in path.nodes]

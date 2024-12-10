@@ -11,33 +11,19 @@ from MMAS.path import Path
 class Ant:
     graph_api: GraphApi
     source: str
-    # Pheromone bias
     alpha: float = 0.7
-    # Edge cost bias
     beta: float = 0.3
-    # Evaporation rate
     evaporation_rate: float = 0.98
-    # Set of nodes that have been visited by the ant
     visited_nodes: Set = field(default_factory=set)
-    # Path taken by the ant so far
     path: Path = field(default_factory=Path)
-    # All Paths taken by the ant so far
     paths: List[Path] = field(default_factory=list)
-    # Cost of the path taken by the ant so far
     path_cost: float = 0.0
-    # Indicates if the ant has reached the destination (fit) or not (unfit)
     is_fit: bool = False
-    # Variable Indicates the max capacity
     limit_load_current_vehicle: float = 0
-    # Indicates the capacity of all customers
     total_capacity_customers: int = 0
-    # Quantity of vehicles used at the moment
     vehicle_counter: int = 0
-    # Current Node
     current_node: str = ""
-    # Best path
     best_path_cost: float = 0
-    # evrp instance
     cevrp: CEVRP = field(default_factory=CEVRP)
 
     def __post_init__(self) -> None:
@@ -63,6 +49,9 @@ class Ant:
 
         self.path.nodes.append(next_node)
         self.visited_nodes.add(self.current_node)
+
+        edge_cost = self.calculate_edge_cost(next_node)
+
         if next_node == self.source:
             # add path to candidate solution of paths
             self.paths.append(self.path)
@@ -72,10 +61,14 @@ class Ant:
             self.vehicle_counter += 1
         else:
             # Mark the current node as visited
-            self.path_cost += self.graph_api.get_edge_cost(self.current_node, next_node)
-            self.path.path_cost += self.graph_api.get_edge_cost(self.current_node, next_node)
+            self.path_cost += edge_cost
+            self.path.path_cost += edge_cost
             self.limit_load_current_vehicle += self.graph_api.get_demand_node(next_node)
             self.current_node = next_node
+
+    def calculate_edge_cost(self, next_node: str) -> float:
+        """Calculate the cost of the edge from the current node to the next node."""
+        return self.graph_api.get_edge_cost(self.current_node, next_node)
 
     def _choose_next_node(self) -> str:
         """Choose the next node to be visited by the ant

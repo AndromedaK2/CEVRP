@@ -156,3 +156,10 @@ class GraphApi:
         plt.axis("on")  # Keep the axes visible
         plt.tight_layout()
         plt.show()
+
+    def show_graph(self):
+        print(f"Number of nodes: {self.graph.number_of_nodes()}")
+        print(f"Number of edges: {self.graph.number_of_edges()}")
+        print("\nSome edges of the graph:")
+        for i, (u, v, data) in enumerate(self.graph.edges(data=True)):
+            print(f"Edge from {u} to {v} with cost {data['cost']:.2f}")

@@ -93,7 +93,7 @@ class Ant:
         probabilities = self._calculate_edge_probabilities(unvisited_neighbors)
 
         # Pick the next node based on the roulette wheel selection technique
-        return pheromone_utils.roulette_wheel_selection(probabilities)
+        return pheromone_operators.roulette_wheel_selection(probabilities)
 
     def _get_unvisited_neighbors_with_demand(self) -> List[Dict[str, int]]:
         """Returns a list of unvisited neighbors of the current node, along with each neighbor's demand.
@@ -117,7 +117,7 @@ class Ant:
         for path in self.paths:
             for i in range(len(path.nodes) - 1):
                 u, v = path.nodes[i], path.nodes[i + 1]
-                new_pheromone_value = pheromone_utils.calculate_pheromone_value(self.evaporation_rate,
+                new_pheromone_value = pheromone_operators.calculate_pheromone_value(self.evaporation_rate,
                                                                                 self.graph_api.get_edge_pheromones(u,v),
                                                                                 self.best_path_cost,
                                                                                 self.graph_api.get_length_graph())
@@ -141,7 +141,7 @@ class Ant:
                 self.current_node, str(neighbor['node'])
             )
             edge_cost = self.graph_api.get_edge_cost(self.current_node, str(neighbor['node']))
-            total += pheromone_utils.compute_edge_desirability(
+            total += pheromone_operators.compute_edge_desirability(
                 edge_pheromones, edge_cost, self.alpha, self.beta
             )
 
@@ -170,7 +170,7 @@ class Ant:
             )
             edge_cost = self.graph_api.get_edge_cost(self.current_node, str(neighbor['node']))
 
-            current_edge_desirability = pheromone_utils.compute_edge_desirability(
+            current_edge_desirability = pheromone_operators.compute_edge_desirability(
                 edge_pheromones, edge_cost, self.alpha, self.beta
             )
             probabilities[str(neighbor['node'])] = current_edge_desirability / all_edges_desirability

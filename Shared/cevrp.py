@@ -5,7 +5,7 @@ from typing import List, Dict
 
 
 @dataclass
-class EVRP:
+class CEVRP:
     name: str = "Default Name"
     comment: str = "Default Comment"
     instance_type: str = "Default Type"
@@ -23,7 +23,7 @@ class EVRP:
     depot_section: List[int] = field(default_factory=list)
 
     @staticmethod
-    def parse_evrp_instance_from_file(file_path: str, include_stations: bool = False) -> "EVRP":
+    def parse_evrp_instance_from_file(file_path: str, include_stations: bool = False) -> "CEVRP":
         """
                 Reads an EVRP instance from a file and parses it into an EVRP object.
 
@@ -95,7 +95,7 @@ class EVRP:
 
         node_coord_section = np.array(node_coord_array)
 
-        return EVRP(
+        return CEVRP(
             name=instance_data["Name"],
             comment=instance_data["COMMENT"],
             instance_type=instance_data["TYPE"],

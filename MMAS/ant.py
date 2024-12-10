@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Set
 
 from MMAS import pheromone_utils
-from Shared.evrp import EVRP
+from Shared.cevrp import CEVRP
 from Shared.graph_api import GraphApi
 from MMAS.path import Path
 
@@ -38,7 +38,7 @@ class Ant:
     # Best path
     best_path_cost: float = 0
     # evrp instance
-    evrp_instance: EVRP = field(default_factory=EVRP)
+    cevrp: CEVRP = field(default_factory=CEVRP)
 
     def __post_init__(self) -> None:
         # Set the spawn node as the current and first node
@@ -86,8 +86,8 @@ class Ant:
 
         unvisited_neighbors = self._get_unvisited_neighbors_with_demand()
 
-        if self.graph_api.get_total_demand_of_neighbors(unvisited_neighbors) <= self.evrp_instance.capacity * (
-                (self.evrp_instance.vehicles - self.vehicle_counter) - 1)  or len(unvisited_neighbors) == 0:
+        if self.graph_api.get_total_demand_of_neighbors(unvisited_neighbors) <= self.cevrp.capacity * (
+                (self.cevrp.vehicles - self.vehicle_counter) - 1)  or len(unvisited_neighbors) == 0:
             unvisited_neighbors.append({'node': self.source, 'demand': 0})
 
         probabilities = self._calculate_edge_probabilities(unvisited_neighbors)
@@ -107,7 +107,7 @@ class Ant:
 
         for neighbor_info in neighbors_with_demand:
             if (neighbor_info['node'] not in self.visited_nodes and
-                    neighbor_info['demand'] <= self.evrp_instance.capacity - self.limit_load_current_vehicle):
+                    neighbor_info['demand'] <= self.cevrp.capacity - self.limit_load_current_vehicle):
                 unvisited_neighbors_with_demand.append(neighbor_info)
 
         return unvisited_neighbors_with_demand

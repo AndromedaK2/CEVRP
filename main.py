@@ -3,7 +3,7 @@ from typing import List
 from Shared.benchmark import get_benchmark
 from Shared.coordinates_demand_manager import CoordinatesDemandManager
 from MMAS.aco import ACO
-from Shared.evrp import EVRP
+from Shared.cevrp import CEVRP
 
 if __name__ == '__main__':
     # List of instance files
@@ -47,7 +47,7 @@ if __name__ == '__main__':
 
     # Create the selected EVRP instance
     try:
-        evrp_instance = EVRP.parse_evrp_instance_from_file(selected_file)
+        evrp_instance = CEVRP.parse_evrp_instance_from_file(selected_file)
         print(f"Instance successfully created from: {selected_file}")
     except Exception as e:
         print(f"Error creating instance from: {selected_file}, Error: {e}")
@@ -60,7 +60,7 @@ if __name__ == '__main__':
 
     # ACO solver
     aco = ACO(G, ant_max_steps=100, num_iterations=100, best_path_cost=evrp_instance.optimal_value,
-              evrp_instance=evrp_instance)
+              cevrp=evrp_instance)
     source:str =  "1"
     aco_path, aco_cost = aco.find_shortest_path(
         source,

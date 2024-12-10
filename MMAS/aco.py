@@ -1,9 +1,9 @@
-from dataclasses import dataclass, field, Field
+from dataclasses import dataclass, field
 from typing import List, Tuple
 import networkx as nx
 
 from MMAS.ant import Ant
-from Shared.evrp import EVRP
+from Shared.cevrp import CEVRP
 from Shared.graph_api import GraphApi
 from MMAS.path import Path
 
@@ -34,7 +34,7 @@ class ACO:
     # best global solution path
     second_best_path_cost: float = float('inf')
     # evrp instance
-    evrp_instance: EVRP = field(default_factory=EVRP)
+    cevrp: CEVRP = field(default_factory=CEVRP)
 
     def __post_init__(self):
         self.graph_api = GraphApi(self.graph, self.evaporation_rate)
@@ -98,7 +98,7 @@ class ACO:
                     beta=self.beta,
                     evaporation_rate = self.evaporation_rate,
                     best_path_cost=self.best_path_cost,
-                    evrp_instance=self.evrp_instance,
+                    cevrp=self.cevrp,
                 )
                 self.search_ants.append(ant)
 

@@ -59,7 +59,7 @@ if __name__ == '__main__':
     G = manager.create_graph_from_manager()
 
     # ACO solver
-    aco = ACO(G, ant_max_steps=100, num_iterations=100, best_path_cost=cevrp.optimal_value,
+    aco = ACO(G, max_ant_steps=100, num_iterations=100, best_path_cost=cevrp.optimal_value,
               cevrp=cevrp)
     source:str =  "1"
     aco_path, aco_cost = aco.find_shortest_path(

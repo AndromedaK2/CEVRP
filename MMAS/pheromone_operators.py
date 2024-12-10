@@ -21,6 +21,7 @@ def compute_edge_desirability(
         edge_cost (float): The cost of traversing the edge.
         alpha (float): Pheromone influence exponent.
         beta (float): Edge cost influence exponent.
+        φ^α_ij / d^β_ij
 
     Returns:
         float: Calculated desirability of the edge.

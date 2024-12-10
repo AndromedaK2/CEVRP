@@ -50,8 +50,6 @@ class Ant:
         self.path.nodes.append(next_node)
         self.visited_nodes.add(self.current_node)
 
-        edge_cost = self.calculate_edge_cost(next_node)
-
         if next_node == self.source:
             # add path to candidate solution of paths
             self.paths.append(self.path)
@@ -61,6 +59,8 @@ class Ant:
             self.vehicle_counter += 1
         else:
             # Mark the current node as visited
+            edge_cost = self.calculate_edge_cost(next_node)
+
             self.path_cost += edge_cost
             self.path.path_cost += edge_cost
             self.limit_load_current_vehicle += self.graph_api.get_demand_node(next_node)
@@ -142,31 +142,55 @@ class Ant:
         return total
 
     def _calculate_edge_probabilities(
-            self, neighbors_with_demand: List[Dict[str, int]],
+            self, unvisited_neighbors: List[Dict[str, int]],
     ) -> Dict[str, float]:
-        """Computes the transition probabilities of all the edges from the current node
+        """
+        Calculates the transition probabilities of all edges from the current node.
+
+        Formula to calculate the probability of selecting edge (i, j):
+                             (φᵢⱼ)^α
+            pᵢⱼ = ---------------------------
+                   Σₖ∈V𝚌 (φᵢₖ)^α / (dᵢₖ)^β
+        Where:
+         - V𝚌: Set of neighboring nodes of i.
+         - φᵢⱼ: Pheromone value on the edge (i, j).
+         - dᵢⱼ: Cost or distance associated with the edge (i, j).
+         - α: Exponent controlling the influence of the pheromone.
+         - β: Exponent controlling the influence of the cost or distance.
 
         Args:
-            neighbors_with_demand (List[str]): A list of unvisited neighbors of the current node
+            unvisited_neighbors (List[Dict[str, int]]): A list of unvisited neighbors with demand.
 
         Returns:
-            Dict[str, float]: A dictionary mapping nodes to their transition probabilities
+            Dict[str, float]: A dictionary mapping nodes to their transition probabilities.
         """
-        probabilities: Dict[str, float] = {}
+        NODE = 'node'
+        edge_probabilities: Dict[str, float] = {}
 
-        all_edges_desirability = self._compute_all_edges_desirability(
-            neighbors_with_demand
-        )
+        # Compute the total desirability of all edges based on unvisited neighbors
+        total_desirability = self._compute_all_edges_desirability(unvisited_neighbors)
 
-        for neighbor in neighbors_with_demand:
-            edge_pheromones = self.graph_api.get_edge_pheromones(
-                self.current_node, str(neighbor['node'])
-            )
-            edge_cost = self.graph_api.get_edge_cost(self.current_node, str(neighbor['node']))
+        for neighbor in unvisited_neighbors:
+            node_identifier = str(neighbor[NODE])
 
-            current_edge_desirability = pheromone_operators.compute_edge_desirability(
-                edge_pheromones, edge_cost, self.alpha, self.beta
-            )
-            probabilities[str(neighbor['node'])] = current_edge_desirability / all_edges_desirability
+            # Calculate the desirability of a specific edge to the target node
+            edge_desirability = self._get_edge_desirability(node_identifier)
 
-        return probabilities
+            # Calculate the transition probability by normalizing with total desirability
+            edge_probabilities[node_identifier] = edge_desirability / total_desirability
+
+        return edge_probabilities
+
+    def _get_edge_desirability(self, target_node: str) -> float:
+        """
+        Computes the desirability of an edge between the current node and a target node.
+
+        Args:
+            target_node (str): The target node for which to calculate desirability.
+
+        Returns:
+            float: The desirability of the edge.
+        """
+        edge_pheromones = self.graph_api.get_edge_pheromones(self.current_node, target_node)
+        edge_cost = self.graph_api.get_edge_cost(self.current_node, target_node)
+        return pheromone_operators.compute_edge_desirability(edge_pheromones, edge_cost, self.alpha, self.beta)

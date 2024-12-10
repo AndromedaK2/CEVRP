@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Dict, List, Set
 
-from MMAS import pheromone_utils
+from MMAS import pheromone_operators
 from Shared.cevrp import CEVRP
 from Shared.graph_api import GraphApi
 from MMAS.path import Path

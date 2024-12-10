@@ -71,22 +71,19 @@ class Ant:
         return self.graph_api.get_edge_cost(self.current_node, next_node)
 
     def _choose_next_node(self) -> str:
-        """Choose the next node to be visited by the ant
-
-        Returns:
-            [str, None]: The computed next node to be visited by the ant or None if no possible moves
-        """
+        """Choose the next node to be visited by the ant"""
 
         unvisited_neighbors = self._get_unvisited_neighbors_with_demand()
+        remaining_vehicle_cap = self.cevrp.capacity * (self.cevrp.vehicles - self.vehicle_counter - 1)
+        total_neighbors_demand = self.graph_api.get_total_demand_of_neighbors(unvisited_neighbors)
 
-        if self.graph_api.get_total_demand_of_neighbors(unvisited_neighbors) <= self.cevrp.capacity * (
-                (self.cevrp.vehicles - self.vehicle_counter) - 1) or len(unvisited_neighbors) == 0:
+        if total_neighbors_demand <= remaining_vehicle_cap or not unvisited_neighbors:
             unvisited_neighbors.append({'node': self.source, 'demand': 0})
 
-        probabilities = self._calculate_edge_probabilities(unvisited_neighbors)
+        edge_probabilities = self._calculate_edge_probabilities(unvisited_neighbors)
 
         # Pick the next node based on the roulette wheel selection technique
-        return pheromone_operators.roulette_wheel_selection(probabilities)
+        return pheromone_operators.roulette_wheel_selection(edge_probabilities)
 
     def _get_unvisited_neighbors_with_demand(self) -> List[Dict[str, int]]:
         """Returns a list of unvisited neighbors of the current node, along with each neighbor's demand.

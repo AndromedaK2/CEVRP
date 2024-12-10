@@ -55,8 +55,8 @@ if __name__ == '__main__':
 
     # Coordinates and graph manager
     manager = CoordinatesDemandManager(cevrp.node_coord_section)
-    manager.calculate_distances()
-    G = manager.create_graph_from_manager()
+    manager.compute_distances()
+    G = manager.build_graph()
 
     # ACO solver
     aco = ACO(G, max_ant_steps=100, num_iterations=100, best_path_cost=cevrp.optimal_value,

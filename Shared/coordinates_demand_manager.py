@@ -9,33 +9,36 @@ import pandas as pd
 class CoordinatesDemandManager:
     data: np.ndarray
     distances: Optional[np.ndarray] = None
-    graph = nx.DiGraph()
+    graph: nx.DiGraph = nx.DiGraph()
 
     def __post_init__(self):
         self.nodes = pd.DataFrame(self.data, columns=['ID', 'X', 'Y', 'Demand'])
 
-    def calculate_distances(self):
-        coords = self.nodes[['X', 'Y']].values
-        self.distances = np.linalg.norm(coords[:, np.newaxis] - coords, axis=2)
+    def compute_distances(self):
+        coordinates = self.nodes[['X', 'Y']].values
+        self.distances = np.linalg.norm(coordinates[:, np.newaxis] - coordinates, axis=2)
 
-    def get_distances(self):
+    def get_distance_matrix(self):
         if self.distances is not None:
             return pd.DataFrame(self.distances, index=self.nodes['ID'], columns=self.nodes['ID'])
         else:
-            raise ValueError("Distances have not been calculated. Call calculate_distances first.")
+            raise ValueError("Distances have not been calculated. Please call compute_distances first.")
 
-    def create_graph_from_manager(self):
+    def build_graph(self):
+        def add_nodes_to_graph(graph, nodes):
+            for _, row in nodes.iterrows():
+                demand = row['Demand'] if pd.notnull(row['Demand']) else 0
+                graph.add_node(str(row['ID']), pos=(row['X'], row['Y']), demand=demand)
+
         g = nx.DiGraph()
+        add_nodes_to_graph(g, self.nodes)
 
-        for _, row in self.nodes.iterrows():
-            demand = row['Demand'] if pd.notnull(row['Demand']) else 0
-            g.add_node(str(row['ID']), pos=(row['X'], row['Y']), demand=demand)
+        distance_matrix = self.get_distance_matrix()
+        for i in distance_matrix.index:
+            for j in distance_matrix.columns:
+                if i != j:  # avoid auto-loops
+                    g.add_edge(str(i), str(j), cost=distance_matrix.loc[i, j])
 
-        distances = self.get_distances()
-        for i in distances.index:
-            for j in distances.columns:
-                if i != j:  # auto-loops
-                    g.add_edge(str(i), str(j), cost=distances.loc[i, j])
         self.graph = g
         return g
 

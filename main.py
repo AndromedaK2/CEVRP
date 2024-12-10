@@ -47,26 +47,25 @@ if __name__ == '__main__':
 
     # Create the selected EVRP instance
     try:
-        evrp_instance = CEVRP.parse_evrp_instance_from_file(selected_file)
+        cevrp = CEVRP.parse_evrp_instance_from_file(selected_file)
         print(f"Instance successfully created from: {selected_file}")
     except Exception as e:
         print(f"Error creating instance from: {selected_file}, Error: {e}")
         exit(1)
 
     # Coordinates and graph manager
-    manager = CoordinatesDemandManager(evrp_instance.node_coord_section)
+    manager = CoordinatesDemandManager(cevrp.node_coord_section)
     manager.calculate_distances()
     G = manager.create_graph_from_manager()
 
     # ACO solver
-    aco = ACO(G, ant_max_steps=100, num_iterations=100, best_path_cost=evrp_instance.optimal_value,
-              cevrp=evrp_instance)
+    aco = ACO(G, ant_max_steps=100, num_iterations=100, best_path_cost=cevrp.optimal_value,
+              cevrp=cevrp)
     source:str =  "1"
     aco_path, aco_cost = aco.find_shortest_path(
         source,
         num_ants=10,
     )
-    #evrp_instance.node_coord_section
 
     # Benchmark and visualization
     get_benchmark()

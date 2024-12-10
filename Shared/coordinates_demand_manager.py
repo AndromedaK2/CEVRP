@@ -12,22 +12,22 @@ class CoordinatesDemandManager:
     graph = nx.DiGraph()
 
     def __post_init__(self):
-        self.cities = pd.DataFrame(self.data, columns=['ID', 'X', 'Y', 'Demand'])
+        self.nodes = pd.DataFrame(self.data, columns=['ID', 'X', 'Y', 'Demand'])
 
     def calculate_distances(self):
-        coords = self.cities[['X', 'Y']].values
+        coords = self.nodes[['X', 'Y']].values
         self.distances = np.linalg.norm(coords[:, np.newaxis] - coords, axis=2)
 
     def get_distances(self):
         if self.distances is not None:
-            return pd.DataFrame(self.distances, index=self.cities['ID'], columns=self.cities['ID'])
+            return pd.DataFrame(self.distances, index=self.nodes['ID'], columns=self.nodes['ID'])
         else:
             raise ValueError("Distances have not been calculated. Call calculate_distances first.")
 
     def create_graph_from_manager(self):
         g = nx.DiGraph()
 
-        for _, row in self.cities.iterrows():
+        for _, row in self.nodes.iterrows():
             demand = row['Demand'] if pd.notnull(row['Demand']) else 0
             g.add_node(str(row['ID']), pos=(row['X'], row['Y']), demand=demand)
 

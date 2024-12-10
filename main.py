@@ -62,13 +62,13 @@ if __name__ == '__main__':
     aco = ACO(G, max_ant_steps=100, num_iterations=100, best_path_cost=cevrp.optimal_value,
               cevrp=cevrp)
     source:str =  "1"
-    aco_path, aco_cost = aco.find_shortest_path(
+    aco_flatten_paths, aco_cost, aco_paths = aco.find_shortest_path(
         source,
         num_ants=10,
     )
 
     # Benchmark and visualization
     get_benchmark()
-    aco.graph_api.visualize_graph(aco_path)
+    aco.graph_api.visualize_graph(aco_paths, cevrp.name)
 
-    print(f"ACO - path: {aco_path}, cost: {aco_cost}")
+    print(f"ACO - path: {aco_flatten_paths}, cost: {aco_cost}")

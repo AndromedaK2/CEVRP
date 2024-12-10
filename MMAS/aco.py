@@ -32,15 +32,15 @@ class ACO:
         for edge in self.graph.edges:
             self.graph_api.set_edge_pheromones(edge[0], edge[1], self.max_pheromone_level)
 
-    def find_shortest_path(self, start: str, num_ants: int) -> Tuple[List[str], float]:
+    def find_shortest_path(self, start: str, num_ants: int) -> Tuple[List[str], float, List[Path]]:
         """Finds the shortest path from the start to the destination in the graph."""
         self._deploy_search_ants(start, num_ants)
         if not self.best_path or self._calculate_path_cost(self.best_path) != self.best_path_cost:
             # If the best path cost is inconsistent, use the second-best path if available
             if self.second_best_path and self.second_best_path_cost != float('inf'):
-                return self._flatten_path(self.second_best_path), self.second_best_path_cost
-            return [], float('inf')  # If no second-best path exists, return default values
-        return self._flatten_path(self.best_path), self.best_path_cost
+                return self._flatten_path(self.second_best_path), self.second_best_path_cost, self.second_best_path
+            return [], float('inf'), []  # If no second-best path exists, return default values
+        return self._flatten_path(self.best_path), self.best_path_cost, self.best_path
 
     def _deploy_search_ants(self, start: str, num_ants: int) -> None:
         """Deploy search ants that traverse the graph to find the shortest path."""

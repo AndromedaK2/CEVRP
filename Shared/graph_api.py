@@ -6,6 +6,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 
+from MMAS.path import Path
 
 
 @dataclass
@@ -80,80 +81,49 @@ class GraphApi:
     def get_demand_node(self, node: str | int) -> float:
         return self.graph.nodes[node].get('demand', 0)
 
-    def visualize_graph(self, shortest_path: List[str]) -> None:
-        """Visualizes the graph with a grid background and labeled axes.
+    def visualize_graph(self, paths: List[Path], name:str) -> None:
 
-        Handles repetitive nodes in the shortest path, ensuring subpaths close at the depot.
+        """Visualizes the graph with paths highlighted in unique colors, costs in the legend, and a title."""
 
-        Args:
-            shortest_path (List[str]): The nodes in the shortest path.
-        """
-
-        # Extract node positions from the graph
+        # Get node positions
         node_positions = nx.get_node_attributes(self.graph, "pos")
-
-        # Validate the positions
         if not node_positions:
-            raise ValueError("Node positions are missing in the graph. Ensure nodes have a 'pos' attribute.")
+            raise ValueError("Node positions are missing in the graph. Ensure nodes have the 'pos' attribute.")
 
-        # Adjust the figure size
-        plt.figure(figsize=(12, 12))
-
-        # Add grid and axis lines
+        # Configure the plot
+        plt.figure(figsize=(12, 12))  # Adjusted size to improve visualization
+        plt.title(name, fontsize=16, fontweight="bold")  # Add title
         plt.grid(visible=True, which="both", color="gray", linestyle="--", linewidth=0.5, alpha=0.7)
-        plt.gca().set_axisbelow(True)  # Draw grid behind other elements
+        plt.gca().set_axisbelow(True)  # Ensure grid is below other elements
         plt.axhline(0, color="black", linewidth=1)  # X-axis
         plt.axvline(0, color="black", linewidth=1)  # Y-axis
-
-        # Label axes
         plt.xlabel("X-axis", fontsize=14)
         plt.ylabel("Y-axis", fontsize=14)
 
-        # Separate the path into subpaths that start and end with "1"
-        paths = []
-        current_path = []
-
-        for node in shortest_path:
-            current_path.append(node)
-            if node == "1" and len(current_path) > 1:  # Close the sub path when reaching "1"
-                paths.append(current_path)
-                current_path = [node]  # Start a new sub path with the current "1"
-
-        if len(current_path) > 1:  # Ensure the last sub path is added if it doesn't end with "1"
-            paths.append(current_path)
-
         # Draw nodes
-        nodes_in_path = set(shortest_path)
-        nx.draw_networkx_nodes(self.graph, node_positions, nodelist=nodes_in_path, node_color="lightblue",
-                               node_size=600)
-
-        # Use a color map from matplotlib
-        color_map = list(colors.TABLEAU_COLORS.values())  # Get a list of named colors from Tableau color set
-        color_cycle = cycle(color_map)  # Cycle through the colors
-
-        # Draw edges for each sub path in distinguishable colors
-        for path in paths:
-            color = next(color_cycle)
-            edges = list(zip(path, path[1:]))
-            nx.draw_networkx_edges(
-                self.graph,
-                node_positions,
-                edgelist=edges,
-                edge_color=color,
-                width=3,
-            )
-
-        # Add labels for the nodes
+        nx.draw_networkx_nodes(self.graph, node_positions, node_color="lightblue", node_size=600)
         nx.draw_networkx_labels(self.graph, node_positions, font_size=10, font_color="black")
 
-        # Set limits for better visualization
+        # Iterate through paths and draw each with a unique color
+        color_iterator = cycle(colors.TABLEAU_COLORS.values())  # Create a cyclic color iterator
+        legend_items = []  # Store legend items as labels and color handles
+        for i, path in enumerate(paths):
+            color = next(color_iterator)
+            edges = list(zip(path.nodes, path.nodes[1:]))
+            nx.draw_networkx_edges(self.graph, node_positions, edgelist=edges, edge_color=color, width=3)
+            legend_items.append((f"Path {i + 1}: Cost {path.path_cost:.2f}", color))  # Add path to legend
+
+        # Add Legend at the top-right
+        legend_labels, legend_colors = zip(*legend_items)  # Separate labels and colors
+        legend_handles = [plt.Line2D([0], [0], color=color, lw=3) for color in legend_colors]  # Legend handles
+        plt.legend(legend_handles, legend_labels, loc="upper right", fontsize=10, frameon=True)
+
+        # Set axis limits for better visualization
         x_values, y_values = zip(*node_positions.values())
         plt.xlim(min(x_values) - 1, max(x_values) + 1)
         plt.ylim(min(y_values) - 1, max(y_values) + 1)
 
-        # Show the plot
-        plt.gca().margins(0.1)
-        plt.axis("on")  # Keep the axes visible
+        # Show the graph
         plt.tight_layout()
         plt.show()
 

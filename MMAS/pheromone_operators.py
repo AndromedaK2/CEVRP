@@ -86,7 +86,8 @@ def calculate_phi_min(max_pheromone_level: float, total_customers: int, pr: floa
     return min_pheromone_level
 
 
-def calculate_pheromone_value(evaporation_rate: float, pheromone_value: float, best_path_cost: float, total_customers: int):
+def calculate_pheromone_value(evaporation_rate: float, pheromone_value: float, best_path_cost: float,
+                              total_customers: int):
     new_pheromone_value = (evaporation_rate * pheromone_value) + (1 / best_path_cost)
     max_pheromone_level = calculate_phi_max(evaporation_rate, best_path_cost)
     min_pheromone_level = calculate_phi_min(max_pheromone_level, total_customers)

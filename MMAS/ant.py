@@ -77,7 +77,7 @@ class Ant:
             self.limit_load_current_vehicle += self.graph_api.get_demand_node(next_node)
             self.current_node = next_node
 
-    def _choose_next_node(self) -> str :
+    def _choose_next_node(self) -> str:
         """Choose the next node to be visited by the ant
 
         Returns:
@@ -87,7 +87,7 @@ class Ant:
         unvisited_neighbors = self._get_unvisited_neighbors_with_demand()
 
         if self.graph_api.get_total_demand_of_neighbors(unvisited_neighbors) <= self.cevrp.capacity * (
-                (self.cevrp.vehicles - self.vehicle_counter) - 1)  or len(unvisited_neighbors) == 0:
+                (self.cevrp.vehicles - self.vehicle_counter) - 1) or len(unvisited_neighbors) == 0:
             unvisited_neighbors.append({'node': self.source, 'demand': 0})
 
         probabilities = self._calculate_edge_probabilities(unvisited_neighbors)
@@ -118,9 +118,10 @@ class Ant:
             for i in range(len(path.nodes) - 1):
                 u, v = path.nodes[i], path.nodes[i + 1]
                 new_pheromone_value = pheromone_operators.calculate_pheromone_value(self.evaporation_rate,
-                                                                                self.graph_api.get_edge_pheromones(u,v),
-                                                                                self.best_path_cost,
-                                                                                self.graph_api.get_length_graph())
+                                                                                    self.graph_api.get_edge_pheromones(
+                                                                                        u, v),
+                                                                                    self.best_path_cost,
+                                                                                    self.graph_api.get_length_graph())
                 self.graph_api.deposit_pheromones(u, v, new_pheromone_value)
 
     def _compute_all_edges_desirability(

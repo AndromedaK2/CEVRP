@@ -1,6 +1,6 @@
 from typing import List
 
-from MMAS.path import Path
+from Shared.path import Path
 from Shared.coordinates_demand_manager import CoordinatesDemandManager
 from MMAS.aco import ACO
 from Shared.cevrp import CEVRP

@@ -4,7 +4,7 @@ import networkx as nx
 from MMAS.ant import Ant
 from Shared.cevrp import CEVRP
 from Shared.graph_api import GraphApi
-from MMAS.path import Path
+from Shared.path import Path
 
 
 @dataclass

@@ -4,7 +4,7 @@ from typing import Dict, List, Set
 from MMAS import pheromone_operators
 from Shared.cevrp import CEVRP
 from Shared.graph_api import GraphApi
-from MMAS.path import Path
+from Shared.path import Path
 
 
 @dataclass

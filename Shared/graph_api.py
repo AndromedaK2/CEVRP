@@ -8,7 +8,7 @@ import matplotlib.colors as colors
 import plotly.graph_objects as go
 
 
-from MMAS.path import Path
+from Shared.path import Path
 
 
 @dataclass

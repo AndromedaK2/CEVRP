@@ -45,7 +45,6 @@ def select_instance(instance_files: List[str]) -> str:
         except ValueError:
             print("Invalid input. Please enter a number.")
 
-
 def create_cevrp_instance(file_path: str) -> CEVRP:
     """Parses and creates a CEVRP instance from the selected file path."""
     try:

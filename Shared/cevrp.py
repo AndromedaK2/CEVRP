@@ -1,9 +1,8 @@
 from dataclasses import dataclass, field
+from typing import List, Dict
 
 import numpy as np
 import pandas as pd
-
-from typing import List, Dict
 
 
 @dataclass
@@ -120,6 +119,7 @@ class CEVRP:
         Returns the maximum battery capacity for this instance.
         """
         return self.energy_capacity
+
     @staticmethod
     def get_benchmark():
         data = {

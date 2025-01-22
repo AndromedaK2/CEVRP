@@ -14,7 +14,6 @@ from Shared.path import Path
 @dataclass
 class GraphApi:
     graph: nx.DiGraph
-    evaporation_rate: float
 
     def set_edge_pheromones(self, u: str, v: str, pheromone_amount: float) -> None:
         if self.graph.has_edge(u, v):
@@ -83,6 +82,27 @@ class GraphApi:
     def get_demand_node(self, node: str | int) -> float:
         return self.graph.nodes[node].get('demand', 0)
 
+    def calculate_segment_cost_with_insertion(self, u: str, node: str, v: str) -> float:
+        """
+        Calculates the incremental cost of inserting a node between two other nodes.
+
+        :param u: The first node before the insertion point.
+        :param node: The node to be inserted.
+        :param v: The second node after the insertion point.
+        :return: Incremental cost of inserting 'node' between 'u' and 'v'.
+        """
+        # Cost before insertion
+        original_cost = self.get_edge_cost(u, v)
+
+        # Cost after insertion
+        insertion_cost = (
+            self.get_edge_cost(u, node) +
+            self.get_edge_cost(node, v)
+        )
+
+        # Incremental cost
+        return insertion_cost - original_cost
+
     def visualize_graph(self, paths: List[Path], name:str) -> None:
 
         """Visualizes the graph with paths highlighted in unique colors, costs in the legend, and a title."""
@@ -129,76 +149,8 @@ class GraphApi:
         plt.tight_layout()
         plt.show()
 
-    def visualize_graph_interactive(self, paths: List[Path], name: str) -> None:
-        """Visualizes the graph with paths highlighted in unique colors, costs in the legend, and a title using Plotly."""
+    @staticmethod
+    def calculate_path_cost(paths: List[Path]) -> float:
+        """Calculate the total cost of the provided paths."""
+        return sum(path.path_cost for path in paths)
 
-        # Get node positions
-        node_positions = nx.get_node_attributes(self.graph, "pos")
-        if not node_positions:
-            raise ValueError("Node positions are missing in the graph. Ensure nodes have the 'pos' attribute.")
-
-        # Prepare the figure
-        fig = go.Figure()
-
-        # Draw the edges
-        for edge in self.graph.edges(data=True):
-            x0, y0 = node_positions[edge[0]]
-            x1, y1 = node_positions[edge[1]]
-            fig.add_trace(go.Scatter(
-                x=[x0, x1, None],  # None creates breaks between segments
-                y=[y0, y1, None],
-                mode='lines',
-                line=dict(width=1, color='gray'),
-                hoverinfo='none'
-            ))
-
-        # Draw the nodes
-        for node, pos in node_positions.items():
-            fig.add_trace(go.Scatter(
-                x=[pos[0]], y=[pos[1]],
-                mode='markers+text',
-                marker=dict(size=10, color='lightblue', line=dict(width=2, color='black')),
-                text=node,
-                textposition="top center",
-                hoverinfo="text"
-            ))
-
-        # Iterate through paths and add them with unique colors
-        color_iterator = cycle(colors.TABLEAU_COLORS.values())  # Create a cyclic color iterator
-        for i, path in enumerate(paths):
-            color = next(color_iterator)
-            path_edges = list(zip(path.nodes, path.nodes[1:]))
-            for edge in path_edges:
-                x0, y0 = node_positions[edge[0]]
-                x1, y1 = node_positions[edge[1]]
-                fig.add_trace(go.Scatter(
-                    x=[x0, x1, None],
-                    y=[y0, y1, None],
-                    mode='lines',
-                    line=dict(width=3, color=color),
-                    hoverinfo='none',
-                    name=f"Path {i + 1}: Cost {path.path_cost:.2f}"
-                ))
-
-        # Configure layout
-        fig.update_layout(
-            title=name,
-            title_font=dict(size=20),
-            showlegend=True,
-            xaxis=dict(title="X-axis", zeroline=True),
-            yaxis=dict(title="Y-axis", zeroline=True),
-            legend=dict(font=dict(size=12), itemsizing='constant'),
-            width=800,
-            height=800,
-            template="plotly_white"
-        )
-
-        # Show the figure
-        fig.show()
-
-    def show_graph(self):
-        print(f"Number of nodes: {self.graph.number_of_nodes()}")
-        print(f"Number of edges: {self.graph.number_of_edges()}")
-        print("\nSome edges of the graph:")
-        for i, (u, v, data) in enumerate(self.graph.edges(data=True)):
-            print(f"Edge from {u} to {v} with cost {data['cost']:.2f}")

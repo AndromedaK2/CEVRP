@@ -1,5 +1,8 @@
 from typing import List
 
+from ALNS_METAHEURISTIC.destroy_operators import random_destroy
+from ALNS_METAHEURISTIC.repair_operators import greedy_repair
+from Shared.graph_api import GraphApi
 from Shared.path import Path
 from Shared.coordinates_demand_manager import CoordinatesDemandManager
 from MMAS.aco import ACO
@@ -29,7 +32,6 @@ DEFAULT_SOURCE_NODE: str = "1"
 NUM_ANTS: int = 100
 MAX_ANT_STEPS: int = 100
 NUM_ITERATIONS: int = 100
-
 
 def select_instance(instance_files: List[str]) -> str:
     """Prompts the user to select an instance file."""
@@ -84,7 +86,6 @@ def format_path(paths: List[Path]) -> str:
 
     return "\n".join(formatted_routes)
 
-
 if __name__ == '__main__':
     # Select an instance
     selected_file = select_instance(INSTANCE_FILES)
@@ -110,3 +111,14 @@ if __name__ == '__main__':
     # Benchmark and visualization
     aco.graph_api.visualize_graph(aco_paths, cevrp_instance.name)
     cevrp_instance.get_benchmark()
+
+
+
+
+    cevrp_state = random_destroy(aco.graph_api, aco_paths)
+    cevrp_state = greedy_repair(aco.graph_api,cevrp_state)
+
+    formatted_paths = format_path(cevrp_state.paths)
+    print(f"ACO - Found routes:\n{formatted_paths}")
+    print(f"ACO - Total cost: {aco.graph_api.calculate_path_cost(cevrp_state.paths)}")
+    aco.graph_api.visualize_graph(cevrp_state.paths, cevrp_instance.name)

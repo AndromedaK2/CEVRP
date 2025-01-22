@@ -1,10 +1,10 @@
 
 from alns import ALNS
-import numpy as np
 import numpy.random as rnd
 
 from ALNS_METAHEURISTIC.destroy_operators import random_destroy
-from Shared.path import Path
+from ALNS_METAHEURISTIC.repair_operators import greedy_repair
+
 
 SEED = 1234
 
@@ -13,6 +13,6 @@ def make_alns() -> ALNS:
 
     alns.add_destroy_operator(random_destroy)
 
-    #alns.add_repair_operator(random_repair)
+    alns.add_repair_operator(greedy_repair)
 
     return alns

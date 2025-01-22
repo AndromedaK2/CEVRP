@@ -24,7 +24,7 @@ class ACO:
     cevrp: CEVRP = field(default_factory=CEVRP)  # CEVRP instance
 
     def __post_init__(self):
-        self.graph_api = GraphApi(self.graph, self.evaporation_rate)
+        self.graph_api = GraphApi(self.graph)
         self._initialize_pheromones()
 
     def _initialize_pheromones(self):
@@ -35,7 +35,7 @@ class ACO:
     def find_shortest_path(self, start: str, num_ants: int) -> Tuple[List[str], float, List[Path]]:
         """Finds the shortest path from the start to the destination in the graph."""
         self._deploy_search_ants(start, num_ants)
-        if not self.best_path or self._calculate_path_cost(self.best_path) != self.best_path_cost:
+        if not self.best_path or self.graph_api.calculate_path_cost(self.best_path) != self.best_path_cost:
             # If the best path cost is inconsistent, use the second-best path if available
             if self.second_best_path and self.second_best_path_cost != float('inf'):
                 return self._flatten_path(self.second_best_path), self.second_best_path_cost, self.second_best_path
@@ -100,7 +100,4 @@ class ACO:
         """Flatten the nodes in the provided paths into a single list."""
         return [node for path in paths for node in path.nodes]
 
-    @staticmethod
-    def _calculate_path_cost(paths: List[Path]) -> float:
-        """Calculate the total cost of the provided paths."""
-        return sum(path.path_cost for path in paths)
+

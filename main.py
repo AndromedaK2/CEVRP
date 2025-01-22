@@ -120,5 +120,5 @@ if __name__ == '__main__':
 
     formatted_paths = format_path(cevrp_state.paths)
     print(f"ACO - Found routes:\n{formatted_paths}")
-    print(f"ACO - Total cost: {aco.graph_api.calculate_path_cost(cevrp_state.paths)}")
+    print(f"ACO - Total cost: {aco.graph_api.calculate_paths_cost(cevrp_state.paths)}")
     aco.graph_api.visualize_graph(cevrp_state.paths, cevrp_instance.name)

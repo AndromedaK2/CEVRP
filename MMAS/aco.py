@@ -35,7 +35,7 @@ class ACO:
     def find_shortest_path(self, start: str, num_ants: int) -> Tuple[List[str], float, List[Path]]:
         """Finds the shortest path from the start to the destination in the graph."""
         self._deploy_search_ants(start, num_ants)
-        if not self.best_path or self.graph_api.calculate_path_cost(self.best_path) != self.best_path_cost:
+        if not self.best_path or self.graph_api.calculate_paths_cost(self.best_path) != self.best_path_cost:
             # If the best path cost is inconsistent, use the second-best path if available
             if self.second_best_path and self.second_best_path_cost != float('inf'):
                 return self._flatten_path(self.second_best_path), self.second_best_path_cost, self.second_best_path

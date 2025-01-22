@@ -67,18 +67,6 @@ class GraphApi:
 
         return neighbors_with_demand
 
-    @staticmethod
-    def get_total_demand_of_neighbors(neighbors_with_demand: List[Dict[str, int]]) -> int:
-        """Calculates and returns the total demand of a given list of neighbors.
-
-        Args:
-            neighbors_with_demand (List[Dict[str, int]]): A list of dictionaries containing each neighbor and its demand.
-
-        Returns:
-            int: The sum of the demands of all the given neighbors.
-        """
-        return sum(neighbor_info['demand'] for neighbor_info in neighbors_with_demand)
-
     def get_demand_node(self, node: str | int) -> float:
         return self.graph.nodes[node].get('demand', 0)
 
@@ -149,8 +137,30 @@ class GraphApi:
         plt.tight_layout()
         plt.show()
 
+    def calculate_path_cost(self, nodes: list[str]) -> float:
+        """
+        Calculates the total cost of a path based on the edges in the graph.
+        :param nodes: List of nodes in the path.
+        :return: The total cost of the path.
+        """
+        cost = 0.0
+        for i in range(len(nodes) - 1):
+            cost += self.get_edge_cost(nodes[i], nodes[i + 1])
+        return cost
+
     @staticmethod
-    def calculate_path_cost(paths: List[Path]) -> float:
+    def calculate_paths_cost(paths: List[Path]) -> float:
         """Calculate the total cost of the provided paths."""
         return sum(path.path_cost for path in paths)
 
+    @staticmethod
+    def get_total_demand_of_neighbors(neighbors_with_demand: List[Dict[str, int]]) -> int:
+        """Calculates and returns the total demand of a given list of neighbors.
+
+        Args:
+            neighbors_with_demand (List[Dict[str, int]]): A list of dictionaries containing each neighbor and its demand.
+
+        Returns:
+            int: The sum of the demands of all the given neighbors.
+        """
+        return sum(neighbor_info['demand'] for neighbor_info in neighbors_with_demand)

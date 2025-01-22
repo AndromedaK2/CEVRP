@@ -2,25 +2,13 @@ import random
 from ALNS_METAHEURISTIC.solution_state import CevrpState
 from Shared.path import Path
 
-def calculate_path_cost(graph, nodes: list[str]) -> float:
-    """
-    Calculates the total cost of a path based on the edges in the graph.
 
-    :param graph: The graph object with the method get_edge_cost.
-    :param nodes: List of nodes in the path.
-    :return: The total cost of the path.
-    """
-    cost = 0.0
-    for i in range(len(nodes) - 1):
-        cost += graph.get_edge_cost(nodes[i], nodes[i + 1])
-    return cost
-
-def random_destroy(graph,paths: list[Path], seed: int = None) -> CevrpState:
+def random_destroy(graph_api,paths: list[Path], seed: int = None) -> CevrpState:
     """
     Randomly destroys two pairs of segments from the given paths.
 
     :param paths: List of Path objects representing the current routes.
-    :param graph: The graph object with the method get_edge_cost.
+    :param graph_api: The graph object with the method get_edge_cost.
     :param seed: Optional seed for reproducibility of random behavior.
     :return: A new CevrpState object with updated paths and unassigned nodes.
     :raises ValueError: If there are fewer than two paths or paths with insufficient nodes.
@@ -56,7 +44,7 @@ def random_destroy(graph,paths: list[Path], seed: int = None) -> CevrpState:
             unassigned.append(path.nodes.pop(index))
 
         # Recalculate the path cost using the graph
-        path.path_cost = calculate_path_cost(graph, path.nodes)
+        path.path_cost = graph_api.calculate_path_cost(path.nodes)
 
     # Create the new CevrpState
     return CevrpState(paths_copy, unassigned)

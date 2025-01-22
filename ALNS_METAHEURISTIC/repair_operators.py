@@ -1,18 +1,6 @@
 from ALNS_METAHEURISTIC.solution_state import CevrpState
 from Shared.graph_api import GraphApi
 
-def calculate_path_cost(graph_api: GraphApi, nodes: list[str]) -> float:
-    """
-    Calculates the total cost of a path based on the edges in the graph.
-
-    :param graph_api: An instance of GraphApi for accessing edge costs.
-    :param nodes: List of nodes in the path.
-    :return: The total cost of the path.
-    """
-    cost = 0.0
-    for i in range(len(nodes) - 1):
-        cost += graph_api.get_edge_cost(nodes[i], nodes[i + 1])
-    return cost
 
 def greedy_repair(graph_api: GraphApi, state: CevrpState) -> CevrpState:
     """
@@ -51,7 +39,7 @@ def greedy_repair(graph_api: GraphApi, state: CevrpState) -> CevrpState:
             path, index = best_insertion
             path.nodes.insert(index, node)
             # Recalculate the path cost after the insertion
-            path.path_cost = calculate_path_cost(graph_api, path.nodes)
+            path.path_cost = graph_api.calculate_path_cost(path.nodes)
 
     # Return the updated state
     return CevrpState(paths, [])

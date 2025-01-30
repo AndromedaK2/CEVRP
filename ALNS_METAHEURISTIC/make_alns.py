@@ -1,4 +1,3 @@
-
 from alns import ALNS
 import numpy.random as rnd
 from alns.accept import RecordToRecordTravel
@@ -11,20 +10,62 @@ from ALNS_METAHEURISTIC.solution_state import CevrpState
 
 SEED = 1234
 
-def make_alns(cevrpState:CevrpState) -> ALNS:
+def make_alns(
+    initial_state: CevrpState,
+    num_iterations: int = 30,
+    destroy_operators: list = None,
+    repair_operators: list = None,
+    rw_weights: list = None,
+    rw_decay: float = 0.8,
+    rw_min_weight: float = 1,
+    rw_max_weight: float = 25,
+    autofit_start_threshold: float = 0.02,
+    autofit_end_threshold: float = 0
+) -> ALNS:
+    """
+    Configures and runs the ALNS algorithm for the CEVRP problem.
+
+    :param initial_state: Initial solution state for the CEVRP problem.
+    :param num_iterations: Maximum number of iterations for the algorithm.
+    :param destroy_operators: List of destroy operators to use.
+    :param repair_operators: List of repair operators to use.
+    :param rw_weights: Initial weights for the RouletteWheel selection mechanism.
+    :param rw_decay: Decay rate for the RouletteWheel weights.
+    :param rw_min_weight: Minimum weight for the RouletteWheel.
+    :param rw_max_weight: Maximum weight for the RouletteWheel.
+    :param autofit_start_threshold: Starting threshold for RecordToRecordTravel.
+    :param autofit_end_threshold: Ending threshold for RecordToRecordTravel.
+    :return: The result of the ALNS algorithm.
+    """
+    # Initialize ALNS with a seeded random number generator
     alns = ALNS(rnd.default_rng(SEED))
 
-    alns.add_destroy_operator(random_destroy)
+    # Add destroy operators (default to random_destroy if none provided)
+    if destroy_operators is None:
+        destroy_operators = [random_destroy]
+    for operator in destroy_operators:
+        alns.add_destroy_operator(operator)
 
-    alns.add_repair_operator(greedy_repair)
+    # Add repair operators (default to greedy_repair if none provided)
+    if repair_operators is None:
+        repair_operators = [greedy_repair]
+    for operator in repair_operators:
+        alns.add_repair_operator(operator)
 
-    num_iterations = 3000
-    select = RouletteWheel([25, 5, 1, 0], 0.8, 1, 1)
+    # Configure the selection mechanism (RouletteWheel)
+    if rw_weights is None:
+        rw_weights = [25, 5, 1, 0]
+    select = RouletteWheel(rw_weights, rw_decay, rw_min_weight, rw_max_weight)
+
+    # Configure the acceptance criterion (RecordToRecordTravel)
     accept = RecordToRecordTravel.autofit(
-        cevrpState.objective(), 0.02, 0, num_iterations
+        initial_state.objective(), autofit_start_threshold, autofit_end_threshold, num_iterations
     )
+
+    # Configure the stopping criterion (MaxIterations)
     stop = MaxIterations(num_iterations)
 
-    result = alns.iterate(cevrpState, select, accept, stop)
+    # Run the ALNS algorithm
+    result = alns.iterate(initial_state, select, accept, stop)
 
     return result

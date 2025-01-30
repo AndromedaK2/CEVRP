@@ -1,12 +1,12 @@
+import random
+from typing import Optional
 from ALNS_METAHEURISTIC.solution_state import CevrpState
-from Shared.graph_api import GraphApi
 
 
-def greedy_repair(graph_api: GraphApi, state: CevrpState) -> CevrpState:
+def greedy_repair(state: CevrpState) -> CevrpState:
     """
     Greedily reinserts unassigned nodes into the paths to minimize the cost increment.
 
-    :param graph_api: An instance of GraphApi for accessing graph-related methods.
     :param state: Current CevrpState object containing paths and unassigned nodes.
     :return: A new CevrpState with updated paths where unassigned nodes are reintegrated.
     """
@@ -27,7 +27,7 @@ def greedy_repair(graph_api: GraphApi, state: CevrpState) -> CevrpState:
                 u, v = path.nodes[i - 1], path.nodes[i]
 
                 # Calculate the incremental cost of inserting the node
-                cost_increase = graph_api.calculate_segment_cost_with_insertion(u, node, v)
+                cost_increase = state.graph_api.calculate_segment_cost_with_insertion(u, node, v)
 
                 # Keep track of the best insertion found
                 if cost_increase < best_cost_increase:
@@ -42,4 +42,4 @@ def greedy_repair(graph_api: GraphApi, state: CevrpState) -> CevrpState:
             path.path_cost += best_cost_increase
 
     # Return the updated state
-    return CevrpState(paths, [])
+    return CevrpState(paths, [], state.graph_api)

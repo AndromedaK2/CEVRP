@@ -1,7 +1,9 @@
 from typing import List
 
 from ALNS_METAHEURISTIC.destroy_operators import random_destroy
+from ALNS_METAHEURISTIC.make_alns import make_alns
 from ALNS_METAHEURISTIC.repair_operators import greedy_repair
+from ALNS_METAHEURISTIC.solution_state import CevrpState
 from Shared.path import Path
 from Shared.coordinates_demand_manager import CoordinatesDemandManager
 from MMAS.aco import ACO
@@ -116,8 +118,12 @@ if __name__ == '__main__':
     aco.graph_api.visualize_graph(aco_paths, cevrp_instance.name)
 
     # Apply ALNS operators
-    cevrp_state = random_destroy(aco.graph_api, aco_paths)
-    cevrp_state = greedy_repair(aco.graph_api, cevrp_state)
+
+    cevrp_state = CevrpState(aco_paths, graph_api=aco.graph_api)
+    #cevrp_state = random_destroy(aco.graph_api, aco_paths)
+    #cevrp_state = random_destroy(aco.graph_api, aco_paths)
+
+    result = make_alns(cevrp_state,destroy_operators=[random_destroy],repair_operators=[greedy_repair])
 
     # Format and display final routes
     formatted_paths = format_path(cevrp_state.paths)

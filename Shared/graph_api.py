@@ -1,15 +1,11 @@
 from dataclasses import dataclass
 from typing import List, Dict
 from itertools import cycle
+from Shared.path import Path
 
 import networkx as nx
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
-import plotly.graph_objects as go
-
-
-from Shared.path import Path
-
 
 @dataclass
 class GraphApi:

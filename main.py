@@ -2,7 +2,6 @@ from typing import List
 
 from ALNS_METAHEURISTIC.destroy_operators import random_destroy
 from ALNS_METAHEURISTIC.repair_operators import greedy_repair
-from Shared.graph_api import GraphApi
 from Shared.path import Path
 from Shared.coordinates_demand_manager import CoordinatesDemandManager
 from MMAS.aco import ACO
@@ -87,38 +86,41 @@ def format_path(paths: List[Path]) -> str:
     return "\n".join(formatted_routes)
 
 if __name__ == '__main__':
-    # Select an instance
+    # Instance selection
     selected_file = select_instance(INSTANCE_FILES)
     print(f"Selected instance: {selected_file}")
 
-    # Create CEVRP instance and manage coordinates
+    # Create CEVRP instance
     cevrp_instance = create_cevrp_instance(selected_file)
     manager = CoordinatesDemandManager(cevrp_instance.node_coord_section)
     manager.compute_distances()
     graph = manager.build_graph()
 
     # Solve using ACO
-    aco = ACO(graph, max_ant_steps=MAX_ANT_STEPS, num_iterations=NUM_ITERATIONS,
-              best_path_cost=cevrp_instance.optimal_value, cevrp=cevrp_instance)
+    aco = ACO(
+        graph,
+        max_ant_steps=MAX_ANT_STEPS,
+        num_iterations=NUM_ITERATIONS,
+        best_path_cost=cevrp_instance.optimal_value,
+        cevrp=cevrp_instance,
+    )
     aco_flatten_paths, aco_cost, aco_paths = aco.find_shortest_path(
         start=DEFAULT_SOURCE_NODE,
         num_ants=NUM_ANTS,
     )
-    # Format and print routes
+
+    # Format and display initial routes
     formatted_paths = format_path(aco_paths)
-    print(f"ACO - Found routes:\n{formatted_paths}")
-    print(f"ACO - Total cost: {aco_cost}")
-    # Benchmark and visualization
+    print(f"ACO - Initial routes:\n{formatted_paths}")
+    print(f"ACO - Initial total cost: {aco_cost}")
     aco.graph_api.visualize_graph(aco_paths, cevrp_instance.name)
-    cevrp_instance.get_benchmark()
 
-
-
-
+    # Apply ALNS operators
     cevrp_state = random_destroy(aco.graph_api, aco_paths)
-    cevrp_state = greedy_repair(aco.graph_api,cevrp_state)
+    cevrp_state = greedy_repair(aco.graph_api, cevrp_state)
 
+    # Format and display final routes
     formatted_paths = format_path(cevrp_state.paths)
-    print(f"ACO - Found routes:\n{formatted_paths}")
-    print(f"ACO - Total cost: {aco.graph_api.calculate_paths_cost(cevrp_state.paths)}")
+    print(f"ACO - Final routes after ALNS:\n{formatted_paths}")
+    print(f"ACO - Final total cost: {aco.graph_api.calculate_paths_cost(cevrp_state.paths)}")
     aco.graph_api.visualize_graph(cevrp_state.paths, cevrp_instance.name)

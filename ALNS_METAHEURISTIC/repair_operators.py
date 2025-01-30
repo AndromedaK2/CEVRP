@@ -17,7 +17,7 @@ def greedy_repair(graph_api: GraphApi, state: CevrpState) -> CevrpState:
     while unassigned:
         # Select the first unassigned node
         node = unassigned.pop(0)
-        best_insertion = None
+        best_insertion_info = None
         best_cost_increase = float('inf')
 
         # Iterate over all paths and possible insertion points
@@ -32,14 +32,14 @@ def greedy_repair(graph_api: GraphApi, state: CevrpState) -> CevrpState:
                 # Keep track of the best insertion found
                 if cost_increase < best_cost_increase:
                     best_cost_increase = cost_increase
-                    best_insertion = (path, i)
+                    best_insertion_info = (path, i)
 
         # Perform the best insertion
-        if best_insertion:
-            path, index = best_insertion
+        if best_insertion_info:
+            path, index = best_insertion_info
             path.nodes.insert(index, node)
-            # Recalculate the path cost after the insertion
-            path.path_cost = graph_api.calculate_path_cost(path.nodes)
+            # Update the path cost incrementally
+            path.path_cost += best_cost_increase
 
     # Return the updated state
     return CevrpState(paths, [])

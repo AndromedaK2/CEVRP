@@ -3,7 +3,7 @@ from typing import Optional
 from ALNS_METAHEURISTIC.solution_state import CevrpState
 
 
-def greedy_repair(state: CevrpState) -> CevrpState:
+def greedy_repair(state: CevrpState,rnd_state: Optional[random.Random] = None) -> CevrpState:
     """
     Greedily reinserts unassigned nodes into the paths to minimize the cost increment.
 

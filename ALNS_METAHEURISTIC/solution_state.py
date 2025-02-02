@@ -49,11 +49,5 @@ class CevrpState:
 
         # Iterate over each Path object in the list of paths
         for path in self.paths:
-            # Access nodes within the current Path
-            nodes = path.nodes
-
-            # Calculate the cost for the edges in the current path
-            for i in range(len(nodes) - 1):
-                total_cost += self.graph_api.get_edge_cost(nodes[i], nodes[i + 1])
-
+            total_cost += path.path_cost
         return total_cost  # Return the total cost of all routes

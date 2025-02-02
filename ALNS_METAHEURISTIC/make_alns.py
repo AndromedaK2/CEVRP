@@ -1,7 +1,7 @@
 from alns import ALNS
 import numpy.random as rnd
 from alns.accept import RecordToRecordTravel
-from alns.select import RouletteWheel
+from alns.select import RouletteWheel, SegmentedRouletteWheel
 from alns.stop import MaxIterations
 
 from ALNS_METAHEURISTIC.destroy_operators import random_destroy
@@ -55,7 +55,12 @@ def make_alns(
     # Configure the selection mechanism (RouletteWheel)
     if rw_weights is None:
         rw_weights = [25, 5, 1, 0]
-    select = RouletteWheel(rw_weights, rw_decay, rw_min_weight, rw_max_weight)
+    select =  RouletteWheel(
+        scores=[5, 2, 1, 0.5],
+        decay=0.8,
+        num_destroy=1,
+        num_repair=1,
+        )
 
     # Configure the acceptance criterion (RecordToRecordTravel)
     accept = RecordToRecordTravel.autofit(

@@ -118,15 +118,17 @@ if __name__ == '__main__':
     aco.graph_api.visualize_graph(aco_paths, cevrp_instance.name)
 
     # Apply ALNS operators
-
     cevrp_state = CevrpState(aco_paths, graph_api=aco.graph_api)
-    #cevrp_state = random_destroy(aco.graph_api, aco_paths)
-    #cevrp_state = random_destroy(aco.graph_api, aco_paths)
-
-    result = make_alns(cevrp_state,destroy_operators=[random_destroy],repair_operators=[greedy_repair])
+    best_state, best_cost, best_paths, unassigned_nodes = make_alns(
+        cevrp_state,
+        destroy_operators=[random_destroy],
+        repair_operators=[greedy_repair],
+    )
 
     # Format and display final routes
-    formatted_paths = format_path(cevrp_state.paths)
-    print(f"ACO - Final routes after ALNS:\n{formatted_paths}")
-    print(f"ACO - Final total cost: {aco.graph_api.calculate_paths_cost(cevrp_state.paths)}")
-    aco.graph_api.visualize_graph(cevrp_state.paths, cevrp_instance.name)
+    formatted_paths = format_path(best_paths)
+    print(f"ALNS - Final routes:\n{formatted_paths}")
+    print(f"ALNS - Final total cost: {best_cost}")
+
+    # Visualize the final routes
+    aco.graph_api.visualize_graph(best_paths, cevrp_instance.name)

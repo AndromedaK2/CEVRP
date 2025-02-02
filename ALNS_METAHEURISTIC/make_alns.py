@@ -19,7 +19,7 @@ def make_alns(
     rw_decay: float = 0.8,
     autofit_start_threshold: float = 0.02,
     autofit_end_threshold: float = 0
-) -> Result:
+) :
     """
     Configures and runs the ALNS algorithm for the CEVRP problem.
 
@@ -69,4 +69,17 @@ def make_alns(
     # Run the ALNS algorithm
     result = alns.iterate(initial_state, select, accept, stop)
 
-    return result
+    # Extract the best solution state
+    best_state = result.best_state
+
+    # Extract the total cost of the best solution
+    best_cost = best_state.objective()
+
+    # Extract the list of paths in the best solution
+    best_paths = best_state.paths
+
+    # Extract the list of unassigned nodes in the best solution
+    unassigned_nodes = best_state.unassigned
+
+    # Return the final solution details
+    return best_state, best_cost, best_paths, unassigned_nodes

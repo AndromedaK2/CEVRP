@@ -9,8 +9,8 @@ class Path:
     Represents a path in the CEVRP problem.
 
     Attributes:
-        nodes: List of nodes in the path (must be strings).
-        path_cost: Cost of the path (must be non-negative).
+        _nodes: List of nodes in the path (must be strings).
+        _path_cost: Cost of the path (must be non-negative).
     """
     _nodes: List[str] = field(default_factory=list)
     _path_cost: float = 0.0

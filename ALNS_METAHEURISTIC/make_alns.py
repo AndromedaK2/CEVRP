@@ -19,7 +19,7 @@ def make_alns(
     rw_decay: float = 0.8,
     autofit_start_threshold: float = 0.02,
     autofit_end_threshold: float = 0
-) :
+) -> tuple :
     """
     Configures and runs the ALNS algorithm for the CEVRP problem.
 

@@ -1,7 +1,5 @@
 import copy
-
 from Shared.path import Path
-
 
 class CevrpState:
     def __init__(self, paths: list[Path], unassigned=None, graph_api=None):
@@ -44,10 +42,4 @@ class CevrpState:
         """
         if self.graph_api is None:
             raise ValueError("graph_api instance is required to calculate path cost.")
-
-        total_cost = 0  # Accumulate the total cost of all routes
-
-        # Iterate over each Path object in the list of paths
-        for path in self.paths:
-            total_cost += path.path_cost
-        return total_cost  # Return the total cost of all routes
+        return self.graph_api.calculate_paths_cost(self.paths)

@@ -1,7 +1,7 @@
-from alns import ALNS
+from alns import ALNS, Result
 import numpy.random as rnd
 from alns.accept import RecordToRecordTravel
-from alns.select import RouletteWheel, SegmentedRouletteWheel
+from alns.select import RouletteWheel
 from alns.stop import MaxIterations
 
 from ALNS_METAHEURISTIC.destroy_operators import random_destroy
@@ -12,16 +12,14 @@ SEED = 1234
 
 def make_alns(
     initial_state: CevrpState,
-    num_iterations: int = 30,
+    num_iterations: int = 1000,
     destroy_operators: list = None,
     repair_operators: list = None,
     rw_weights: list = None,
     rw_decay: float = 0.8,
-    rw_min_weight: float = 1,
-    rw_max_weight: float = 25,
     autofit_start_threshold: float = 0.02,
     autofit_end_threshold: float = 0
-) -> ALNS:
+) -> Result:
     """
     Configures and runs the ALNS algorithm for the CEVRP problem.
 
@@ -31,8 +29,6 @@ def make_alns(
     :param repair_operators: List of repair operators to use.
     :param rw_weights: Initial weights for the RouletteWheel selection mechanism.
     :param rw_decay: Decay rate for the RouletteWheel weights.
-    :param rw_min_weight: Minimum weight for the RouletteWheel.
-    :param rw_max_weight: Maximum weight for the RouletteWheel.
     :param autofit_start_threshold: Starting threshold for RecordToRecordTravel.
     :param autofit_end_threshold: Ending threshold for RecordToRecordTravel.
     :return: The result of the ALNS algorithm.
@@ -54,13 +50,13 @@ def make_alns(
 
     # Configure the selection mechanism (RouletteWheel)
     if rw_weights is None:
-        rw_weights = [25, 5, 1, 0]
-    select =  RouletteWheel(
-        scores=[5, 2, 1, 0.5],
-        decay=0.8,
-        num_destroy=1,
-        num_repair=1,
-        )
+        rw_weights = [25, 5, 1, 0.5]
+    select = RouletteWheel(
+        scores=rw_weights,
+        decay=rw_decay,
+        num_destroy=len(destroy_operators),
+        num_repair=len(repair_operators),
+    )
 
     # Configure the acceptance criterion (RecordToRecordTravel)
     accept = RecordToRecordTravel.autofit(

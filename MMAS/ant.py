@@ -37,14 +37,21 @@ class Ant:
         self.current_node = self.source
         self.path.nodes.append(self.source)
 
-    def reached_destination(self) -> bool:
+    def reached_destination(self, use_minus_one: bool = False) -> bool:
         """
         Checks if the ant has visited all required nodes in the graph.
+
+        Args:
+            use_minus_one (bool): If True, the logic includes -1 (for route_construction).
+                                 If False, the logic does not include -1 (for take_step).
 
         Returns:
             bool: True if the ant has visited all required nodes, otherwise False.
         """
-        return len(self.visited_nodes) >= len(self.graph_api.graph.nodes)
+        if use_minus_one:
+            return len(self.visited_nodes) >= len(self.graph_api.graph.nodes) - 1
+        else:
+            return len(self.visited_nodes) >= len(self.graph_api.graph.nodes)
 
     def route_construction(self) -> None:
         """

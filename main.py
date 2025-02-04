@@ -105,6 +105,7 @@ if __name__ == '__main__':
         num_iterations=NUM_ITERATIONS,
         best_path_cost=cevrp_instance.optimal_value,
         cevrp=cevrp_instance,
+        use_route_construction=False
     )
     aco_flatten_paths, aco_cost, aco_paths = aco.find_shortest_path(
         start=DEFAULT_SOURCE_NODE,

@@ -6,27 +6,24 @@ from Shared.cevrp import CEVRP
 from Shared.graph_api import GraphApi
 from Shared.path import Path
 
-
 @dataclass
 class ACO:
     graph: nx.DiGraph
-    max_ant_steps: int  # Maximum number of steps an ant is allowed to take to reach the destination
-    num_iterations: int  # Number of cycles/waves of search ants to be deployed
-    evaporation_rate: float = 0.98  # Evaporation rate (rho)
-    pheromone_importance: float = 1.0  # Pheromone bias (alpha)
-    cost_importance: float = 2.0  # Edge cost bias (beta)
-    search_ants: List[Ant] = field(default_factory=list)  # Search ants
-    max_pheromone_level: float = 1.0  # limit τ_max
-    best_path: List[Path] = field(default_factory=list)  # best global solution
-    best_path_cost: float = float('inf')  # best global solution path cost
-    second_best_path: List[Path] = field(default_factory=list)  # second-best global solution
-    second_best_path_cost: float = float('inf')  # second-best global solution path cost
-    cevrp: CEVRP = field(default_factory=CEVRP)  # CEVRP instance
+    max_ant_steps: int
+    num_iterations: int
+    evaporation_rate: float = 0.98
+    pheromone_importance: float = 1.0
+    cost_importance: float = 2.0
+    search_ants: List[Ant] = field(default_factory=list)
+    max_pheromone_level: float = 1.0
+    best_path: List[Path] = field(default_factory=list)
+    best_path_cost: float = float('inf')
+    second_best_path: List[Path] = field(default_factory=list)
+    second_best_path_cost: float = float('inf')
+    cevrp: CEVRP = field(default_factory=CEVRP)
+    use_route_construction: bool = True
 
     def __post_init__(self):
-        """
-        Initializes the ACO instance after the dataclass constructor is called.
-        """
         if not self.graph:
             raise ValueError("Graph must be provided.")
         self.graph_api = GraphApi(self.graph)
@@ -50,14 +47,12 @@ class ACO:
         Returns:
             Tuple[List[str], float, List[Path]]: The flattened path, its cost, and the list of paths.
         """
-
         self._deploy_search_ants(start, num_ants)
 
         if not self.best_path or self.graph_api.calculate_paths_cost(self.best_path) != self.best_path_cost:
-            # If the best path cost is inconsistent, use the second-best path if available
             if self.second_best_path and self.second_best_path_cost != float('inf'):
                 return self._flatten_path(self.second_best_path), self.second_best_path_cost, self.second_best_path
-            return [], float('inf'), []  # If no second-best path exists, return default values
+            return [], float('inf'), []
 
         return self._flatten_path(self.best_path), self.best_path_cost, self.best_path
 
@@ -109,12 +104,21 @@ class ACO:
         Args:
             ant (Ant): The ant to explore the graph.
         """
-        for _ in range(self.max_ant_steps):
-            ant.take_step()
-            # Stop Criteria
-            if ant.reached_destination():
+
+        if self.use_route_construction:
+            ant.route_construction()  # Use route construction strategy
+            if ant.reached_destination(self.use_route_construction):
                 ant.is_fit = True
-                break
+        else:
+            for _ in range(self.max_ant_steps):
+                ant.take_step()  # Use step-by-step exploration strategy
+                # Stop Criteria: Check if the ant has completed its task
+                if ant.reached_destination(self.use_route_construction):
+                    ant.is_fit = True
+                    break
+
+
+        # Update the best path based on the ant's exploration
         self._update_best_path(ant)
 
     def _update_best_path(self, ant: Ant):

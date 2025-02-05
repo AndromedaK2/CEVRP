@@ -20,7 +20,8 @@ class CEVRP:
     edge_weight_format: str = "Default Format"
     node_coord_section: np.ndarray = field(default_factory=lambda: np.array([]))
     demand_section: Dict[int, int] = field(default_factory=dict)
-    stations_coord_section: List[int] = field(default_factory=list)
+    stations_coord_section: np.ndarray  = field(default_factory=lambda: np.array([]))
+    stations_coord: List[int] = field(default_factory=list)
     depot_section: List[int] = field(default_factory=list)
 
     @staticmethod
@@ -37,6 +38,7 @@ class CEVRP:
         node_coord_list = []
         demand_dict = {}
         stations_coord_section = []
+        stations_coord = []
         depot_section = []
         section = None
         for line in lines:
@@ -57,13 +59,14 @@ class CEVRP:
                 node, demand = map(int, line.split())
                 demand_dict[node] = demand
             elif section == "STATIONS_COORD_SECTION":
-                stations_coord_section.append(int(line.strip()))
+                stations_coord.append(int(line.strip()))
             elif section == "DEPOT_SECTION":
                 depot_section.append(int(line.strip()))
             elif line:
                 key, value = line.split(": ", 1)
                 instance_data[key.strip()] = value.strip()
         node_coord_array = []
+        station_coord_array = []
         # Check if stations should be included
         if include_stations:
             # Process all nodes, including stations
@@ -71,9 +74,6 @@ class CEVRP:
                 node_id = coord[0]  # The first value in coord is the node ID
                 demand = demand_dict.get(node_id, 0)
                 # If the node is a station, subtract the station coordinates
-                if node_id in stations_coord_section:
-                    station_coord = stations_coord_section[node_id]  # Ensure this is the correct format
-                    coord = [c - station_coord for c in coord]  # Subtract the station's coordinates
                 node_coord_array.append(coord + [demand])
         # If stations are not included, only process nodes with demand > 0
         else:
@@ -83,7 +83,11 @@ class CEVRP:
                 # Include node 1 (depot) or nodes with demand > 0
                 if node_id == 1 or demand > 0:
                     node_coord_array.append(coord + [demand])
+                else:
+                    station_coord_array.append(coord + [demand])
+
         node_coord_section = np.array(node_coord_array)
+        stations_coord_section = np.array(stations_coord_section)
         # Use the file name (without the path) as the name property
         file_name = file_path.split("/")[-1].split("\\")[-1]  # Handles both / and \ paths
         return CEVRP(
@@ -101,6 +105,7 @@ class CEVRP:
             node_coord_section=node_coord_section,
             demand_section=demand_dict,
             stations_coord_section=stations_coord_section,
+            stations_coord=stations_coord,
             depot_section=depot_section
         )
 

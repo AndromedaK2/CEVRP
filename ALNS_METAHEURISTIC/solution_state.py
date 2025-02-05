@@ -1,8 +1,10 @@
 import copy
+
+from Shared.graph_api import GraphApi
 from Shared.path import Path
 
 class CevrpState:
-    def __init__(self, paths: list[Path], unassigned=None, graph_api=None):
+    def __init__(self, paths: list[Path], unassigned=None, graph_api:GraphApi=None,  energy_consumption=None):
         """
         Initializes a CevrpState object.
 
@@ -13,6 +15,7 @@ class CevrpState:
         self.paths = paths
         self.unassigned = unassigned if unassigned is not None else []
         self.graph_api = graph_api  # Store the graph_api instance
+        self.energy_consumption = energy_consumption
 
     def objective(self):
         """
@@ -43,3 +46,10 @@ class CevrpState:
         if self.graph_api is None:
             raise ValueError("graph_api instance is required to calculate path cost.")
         return self.graph_api.calculate_paths_cost(self.paths)
+
+    def get_path_energy_consumption(self, i:int):
+        path_energy_consumption = self.graph_api.calculate_path_energy_consumption(self.paths[i].nodes, self.energy_consumption)
+        return path_energy_consumption
+
+    #def get_edge_energy_consumption(self, i:str, j:str): float
+

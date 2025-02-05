@@ -144,6 +144,14 @@ class GraphApi:
             cost += self.get_edge_cost(nodes[i], nodes[i + 1])
         return cost
 
+    def calculate_path_energy_consumption(self, nodes: list[str], energy_consumption:float) -> float:
+        path_cost = self.calculate_path_cost(nodes)
+        return path_cost * energy_consumption
+
+    def calculate_edge_energy_consumption(self,  u: str, v: str, energy_consumption:float) -> float:
+        edge_cost = self.get_edge_cost(u, v)
+        return edge_cost * energy_consumption
+
     @staticmethod
     def calculate_paths_cost(paths: List[Path]) -> float:
         """Calculate the total cost of the provided paths."""

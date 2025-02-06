@@ -14,6 +14,7 @@ class Path:
     """
     _nodes: List[str] = field(default_factory=list)
     _path_cost: float = 0.0
+    _demand: int = 0
 
     @property
     def nodes(self) -> List[str]:
@@ -42,6 +43,17 @@ class Path:
         if value < 0:
             raise ValueError("Path cost must be non-negative.")
         self._path_cost = float(value)
+
+    @property
+    def demand(self) -> int:
+        return self._demand
+
+    @demand.setter
+    def demand(self, value: int) -> None:
+        """Sets the cost of the path, ensuring it is non-negative."""
+        if value < 0:
+            raise ValueError("demand must be non-negative.")
+        self._demand = int(value)
 
     def copy(self) -> "Path":
         """Creates a deep copy of the Path instance."""

@@ -52,5 +52,6 @@ class CevrpState:
         path_energy_consumption = self.graph_api.calculate_path_energy_consumption(self.paths[i].nodes, self.cevrp.energy_consumption)
         return path_energy_consumption
 
-    #def get_edge_energy_consumption(self, i:str, j:str): float
-
+    def get_edge_energy_consumption(self, i:str, j:str):
+        edge_energy_consumption = self.graph_api.calculate_edge_energy_consumption(i,j, self.cevrp.energy_consumption)
+        return edge_energy_consumption

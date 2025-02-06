@@ -98,7 +98,7 @@ if __name__ == '__main__':
     aco.graph_api.visualize_graph(aco_paths, cevrp_instance.name)
 
     # Apply ALNS operators
-    cevrp_state = CevrpState(aco_paths, graph_api=aco.graph_api)
+    cevrp_state = CevrpState(aco_paths, graph_api=aco.graph_api, cevrp=cevrp_instance)
     best_state, best_cost, best_paths, unassigned_nodes = make_alns(
         cevrp_state,
         destroy_operators=[random_destroy],

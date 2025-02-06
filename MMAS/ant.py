@@ -167,11 +167,6 @@ class Ant:
         self.path.nodes.append(next_node)
         self.visited_nodes.add(self.current_node)
 
-        # Update the path cost
-        edge_cost = self.calculate_edge_cost(next_node)
-        self.path_cost += edge_cost
-        self.path.path_cost += edge_cost
-
         if next_node == self.source:
             # If the next node is the source, finalize the current path and start a new one
             self.paths.append(self.path)
@@ -180,9 +175,14 @@ class Ant:
             self.limit_load_current_vehicle = 0
             self.vehicle_counter += 1
         else:
+            # Update the path cost
+            edge_cost = self.calculate_edge_cost(next_node)
+            self.path_cost += edge_cost
+            self.path.path_cost += edge_cost
             # Update the current node and the vehicle's load
             self.limit_load_current_vehicle += self.graph_api.get_demand_node(next_node)
             self.current_node = next_node
+
 
     def calculate_edge_cost(self, next_node: str) -> float:
         """

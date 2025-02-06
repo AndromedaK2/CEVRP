@@ -158,6 +158,9 @@ class GraphApi:
         edge_cost = self.get_edge_cost(u, v)
         return edge_cost * energy_consumption
 
+    def calculate_minimum_stations(self, nodes: list[str], energy_consumption: float, energy_capacity: int) -> float:
+        return (self.calculate_path_cost(nodes) * energy_consumption) / energy_capacity
+
     @staticmethod
     def calculate_paths_cost(paths: List[Path]) -> float:
         """Calculate the total cost of the provided paths."""

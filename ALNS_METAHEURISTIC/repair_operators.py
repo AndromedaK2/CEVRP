@@ -13,6 +13,9 @@ def greedy_repair(state: CevrpState,rnd_state: Optional[random.Random] = None) -
     # Copy the current paths and unassigned nodes to work with
     paths = [path.copy() for path in state.paths]
     unassigned = state.unassigned[:]
+    energy_consumption = state.cevrp.energy_consumption
+    energy_capacity = state.cevrp.energy_capacity
+
 
     while unassigned:
         # Select the first unassigned node
@@ -22,15 +25,20 @@ def greedy_repair(state: CevrpState,rnd_state: Optional[random.Random] = None) -
 
         # Iterate over all paths and possible insertion points
         for path in paths:
+            energy_consumed = state.graph_api.calculate_path_energy_consumption(path.nodes,energy_consumption)
+            minimum_stations = state.graph_api.calculate_minimum_stations(path.nodes,energy_consumption,energy_capacity)
+
             for i in range(1, len(path.nodes)):
                 # Retrieve the nodes at the current segment
                 u, v = path.nodes[i - 1], path.nodes[i]
 
                 # Calculate the incremental cost of inserting the node
                 cost_increase = state.graph_api.calculate_segment_cost_with_insertion(u, node, v)
+                new_possible_path = path.copy()
+                new_possible_path.nodes.insert(i,node)
 
                 # Keep track of the best insertion found
-                if cost_increase < best_cost_increase and state.graph_api.get_total_demand_path(path.nodes) < state.cevrp.capacity:
+                if cost_increase < best_cost_increase and state.graph_api.get_total_demand_path(new_possible_path.nodes) < state.cevrp.capacity:
                     best_cost_increase = cost_increase
                     best_insertion_info = (path, i)
 

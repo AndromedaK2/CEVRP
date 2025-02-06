@@ -24,14 +24,13 @@ def greedy_repair(state: CevrpState,rnd_state: Optional[random.Random] = None) -
         for path in paths:
             for i in range(1, len(path.nodes)):
                 # Retrieve the nodes at the current segment
-                old_path = path.copy()
                 u, v = path.nodes[i - 1], path.nodes[i]
 
                 # Calculate the incremental cost of inserting the node
                 cost_increase = state.graph_api.calculate_segment_cost_with_insertion(u, node, v)
 
                 # Keep track of the best insertion found
-                if cost_increase < best_cost_increase and state.graph_api.get_total_demand_path(path.nodes) <  6000:
+                if cost_increase < best_cost_increase and state.graph_api.get_total_demand_path(path.nodes) < state.cevrp.capacity:
                     best_cost_increase = cost_increase
                     best_insertion_info = (path, i)
 
@@ -43,4 +42,4 @@ def greedy_repair(state: CevrpState,rnd_state: Optional[random.Random] = None) -
             path.path_cost += best_cost_increase
 
     # Return the updated state
-    return CevrpState(paths, [], state.graph_api)
+    return CevrpState(paths, [], state.graph_api, state.cevrp)

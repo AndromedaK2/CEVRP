@@ -54,4 +54,4 @@ def random_destroy(state: CevrpState, rnd_state: Optional[random.Random] = None)
         path.demand = state.graph_api.get_total_demand_path(path.nodes)
 
     # Create the new CevrpState
-    return CevrpState(paths_copy, unassigned, state.graph_api)
+    return CevrpState(paths_copy, unassigned, state.graph_api, state.cevrp)

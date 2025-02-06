@@ -36,7 +36,7 @@ class CevrpState:
         # Make a deep copy of paths and a shallow copy of unassigned
         paths_copy = copy.deepcopy(self.paths)
         unassigned_copy = self.unassigned.copy()
-        return CevrpState(paths_copy, unassigned_copy, self.graph_api)
+        return CevrpState(paths_copy, unassigned_copy, self.graph_api, self.cevrp)
 
     def get_path_cost(self):
         """

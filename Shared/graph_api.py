@@ -38,6 +38,12 @@ class GraphApi:
             total_demand += self.graph.nodes[neighbor].get('demand', 0)
         return  total_demand
 
+    def get_total_demand_path(self, nodes) -> int:
+        total_demand = 0
+        for node in nodes:
+            total_demand += self.get_demand_node(node)
+        return  total_demand
+
     def get_length_graph(self) -> int:
         return len(self.graph.nodes)
 

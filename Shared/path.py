@@ -57,7 +57,7 @@ class Path:
 
     def copy(self) -> "Path":
         """Creates a deep copy of the Path instance."""
-        return Path(_nodes=copy.deepcopy(self.nodes), _path_cost=self.path_cost)
+        return Path(_nodes=copy.deepcopy(self.nodes), _path_cost=self.path_cost, _demand=self.demand)
 
     def __str__(self) -> str:
         """Returns a string representation of the Path."""

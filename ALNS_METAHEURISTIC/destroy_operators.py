@@ -36,6 +36,7 @@ def random_destroy(state: CevrpState, rnd_state: Optional[random.Random] = None)
                 node_to_remove = random.choice(range(1, len(path.nodes) - 1))  # Exclude depot
                 unassigned.append(path.nodes.pop(node_to_remove))
                 path.path_cost = state.graph_api.calculate_path_cost(path.nodes)
+                path.demand = state.graph_api.get_total_demand_path(path.nodes)
             continue  # Skip to the next path
 
         # Randomly select two non-adjacent indices for the segments
@@ -50,6 +51,7 @@ def random_destroy(state: CevrpState, rnd_state: Optional[random.Random] = None)
 
         # Recalculate the path cost using the graph
         path.path_cost = state.graph_api.calculate_path_cost(path.nodes)
+        path.demand = state.graph_api.get_total_demand_path(path.nodes)
 
     # Create the new CevrpState
     return CevrpState(paths_copy, unassigned, state.graph_api)

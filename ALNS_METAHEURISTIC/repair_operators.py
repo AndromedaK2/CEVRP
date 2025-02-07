@@ -1,6 +1,8 @@
 import random
 from typing import Optional
 from ALNS_METAHEURISTIC.solution_state import CevrpState
+from Shared.config import DEFAULT_SOURCE_NODE
+from Shared.path import Path
 
 
 def greedy_repair(state: CevrpState,rnd_state: Optional[random.Random] = None) -> CevrpState:
@@ -36,9 +38,10 @@ def greedy_repair(state: CevrpState,rnd_state: Optional[random.Random] = None) -
                 cost_increase = state.graph_api.calculate_segment_cost_with_insertion(u, node, v)
                 new_possible_path = path.copy()
                 new_possible_path.nodes.insert(i,node)
+                total_demand = state.graph_api.get_total_demand_path(new_possible_path.nodes)
 
                 # Keep track of the best insertion found
-                if cost_increase < best_cost_increase and state.graph_api.get_total_demand_path(new_possible_path.nodes) < state.cevrp.capacity:
+                if cost_increase < best_cost_increase and total_demand  <= state.cevrp.capacity:
                     best_cost_increase = cost_increase
                     best_insertion_info = (path, i)
 
@@ -48,6 +51,14 @@ def greedy_repair(state: CevrpState,rnd_state: Optional[random.Random] = None) -
             path.nodes.insert(index, node)
             # Update the path cost incrementally
             path.path_cost += best_cost_increase
+        else:
+            # If no valid insertion was found, create a new route for the node
+            new_route = Path(nodes=[DEFAULT_SOURCE_NODE, node, DEFAULT_SOURCE_NODE])
+            new_route.path_cost = (
+                state.graph_api.get_edge_cost(DEFAULT_SOURCE_NODE, node) +
+                state.graph_api.get_edge_cost(node, DEFAULT_SOURCE_NODE)
+            )
+            paths.append(new_route)
 
     # Return the updated state
     return CevrpState(paths, [], state.graph_api, state.cevrp)

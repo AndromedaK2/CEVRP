@@ -186,7 +186,6 @@ class Ant:
             self.limit_load_current_vehicle += self.graph_api.get_demand_node(next_node)
             self.current_node = next_node
 
-
     def calculate_edge_cost(self, next_node: str) -> float:
         """
         Calculates the cost of the edge from the current node to the next node.

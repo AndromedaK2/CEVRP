@@ -63,7 +63,7 @@ class GraphApi:
             return []
 
         neighbors_with_demand = []
-        for neighbor in self.graph.neighbors(node):
+        for neighbor in self.get_neighbors(node):
             demand = self.graph.nodes[neighbor].get('demand', 0)
             neighbors_with_demand.append({'node': neighbor, 'demand': demand})
 

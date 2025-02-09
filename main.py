@@ -30,7 +30,7 @@ def select_instance(instance_files: List[str]) -> str:
 def create_cevrp_instance(file_path: str) -> CEVRP:
     """Parses and creates a CEVRP instance from the selected file path."""
     try:
-        cevrp = CEVRP.parse_evrp_instance_from_file(file_path, include_stations=False)
+        cevrp = CEVRP.parse_evrp_instance_from_file(file_path, include_stations=True)
         print(f"Instance successfully created from: {file_path}")
         return cevrp
     except Exception as e:

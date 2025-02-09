@@ -70,18 +70,15 @@ class CEVRP:
                 key, value = line.split(": ", 1)
                 instance_data[key.strip()] = value.strip()
 
-        # Process node coordinates and demands
-        node_coord_array = []
-        station_coord_array = []
 
-        for coord in node_coord_list:
-            node_id = coord[0]
-            demand = demand_dict.get(node_id, 0)
+        station_coord_array = [[*coord, demand_dict.get(coord[0], 0)] for coord in node_coord_list if
+                               coord[0] in stations_coord]
 
-            if include_stations or node_id == 1 or demand > 0:
-                node_coord_array.append(coord + [demand])
-            else:
-                station_coord_array.append(coord + [demand])
+        if include_stations:
+            node_coord_array = [[*coord, demand_dict.get(coord[0], 0)] for coord in node_coord_list]
+        else:
+            node_coord_array = [[*coord, demand_dict.get(coord[0], 0)] for coord in node_coord_list if
+                                coord[0] not in stations_coord]
 
         # Convert lists to numpy arrays
         node_coord_section = np.array(node_coord_array)

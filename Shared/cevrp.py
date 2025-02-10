@@ -23,7 +23,7 @@ class CEVRP:
     node_coord_section: np.ndarray = field(default_factory=lambda: np.array([]))
     demand_section: Dict[int, int] = field(default_factory=dict)
     stations_coord_section: np.ndarray = field(default_factory=lambda: np.array([]))
-    stations_coord: List[int] = field(default_factory=list)
+    charging_stations: List[str] = field(default_factory=list)
     depot_section: List[int] = field(default_factory=list)
 
     @staticmethod
@@ -41,7 +41,7 @@ class CEVRP:
         instance_data = {}
         node_coord_list = []
         demand_dict = {}
-        stations_coord = []
+        charging_stations = []
         depot_section = []
         section = None
 
@@ -62,7 +62,7 @@ class CEVRP:
                 node, demand = map(int, line.split())
                 demand_dict[node] = demand
             elif section == "STATIONS_COORD_SECTION":
-                stations_coord.append(int(line.strip()))
+                charging_stations.append(str(line.strip()))
             elif section == "DEPOT_SECTION":
                 depot_section.append(int(line.strip()))
             else:
@@ -72,13 +72,13 @@ class CEVRP:
 
 
         station_coord_array = [[*coord, demand_dict.get(coord[0], 0)] for coord in node_coord_list if
-                               coord[0] in stations_coord]
+                               coord[0] in charging_stations]
 
         if include_stations:
             node_coord_array = [[*coord, demand_dict.get(coord[0], 0)] for coord in node_coord_list]
         else:
             node_coord_array = [[*coord, demand_dict.get(coord[0], 0)] for coord in node_coord_list if
-                                coord[0] not in stations_coord]
+                                coord[0] not in charging_stations]
 
         # Convert lists to numpy arrays
         node_coord_section = np.array(node_coord_array)
@@ -102,7 +102,7 @@ class CEVRP:
             node_coord_section=node_coord_section,
             demand_section=demand_dict,
             stations_coord_section=stations_coord_section,
-            stations_coord=stations_coord,
+            charging_stations=charging_stations,
             depot_section=depot_section
         )
 

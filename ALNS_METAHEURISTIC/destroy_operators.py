@@ -115,14 +115,20 @@ def remove_overcapacity_nodes(state: CevrpState, rnd_state: Optional[random.Rand
             if energy_consumption + depot_return_energy <= energy_capacity:
                 valid_path.nodes.append(DEFAULT_SOURCE_NODE)  # Add depot only if feasible
 
-        # Nodes to remove are those that were not included in valid_path
-        nodes_to_remove = set(path.nodes) - set(valid_path.nodes)
+        # Identify the first invalid node (the one exceeding capacity)
+        last_valid_index = len(valid_path.nodes) - 1 if valid_path.nodes else -1
 
-        path.nodes[:] = [node for node in path.nodes if node not in nodes_to_remove]
+        # Remove only nodes beyond the last valid node
+        nodes_to_remove = path.nodes[last_valid_index + 1:]
+
+        # Update path to only keep valid nodes
+        path.nodes = path.nodes[:last_valid_index + 1]
+
+        # Add removed nodes to unassigned list
         unassigned.extend(nodes_to_remove)
 
+        # Recalculate cost, demand, and energy
         path.path_cost = state.graph_api.calculate_path_cost(path.nodes)
         path.demand = state.graph_api.get_total_demand_path(path.nodes)
         path.energy = energy_consumption
-
     return CevrpState(paths_copy, unassigned, state.graph_api, state.cevrp)

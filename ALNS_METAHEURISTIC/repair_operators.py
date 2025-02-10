@@ -76,6 +76,7 @@ def smart_reinsertion(state: CevrpState, rnd_state: Optional[random.Random] = No
     paths = [path.copy() for path in state.paths]
     unassigned = state.unassigned[:]
     energy_capacity = state.cevrp.energy_capacity
+    energy_consumption = state.cevrp.energy_consumption
     charging_stations = state.cevrp.charging_stations
 
     while unassigned:
@@ -93,7 +94,7 @@ def smart_reinsertion(state: CevrpState, rnd_state: Optional[random.Random] = No
                 new_possible_path.nodes.insert(i, node)
 
                 # Compute energy consumption
-                energy_consumed = state.graph_api.calculate_path_energy_consumption(new_possible_path.nodes)
+                energy_consumed = state.graph_api.calculate_path_energy_consumption(new_possible_path.nodes, energy_consumption)
 
                 # Ensure feasibility: add a charging station if energy is insufficient
                 if energy_consumed > energy_capacity:

@@ -126,6 +126,14 @@ class CEVRP:
         """
         return self.energy_capacity
 
+    def add_charging_stations_to_nodes(self):
+        """
+        Adds charging station coordinates to node_coord_section if not already included.
+        """
+        if self.stations_coord_section.size == 0:
+            return
+        self.node_coord_section = np.vstack((self.node_coord_section, self.stations_coord_section))
+
     @staticmethod
     def get_benchmark() -> pd.DataFrame:
         """

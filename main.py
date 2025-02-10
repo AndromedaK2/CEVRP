@@ -1,6 +1,6 @@
 from typing import List
 
-from ALNS_METAHEURISTIC.destroy_operators import random_destroy
+from ALNS_METAHEURISTIC.destroy_operators import remove_overcapacity_nodes
 from ALNS_METAHEURISTIC.make_alns import make_alns
 from ALNS_METAHEURISTIC.repair_operators import greedy_repair
 from ALNS_METAHEURISTIC.solution_state import CevrpState
@@ -30,7 +30,7 @@ def select_instance(instance_files: List[str]) -> str:
 def create_cevrp_instance(file_path: str) -> CEVRP:
     """Parses and creates a CEVRP instance from the selected file path."""
     try:
-        cevrp = CEVRP.parse_evrp_instance_from_file(file_path, include_stations=True)
+        cevrp = CEVRP.parse_evrp_instance_from_file(file_path, include_stations=False)
         print(f"Instance successfully created from: {file_path}")
         return cevrp
     except Exception as e:
@@ -101,7 +101,7 @@ if __name__ == '__main__':
     cevrp_state = CevrpState(aco_paths, graph_api=aco.graph_api, cevrp=cevrp_instance)
     best_state, best_cost, best_paths, unassigned_nodes = make_alns(
         cevrp_state,
-        destroy_operators=[random_destroy],
+        destroy_operators=[remove_overcapacity_nodes],
         repair_operators=[greedy_repair],
     )
 

@@ -1,4 +1,5 @@
 import copy
+from typing import List
 
 from Shared.cevrp import CEVRP
 from Shared.graph_api import GraphApi
@@ -48,8 +49,8 @@ class CevrpState:
             raise ValueError("graph_api instance is required to calculate path cost.")
         return self.graph_api.calculate_paths_cost(self.paths)
 
-    def get_path_energy_consumption(self, i:int):
-        path_energy_consumption = self.graph_api.calculate_path_energy_consumption(self.paths[i].nodes, self.cevrp.energy_consumption)
+    def get_path_energy_consumption(self, nodes:List[str]):
+        path_energy_consumption = self.graph_api.calculate_path_energy_consumption(nodes, self.cevrp.energy_consumption)
         return path_energy_consumption
 
     def get_edge_energy_consumption(self, i:str, j:str):

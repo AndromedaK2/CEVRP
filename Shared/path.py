@@ -7,11 +7,13 @@ class Path:
     _nodes: List[str] = field(default_factory=list, repr=False)
     _path_cost: float = 0.0
     _demand: int = 0
+    _energy: float = 0.0
 
-    def __init__(self, nodes: List[str] = None, path_cost: float = 0.0, demand: int = 0):
+    def __init__(self, nodes: List[str] = None, path_cost: float = 0.0, demand: int = 0, energy: float = 0.0):
         self.nodes = nodes if nodes else []
         self.path_cost = path_cost
         self.demand = demand
+        self.energy = energy
 
     @property
     def nodes(self) -> List[str]:
@@ -50,16 +52,32 @@ class Path:
 
         self._demand = value
 
+    @property
+    def energy(self) -> float:
+        return self._energy
+
+    @energy.setter
+    def energy(self, value: float) -> None:
+        """Sets the demand, ensuring it is a non-negative integer."""
+        try:
+            value = float(value)
+        except (ValueError, TypeError):
+            raise ValueError("Demand must be a non-negative integer.")
+
+        if value < 0:
+            raise ValueError("Demand must be a non-negative integer.")
+
+        self._energy = value
 
     def copy(self) -> "Path":
         """Creates a deep copy of the Path instance."""
-        return Path(nodes=copy.deepcopy(self.nodes), path_cost=self.path_cost, demand=self.demand)
+        return Path(nodes=copy.deepcopy(self.nodes), path_cost=self.path_cost, demand=self.demand, energy=self.energy)
 
     def __str__(self) -> str:
-        return f"Path(nodes={self.nodes}, path_cost={self.path_cost}, demand={self.demand})"
+        return f"Path(nodes={self.nodes}, path_cost={self.path_cost}, demand={self.demand}, energy={self.energy})"
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Path):
             return NotImplemented
-        return self.nodes == other.nodes and self.path_cost == other.path_cost and self.demand == other.demand
+        return self.nodes == other.nodes and self.path_cost == other.path_cost and self.demand == other.demand and self.energy == other.energy
 

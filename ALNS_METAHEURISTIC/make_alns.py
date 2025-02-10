@@ -4,7 +4,7 @@ from alns.accept import RecordToRecordTravel
 from alns.select import RouletteWheel
 from alns.stop import MaxIterations
 
-from ALNS_METAHEURISTIC.destroy_operators import random_destroy
+from ALNS_METAHEURISTIC.destroy_operators import random_destroy, remove_overcapacity_nodes
 from ALNS_METAHEURISTIC.repair_operators import greedy_repair
 from ALNS_METAHEURISTIC.solution_state import CevrpState
 
@@ -38,7 +38,7 @@ def make_alns(
 
     # Add destroy operators (default to random_destroy if none provided)
     if destroy_operators is None:
-        destroy_operators = [random_destroy]
+        destroy_operators = [remove_overcapacity_nodes]
     for operator in destroy_operators:
         alns.add_destroy_operator(operator)
 

@@ -70,15 +70,13 @@ class CEVRP:
                 key, value = line.split(": ", 1)
                 instance_data[key.strip()] = value.strip()
 
-
-        station_coord_array = [[*coord, demand_dict.get(coord[0], 0)] for coord in node_coord_list if
-                               coord[0] in charging_stations]
+        station_coord_array = [[*coord, 0] for coord in node_coord_list if str(coord[0]) in charging_stations]
 
         if include_stations:
             node_coord_array = [[*coord, demand_dict.get(coord[0], 0)] for coord in node_coord_list]
         else:
             node_coord_array = [[*coord, demand_dict.get(coord[0], 0)] for coord in node_coord_list if
-                                coord[0] not in charging_stations]
+                                str(coord[0]) not in charging_stations]
 
         # Convert lists to numpy arrays
         node_coord_section = np.array(node_coord_array)

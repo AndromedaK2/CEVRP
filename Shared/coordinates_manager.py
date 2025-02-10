@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 @dataclass
-class CoordinatesDemandManager:
+class CoordinatesManager:
     data: np.ndarray
     distances: Optional[np.ndarray] = None
     graph: nx.DiGraph = nx.DiGraph()

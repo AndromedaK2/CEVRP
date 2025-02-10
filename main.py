@@ -55,9 +55,9 @@ def format_path(paths: List[Path]) -> str:
     return "\n".join(formatted_routes)
 
 
-def solve_with_aco(cevrp_instance: CEVRP) -> tuple:
+def solve_with_aco(cevrp: CEVRP) -> tuple:
     """Solves the instance using ACO and returns the computed paths and cost."""
-    manager = CoordinatesManager(cevrp_instance.node_coord_section)
+    manager = CoordinatesManager(cevrp.node_coord_section)
     manager.compute_distances()
     graph = manager.build_graph()
 
@@ -65,22 +65,22 @@ def solve_with_aco(cevrp_instance: CEVRP) -> tuple:
         graph,
         max_ant_steps=MAX_ANT_STEPS,
         num_iterations=NUM_ITERATIONS,
-        best_path_cost=cevrp_instance.optimal_value,
-        cevrp=cevrp_instance,
+        best_path_cost=cevrp.optimal_value,
+        cevrp=cevrp,
         use_route_construction=False
     )
     return aco.find_shortest_path(start=DEFAULT_SOURCE_NODE, num_ants=NUM_ANTS), aco.graph_api
 
 
-def solve_with_alns(aco_paths: List[Path], cevrp_instance: CEVRP) -> tuple:
+def solve_with_alns(paths: List[Path], cevrp: CEVRP) -> tuple:
     """Applies ALNS to improve the routes found by ACO."""
-    cevrp_instance.add_charging_stations_to_nodes()
-    manager = CoordinatesManager(cevrp_instance.node_coord_section)
+    cevrp.add_charging_stations_to_nodes()
+    manager = CoordinatesManager(cevrp.node_coord_section)
     manager.compute_distances()
     graph = manager.build_graph()
     graph_api = GraphApi(graph)
 
-    cevrp_state = CevrpState(aco_paths, graph_api=graph_api, cevrp=cevrp_instance)
+    cevrp_state = CevrpState(paths, graph_api=graph_api, cevrp=cevrp)
     return make_alns(
         cevrp_state,
         destroy_operators=[remove_overcapacity_nodes],

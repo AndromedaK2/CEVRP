@@ -16,8 +16,6 @@ def remove_overcapacity_nodes(state: CevrpState, rnd_state: Optional[random.Rand
     :param rnd_state: Random number generator state (optional).
     :return: A new CevrpState object with updated paths and unassigned nodes.
     """
-    if rnd_state is None:
-        rnd_state = random.Random()
 
     paths = state.paths
     energy_capacity = state.cevrp.energy_capacity
@@ -51,6 +49,7 @@ def remove_overcapacity_nodes(state: CevrpState, rnd_state: Optional[random.Rand
 
             # **Check if the vehicle can safely reach the next node**
             if energy_consumption + additional_energy > energy_capacity:
+                valid_path.nodes.append(current_node)
                 break  # Stop before exceeding capacity
 
             # Add the node only if it doesn't exceed capacity
@@ -63,7 +62,7 @@ def remove_overcapacity_nodes(state: CevrpState, rnd_state: Optional[random.Rand
         if remaining_nodes:
             # **Randomized node removal to prevent getting stuck**
             if len(remaining_nodes) > 1:
-                rnd_state.shuffle(remaining_nodes)
+                random.shuffle(remaining_nodes)
 
             # **Filter out charging stations from unassigned nodes**
             unassigned.extend([node for node in remaining_nodes if node != DEFAULT_SOURCE_NODE and node not in charging_stations])
@@ -82,3 +81,5 @@ def remove_overcapacity_nodes(state: CevrpState, rnd_state: Optional[random.Rand
     unassigned = [node for node in unassigned if node not in charging_stations]
 
     return CevrpState(new_paths, unassigned, state.graph_api, state.cevrp)
+
+

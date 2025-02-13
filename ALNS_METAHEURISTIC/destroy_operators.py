@@ -5,85 +5,36 @@ from Shared.config import DEFAULT_SOURCE_NODE
 from Shared.path import Path
 
 
-def random_destroy(state: CevrpState, rnd_state: Optional[random.Random] = None) -> CevrpState:
-    """
-    Randomly removes nodes from paths while ensuring energy capacity constraints.
-
-    :param state: Current solution state (CevrpState).
-    :param rnd_state: Random number generator state (optional).
-    :return: A new CevrpState object with updated paths and unassigned nodes.
-    :raises ValueError: If there are fewer than two paths or paths with insufficient nodes.
-    """
-
-    paths = state.paths
-    energy_capacity = state.cevrp.energy_capacity
-
-    if len(paths) < 2:
-        raise ValueError("At least two paths are required to perform destruction.")
-
-    paths_copy = [path.copy() for path in paths]
-    path_indices = random.sample(range(len(paths_copy)), 2)
-    selected_paths = [paths_copy[i] for i in path_indices]
-    unassigned = state.unassigned.copy()
-
-    for path in selected_paths:
-        if len(path.nodes) < 2:
-            continue
-
-        energy_consumption = 0
-        valid_path = Path()
-
-        for i in range(len(path.nodes) - 1):
-            current_node, next_node = path.nodes[i], path.nodes[i + 1]
-            energy_consumption += state.get_edge_energy_consumption(current_node, next_node)
-
-            if energy_consumption > energy_capacity:
-                valid_path.nodes.append(DEFAULT_SOURCE_NODE)
-                break
-
-            valid_path.nodes.append(current_node)
-
-        if energy_consumption > energy_capacity:
-            nodes_to_remove = set(path.nodes) - set(valid_path.nodes)
-        else:
-            if len(path.nodes) > 4:
-                nodes_to_remove = set(random.sample(path.nodes[1:-1], 2))
-            elif len(path.nodes) > 2:
-                nodes_to_remove = {random.choice(path.nodes[1:-1])}
-            else:
-                nodes_to_remove = set()
-
-        path.nodes[:] = [node for node in path.nodes if node not in nodes_to_remove]
-        unassigned.extend(nodes_to_remove)
-
-        path.path_cost = state.graph_api.calculate_path_cost(path.nodes)
-        path.demand = state.graph_api.get_total_demand_path(path.nodes)
-
-    return CevrpState(paths_copy, unassigned, state.graph_api, state.cevrp)
-
-
-
 def remove_overcapacity_nodes(state: CevrpState, rnd_state: Optional[random.Random] = None) -> CevrpState:
     """
     Removes nodes from paths exceeding the maximum energy capacity while ensuring a safe return to the depot.
+    Charging stations reset energy consumption and recharge the battery.
+    Also removes routes with only two nodes (one customer + depot).
+    Prevents getting stuck by applying randomized removal of excess nodes.
 
     :param state: Current solution state (CevrpState).
     :param rnd_state: Random number generator state (optional).
     :return: A new CevrpState object with updated paths and unassigned nodes.
     """
+    if rnd_state is None:
+        rnd_state = random.Random()
 
     paths = state.paths
     energy_capacity = state.cevrp.energy_capacity
+    charging_stations = state.cevrp.charging_stations
 
     if len(paths) < 2:
         raise ValueError("At least two paths are required to perform this operation.")
 
     paths_copy = [path.copy() for path in paths]
     unassigned = state.unassigned.copy()
+    new_paths = []  # Store valid paths
 
     for path in paths_copy:
-        if len(path.nodes) < 4:
-            continue
+        # **Remove paths that contain only the depot and one customer**
+        if len(path.nodes) <= 3:
+            unassigned.extend([node for node in path.nodes if node != DEFAULT_SOURCE_NODE])
+            continue  # Skip this path (remove it)
 
         energy_consumption = 0
         valid_path = Path()
@@ -91,44 +42,43 @@ def remove_overcapacity_nodes(state: CevrpState, rnd_state: Optional[random.Rand
         for i in range(len(path.nodes) - 1):
             current_node, next_node = path.nodes[i], path.nodes[i + 1]
 
-            # Compute the additional energy required before adding it
+            # **Reset energy at charging stations**
+            if current_node in charging_stations:
+                energy_consumption = 0  # Fully recharge
+
+            # Compute additional energy needed to reach the next node
             additional_energy = state.get_edge_energy_consumption(current_node, next_node)
 
-            # Check if the vehicle can safely reach the next node
+            # **Check if the vehicle can safely reach the next node**
             if energy_consumption + additional_energy > energy_capacity:
-                # Before stopping, check if it has enough energy to return to depot
-                depot_return_energy = state.get_edge_energy_consumption(current_node, DEFAULT_SOURCE_NODE)
-
-                if energy_consumption + depot_return_energy <= energy_capacity:
-                    valid_path.nodes.append(DEFAULT_SOURCE_NODE)  # Safe return
                 break  # Stop before exceeding capacity
 
-            # Only add the node if it doesn't exceed capacity
+            # Add the node only if it doesn't exceed capacity
             valid_path.nodes.append(current_node)
-            energy_consumption += additional_energy  # Update consumption after confirming feasibility
+            energy_consumption += additional_energy
 
-        # Ensure the vehicle can return to depot from the last valid node
-        if valid_path.nodes and valid_path.nodes[-1] != DEFAULT_SOURCE_NODE:
-            last_node = valid_path.nodes[-1]
-            depot_return_energy = state.get_edge_energy_consumption(last_node, DEFAULT_SOURCE_NODE)
+        # **Handle unassigned nodes properly**
+        remaining_nodes = path.nodes[len(valid_path.nodes):]  # Nodes that couldn't be added
 
-            if energy_consumption + depot_return_energy <= energy_capacity:
-                valid_path.nodes.append(DEFAULT_SOURCE_NODE)  # Add depot only if feasible
+        if remaining_nodes:
+            # **Randomized node removal to prevent getting stuck**
+            if len(remaining_nodes) > 1:
+                rnd_state.shuffle(remaining_nodes)
 
-        # Identify the first invalid node (the one exceeding capacity)
-        last_valid_index = len(valid_path.nodes) - 1 if valid_path.nodes else -1
+            # **Filter out charging stations from unassigned nodes**
+            unassigned.extend([node for node in remaining_nodes if node != DEFAULT_SOURCE_NODE and node not in charging_stations])
 
-        # Remove only nodes beyond the last valid node
-        nodes_to_remove = path.nodes[last_valid_index + 1:]
+        # **Recalculate cost, demand, and energy**
+        if valid_path.nodes:
+            valid_path.path_cost = state.graph_api.calculate_path_cost(valid_path.nodes)
+            valid_path.demand = state.graph_api.get_total_demand_path(valid_path.nodes)
+            valid_path.energy = energy_consumption
 
-        # Update path to only keep valid nodes
-        path.nodes = path.nodes[:last_valid_index + 1]
+        # **Only keep the path if it starts and ends at the depot**
+        if len(valid_path.nodes) > 2 and valid_path.nodes[0] == DEFAULT_SOURCE_NODE:
+            new_paths.append(valid_path)
 
-        # Add removed nodes to unassigned list
-        unassigned.extend(nodes_to_remove)
+    # **Filter out charging stations from the final unassigned list**
+    unassigned = [node for node in unassigned if node not in charging_stations]
 
-        # Recalculate cost, demand, and energy
-        path.path_cost = state.graph_api.calculate_path_cost(path.nodes)
-        path.demand = state.graph_api.get_total_demand_path(path.nodes)
-        path.energy = energy_consumption
-    return CevrpState(paths_copy, unassigned, state.graph_api, state.cevrp)
+    return CevrpState(new_paths, unassigned, state.graph_api, state.cevrp)

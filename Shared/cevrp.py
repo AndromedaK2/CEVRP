@@ -17,7 +17,7 @@ class CEVRP:
     dimension: int = 1
     stations: int = 0
     capacity: int = 1000
-    energy_capacity: int = 100
+    energy_capacity: float = 100
     energy_consumption: float = 1.0
     edge_weight_format: str = "Default Format"
     node_coord_section: np.ndarray = field(default_factory=lambda: np.array([]))
@@ -122,7 +122,7 @@ class CEVRP:
         """
         Returns the maximum battery capacity for this instance.
         """
-        return self.energy_capacity
+        return 0.0
 
     def add_charging_stations_to_nodes(self):
         """

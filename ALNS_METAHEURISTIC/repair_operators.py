@@ -2,142 +2,157 @@ import random
 from typing import Optional
 from ALNS_METAHEURISTIC.solution_state import CevrpState
 from Shared.config import DEFAULT_SOURCE_NODE
-from Shared.path import Path
 
 
-def greedy_repair(state: CevrpState,rnd_state: Optional[random.Random] = None) -> CevrpState:
+
+def find_best_charging_station(
+    state: CevrpState,
+    last_node: str,
+    energy_capacity: float,
+    energy_consumption: float,
+    charging_stations: list,
+    current_energy_used: float  # Add this parameter
+) -> Optional[str]:
     """
-    Greedily reinserts unassigned nodes into the paths to minimize the cost increment.
+    Identifies the best charging station to insert before a new node if needed.
 
-    :param state: Current CevrpState object containing paths and unassigned nodes.
-    :return: A new CevrpState with updated paths where unassigned nodes are reintegrated.
+    :param state:
+    :param last_node:
+    :param energy_capacity:
+    :param energy_consumption:
+    :param charging_stations:
+    :param current_energy_used: The energy consumed so far in the current route.
+    :return: The best station to insert (if necessary), otherwise None.
     """
-    # Copy the current paths and unassigned nodes to work with
-    paths = [path.copy() for path in state.paths]
-    unassigned = state.unassigned[:]
-    energy_consumption = state.cevrp.energy_consumption
-    energy_capacity = state.cevrp.energy_capacity
+    best_station = None
+    best_station_cost = float('inf')
 
+    for station in charging_stations:
+        if station == last_node:
+            return None  # If already at a charging station, no need to insert one
 
-    while unassigned:
-        # Select the first unassigned node
-        node = unassigned.pop(0)
-        best_insertion_info = None
-        best_cost_increase = float('inf')
+        # Calculate energy required to reach the station
+        energy_to_station = state.graph_api.calculate_edge_energy_consumption(
+            last_node, station, energy_consumption
+        )
 
-        # Iterate over all paths and possible insertion points
-        for path in paths:
-            energy_consumed = state.graph_api.calculate_path_energy_consumption(path.nodes,energy_consumption)
-            minimum_stations = state.graph_api.calculate_minimum_stations(path.nodes,energy_consumption,energy_capacity)
+        # Check if the vehicle can reach the station with the remaining energy
+        if current_energy_used + energy_to_station > energy_capacity:
+            continue  # Skip if the station is not reachable
 
-            for i in range(1, len(path.nodes)):
-                # Retrieve the nodes at the current segment
-                u, v = path.nodes[i - 1], path.nodes[i]
+        # Calculate the cost of reaching the station
+        station_cost = state.graph_api.get_edge_cost(last_node, station)
 
-                # Calculate the incremental cost of inserting the node
-                cost_increase = state.graph_api.calculate_segment_cost_with_insertion(u, node, v)
-                new_possible_path = path.copy()
-                new_possible_path.nodes.insert(i,node)
-                total_demand = state.graph_api.get_total_demand_path(new_possible_path.nodes)
+        # Track the best station (lowest cost)
+        if station_cost < best_station_cost:
+            best_station = station
+            best_station_cost = station_cost
 
-                # Keep track of the best insertion found
-                if cost_increase < best_cost_increase and total_demand  <= state.cevrp.capacity:
-                    best_cost_increase = cost_increase
-                    best_insertion_info = (path, i)
-
-        # Perform the best insertion
-        if best_insertion_info:
-            path, index = best_insertion_info
-            path.nodes.insert(index, node)
-            # Update the path cost incrementally
-            path.path_cost += best_cost_increase
-        else:
-            # If no valid insertion was found, create a new route for the node
-            new_route = Path(nodes=[DEFAULT_SOURCE_NODE, node, DEFAULT_SOURCE_NODE])
-            new_route.path_cost = (
-                state.graph_api.get_edge_cost(DEFAULT_SOURCE_NODE, node) +
-                state.graph_api.get_edge_cost(node, DEFAULT_SOURCE_NODE)
-            )
-            paths.append(new_route)
-
-    # Return the updated state
-    return CevrpState(paths, [], state.graph_api, state.cevrp)
-
+    return best_station
 
 def smart_reinsertion(state: CevrpState, rnd_state: Optional[random.Random] = None) -> CevrpState:
     """
-    Greedily reinserts unassigned nodes into the paths, ensuring energy constraints
-    by adding charging stations when necessary.
+    Reinserts unassigned nodes into feasible routes while ensuring:
+    - No duplicate nodes in any route.
+    - Charging stations are inserted only when necessary.
+    - All routes remain energy-feasible and return to the depot.
+    - Returns a new CevrpState object with the updated paths.
 
-    :param state: Current CevrpState object containing paths and unassigned nodes.
-    :return: A new CevrpState with updated paths where unassigned nodes are reintegrated.
+    :return: A new CevrpState with updated paths.
     """
-    # Copy paths and unassigned nodes
-    paths = [path.copy() for path in state.paths]
-    unassigned = state.unassigned[:]
+
+    # Copy the state to avoid modifying the original
+    paths_copy = [path.copy() for path in state.paths]
+    unassigned = state.unassigned.copy()  # Track nodes without a route
     energy_capacity = state.cevrp.energy_capacity
-    energy_consumption = state.cevrp.energy_consumption
+    energy_consumption = state.cevrp.energy_consumption  # Constant energy consumption factor
     charging_stations = state.cevrp.charging_stations
 
-    while unassigned:
-        node = unassigned.pop(0)
-        best_insertion_info = None
-        best_cost_increase = float('inf')
+    # Track nodes already assigned to routes
+    visited_nodes = set(node for path in paths_copy for node in path.nodes if node != DEFAULT_SOURCE_NODE)
 
-        for path in paths:
-            for i in range(1, len(path.nodes)):
-                # Nodes before and after insertion point
-                u, v = path.nodes[i - 1], path.nodes[i]
+    # Remove nodes already in routes from unassigned
+    unassigned = [node for node in unassigned if node not in visited_nodes]
 
-                # Simulate insertion
-                new_possible_path = path.copy()
-                new_possible_path.nodes.insert(i, node)
+    # Iterate over each route and try to insert unassigned nodes
+    for path in paths_copy:
+        i = 0
+        while i < len(unassigned):
+            node = unassigned[i]
+            if node in visited_nodes:
+                i += 1
+                continue  # Skip if already assigned to another route
 
-                # Compute energy consumption
-                energy_consumed = state.graph_api.calculate_path_energy_consumption(new_possible_path.nodes, energy_consumption)
+            # **Determine the insertion position**
+            if path.nodes[-1] == DEFAULT_SOURCE_NODE:
+                insert_position = len(path.nodes) - 1  # Insert before the depot
+            else:
+                insert_position = len(path.nodes)  # Insert at the end
 
-                # Ensure feasibility: add a charging station if energy is insufficient
-                if energy_consumed > energy_capacity:
-                    # Find the best charging station to insert before node
-                    best_station = None
-                    best_station_cost = float('inf')
+            # **Compute the energy consumption up to the insertion point**
+            energy_used = state.graph_api.calculate_path_energy_consumption(path.nodes,energy_consumption)
 
-                    for station in charging_stations:
-                        station_cost = state.graph_api.get_edge_cost(u, station) + state.graph_api.get_edge_cost(station, node)
-                        if station_cost < best_station_cost:
-                            best_station = station
-                            best_station_cost = station_cost
+            # **Check if a charging station is needed before inserting the node**
+            prev_node = path.nodes[insert_position - 1]
+            station_to_add = None
+            if prev_node not in charging_stations:
+                station_to_add = find_best_charging_station(
+                    state, prev_node, energy_capacity, energy_consumption, charging_stations, energy_used
+                )
 
-                    if best_station:
-                        new_possible_path.nodes.insert(i, best_station)  # Insert charging station before node
-                        energy_consumed = state.graph_api.calculate_path_energy_consumption(new_possible_path.nodes)
+            # **Create a candidate path with the node (and station, if needed) inserted**
+            candidate_path = path.copy()
+            if station_to_add:
+                candidate_path.nodes.insert(insert_position, station_to_add)  # Insert charging station
+                insert_position += 1  # Update insertion position for the node
+            candidate_path.nodes.insert(insert_position, node)  # Insert the node
 
-                # Calculate cost increase and check demand constraints
-                cost_increase = state.graph_api.calculate_segment_cost_with_insertion(u, node, v)
-                total_demand = state.graph_api.get_total_demand_path(new_possible_path.nodes)
+            # **Compute updated energy usage**
+            energy_used_candidate = state.graph_api.calculate_path_energy_consumption(candidate_path.nodes,energy_consumption)
 
-                if cost_increase < best_cost_increase and total_demand <= state.cevrp.capacity:
-                    best_cost_increase = cost_increase
-                    best_insertion_info = (path, i, best_station)
-
-        # Perform the best insertion
-        if best_insertion_info:
-            path, index, best_station = best_insertion_info
-
-            if best_station:
-                path.nodes.insert(index, best_station)  # Insert station if needed
-                index += 1  # Adjust index for the node insertion
-
-            path.nodes.insert(index, node)
-            path.path_cost += best_cost_increase
-
-        else:
-            # If no valid insertion was found, create a new route for the node
-            new_route = Path(nodes=[DEFAULT_SOURCE_NODE, node, DEFAULT_SOURCE_NODE])
-            new_route.path_cost = (
-                state.graph_api.get_edge_cost(DEFAULT_SOURCE_NODE, node) +
-                state.graph_api.get_edge_cost(node, DEFAULT_SOURCE_NODE)
+            # **Ensure the route can return to the depot**
+            energy_to_depot = state.get_edge_energy_consumption(
+                candidate_path.nodes[-1], DEFAULT_SOURCE_NODE
             )
-            paths.append(new_route)
+            if energy_used_candidate + energy_to_depot > energy_capacity:
+                # Find the best charging station to insert before returning to the depot
+                last_node = candidate_path.nodes[-1]
+                station_to_add_depot = find_best_charging_station(
+                    state, last_node, energy_capacity, energy_consumption, charging_stations, energy_used_candidate
+                )
+                if station_to_add_depot:
+                    candidate_path.nodes.append(station_to_add_depot)  # Insert charging station before depot
+                    energy_used_candidate = 0  # Reset energy after charging
+                else:
+                    i += 1  # Skip if no feasible charging station found
+                    continue
 
-    return CevrpState(paths, [], state.graph_api, state.cevrp)
+            # **Force the route to end at the depot**
+            if candidate_path.nodes[-1] != DEFAULT_SOURCE_NODE:
+                candidate_path.nodes.append(DEFAULT_SOURCE_NODE)  # Add depot at the end
+
+            # **Check capacity constraint**
+            total_demand = state.graph_api.get_total_demand_path(candidate_path.nodes)
+            if total_demand > state.cevrp.capacity:
+                i += 1  # Skip if demand exceeds capacity
+                continue
+
+            # **Update the current route with the best insertion**
+            path.nodes = candidate_path.nodes
+            path.path_cost = state.graph_api.calculate_path_cost(candidate_path.nodes)
+            path.energy = energy_used_candidate
+            path.demand = total_demand
+
+            # **Mark the node as assigned**
+            visited_nodes.add(node)
+            unassigned.pop(i)  # Remove the node from unassigned
+
+    # **Ensure all routes end at the depot**
+    for path in paths_copy:
+        if path.nodes[-1] != DEFAULT_SOURCE_NODE:
+            path.nodes.append(DEFAULT_SOURCE_NODE)  # Add depot at the end
+
+    # Update the list of unassigned nodes
+    unassigned = [node for node in state.unassigned if node not in visited_nodes]
+
+    return CevrpState(paths_copy, unassigned, state.graph_api, state.cevrp)

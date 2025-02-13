@@ -4,15 +4,15 @@ from alns.accept import RecordToRecordTravel
 from alns.select import RouletteWheel
 from alns.stop import MaxIterations
 
-from ALNS_METAHEURISTIC.destroy_operators import random_destroy, remove_overcapacity_nodes
-from ALNS_METAHEURISTIC.repair_operators import greedy_repair
+from ALNS_METAHEURISTIC.destroy_operators import remove_overcapacity_nodes
+from ALNS_METAHEURISTIC.repair_operators import smart_reinsertion
 from ALNS_METAHEURISTIC.solution_state import CevrpState
 
 SEED = 1234
 
 def make_alns(
     initial_state: CevrpState,
-    num_iterations: int = 10000,
+    num_iterations: int = 1000,
     destroy_operators: list = None,
     repair_operators: list = None,
     rw_weights: list = None,
@@ -44,7 +44,7 @@ def make_alns(
 
     # Add repair operators (default to greedy_repair if none provided)
     if repair_operators is None:
-        repair_operators = [greedy_repair]
+        repair_operators = [smart_reinsertion]
     for operator in repair_operators:
         alns.add_repair_operator(operator)
 

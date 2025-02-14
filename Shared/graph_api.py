@@ -41,7 +41,8 @@ class GraphApi:
     def get_total_demand_path(self, nodes) -> int:
         total_demand = 0
         for node in nodes:
-            total_demand += self.get_demand_node(node)
+            demand = self.get_demand_node(node)
+            total_demand +=demand
         return  total_demand
 
     def get_length_graph(self) -> int:

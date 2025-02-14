@@ -47,6 +47,7 @@ def remove_overcapacity_nodes(state: CevrpState, rnd_state: Optional[random.Rand
             # Compute additional energy needed to reach the next node
             additional_energy = state.get_edge_energy_consumption(current_node, next_node)
 
+            # 0 + 1 > 4
             # **Check if the vehicle can safely reach the next node**
             if energy_consumption + additional_energy > energy_capacity:
                 valid_path.nodes.append(current_node)

@@ -59,19 +59,16 @@ class Path:
     @energy.setter
     def energy(self, value: float) -> None:
         """Sets the demand, ensuring it is a non-negative integer."""
-        try:
-            value = float(value)
-        except (ValueError, TypeError):
-            raise ValueError("Demand must be a non-negative integer.")
-
-        if value < 0:
-            raise ValueError("Demand must be a non-negative integer.")
-
         self._energy = value
 
     def copy(self) -> "Path":
         """Creates a deep copy of the Path instance."""
-        return Path(nodes=copy.deepcopy(self.nodes), path_cost=self.path_cost, demand=self.demand, energy=self.energy)
+        return Path(
+            nodes=copy.deepcopy(self.nodes),
+            path_cost=copy.deepcopy(self.path_cost),
+            demand=copy.deepcopy(self.demand),
+            energy=copy.deepcopy(self.energy)
+        )
 
     def __str__(self) -> str:
         return f"Path(nodes={self.nodes}, path_cost={self.path_cost}, demand={self.demand}, energy={self.energy})"

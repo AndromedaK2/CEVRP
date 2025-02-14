@@ -1,3 +1,4 @@
+import copy
 import random
 from typing import Optional
 from ALNS_METAHEURISTIC.solution_state import CevrpState
@@ -16,8 +17,8 @@ def remove_overcapacity_nodes(state: CevrpState, rnd_state: Optional[random.Rand
     :param rnd_state: Random number generator state (optional).
     :return: A new CevrpState object with updated paths and unassigned nodes.
     """
-
-    paths = state.paths
+    state_copy = copy.deepcopy(state)
+    paths = state_copy.paths
     energy_capacity = state.cevrp.energy_capacity
     charging_stations = state.cevrp.charging_stations
 
@@ -47,9 +48,8 @@ def remove_overcapacity_nodes(state: CevrpState, rnd_state: Optional[random.Rand
             # Compute additional energy needed to reach the next node
             additional_energy = state.get_edge_energy_consumption(current_node, next_node)
 
-            # 0 + 1 > 4
             # **Check if the vehicle can safely reach the next node**
-            if energy_consumption + additional_energy > energy_capacity:
+            if energy_consumption + additional_energy >= energy_capacity:
                 valid_path.nodes.append(current_node)
                 break  # Stop before exceeding capacity
 

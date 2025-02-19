@@ -8,12 +8,23 @@ class Path:
     _path_cost: float = 0.0
     _demand: int = 0
     _energy: float = 0.0
+    _feasible: bool = False
 
-    def __init__(self, nodes: List[str] = None, path_cost: float = 0.0, demand: int = 0, energy: float = 0.0):
+    def __init__(self, nodes: List[str] = None, path_cost: float = 0.0, demand: int = 0, energy: float = 0.0, feasible: bool = False):
         self.nodes = nodes if nodes else []
         self.path_cost = path_cost
         self.demand = demand
         self.energy = energy
+        self.feasible = feasible
+
+
+    @property
+    def feasible(self) -> bool:
+        return self._feasible
+
+    @feasible.setter
+    def feasible(self, value):
+        self._feasible = value
 
     @property
     def nodes(self) -> List[str]:
@@ -67,14 +78,17 @@ class Path:
             nodes=copy.deepcopy(self.nodes),
             path_cost=copy.deepcopy(self.path_cost),
             demand=copy.deepcopy(self.demand),
-            energy=copy.deepcopy(self.energy)
+            energy=copy.deepcopy(self.energy),
+            feasible=copy.deepcopy(self.feasible),
         )
 
     def __str__(self) -> str:
-        return f"Path(nodes={self.nodes}, path_cost={self.path_cost}, demand={self.demand}, energy={self.energy})"
+        return f"Path(nodes={self.nodes}, path_cost={self.path_cost}, demand={self.demand}, energy={self.energy}), feasible={self.feasible}"
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Path):
             return NotImplemented
-        return self.nodes == other.nodes and self.path_cost == other.path_cost and self.demand == other.demand and self.energy == other.energy
+        return (self.nodes == other.nodes and self.path_cost == other.path_cost and self.demand == other.demand
+                and self.energy == other.energy and self.feasible == other.feasible)
+
 

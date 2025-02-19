@@ -1,12 +1,14 @@
 import copy
-import random
 from typing import Optional
+
+import numpy as np
+
 from ALNS_METAHEURISTIC.solution_state import CevrpState
 from Shared.config import DEFAULT_SOURCE_NODE
 from Shared.path import Path
 
 
-def remove_overcapacity_nodes(state: CevrpState, rnd_state: Optional[random.Random] = None) -> CevrpState:
+def remove_overcapacity_nodes(state: CevrpState, rnd_state: Optional[np.random.RandomState] = None) -> CevrpState:
     """
     Removes nodes from paths exceeding the maximum energy capacity while ensuring a safe return to the depot.
     Charging stations reset energy consumption and recharge the battery.
@@ -37,6 +39,7 @@ def remove_overcapacity_nodes(state: CevrpState, rnd_state: Optional[random.Rand
 
         energy_consumption = 0
         valid_path = Path()
+        valid_path.nodes.append(path.nodes[0])
 
         for i in range(len(path.nodes) - 1):
             current_node, next_node = path.nodes[i], path.nodes[i + 1]
@@ -49,22 +52,17 @@ def remove_overcapacity_nodes(state: CevrpState, rnd_state: Optional[random.Rand
             additional_energy = state.get_edge_energy_consumption(current_node, next_node)
 
             # **Check if the vehicle can safely reach the next node**
-            if energy_consumption + additional_energy >= energy_capacity:
-                valid_path.nodes.append(current_node)
+            if energy_consumption + additional_energy > energy_capacity:
                 break  # Stop before exceeding capacity
 
             # Add the node only if it doesn't exceed capacity
-            valid_path.nodes.append(current_node)
+            valid_path.nodes.append(next_node)
             energy_consumption += additional_energy
 
         # **Handle unassigned nodes properly**
         remaining_nodes = path.nodes[len(valid_path.nodes):]  # Nodes that couldn't be added
 
         if remaining_nodes:
-            # **Randomized node removal to prevent getting stuck**
-            if len(remaining_nodes) > 1:
-                random.shuffle(remaining_nodes)
-
             # **Filter out charging stations from unassigned nodes**
             unassigned.extend([node for node in remaining_nodes if node != DEFAULT_SOURCE_NODE and node not in charging_stations])
 
@@ -80,7 +78,8 @@ def remove_overcapacity_nodes(state: CevrpState, rnd_state: Optional[random.Rand
 
     # **Filter out charging stations from the final unassigned list**
     unassigned = [node for node in unassigned if node not in charging_stations]
-
+    rnd_state.shuffle(unassigned)
+    rnd_state.shuffle(new_paths)
     return CevrpState(new_paths, unassigned, state.graph_api, state.cevrp)
 
 

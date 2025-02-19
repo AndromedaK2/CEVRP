@@ -32,12 +32,14 @@ class CevrpState:
         """
         return self.objective()
 
-    def copy(self):
-        """Creates a duplicate of the current state."""
-        # Make a deep copy of paths and a shallow copy of unassigned
-        paths_copy = copy.deepcopy(self.paths)
-        unassigned_copy = self.unassigned.copy()
-        return CevrpState(paths_copy, unassigned_copy, self.graph_api, self.cevrp)
+    def copy(self) -> "CevrpState":
+        """Creates a deep copy of the CevrpState instance."""
+        return CevrpState(
+            paths=[path.copy() for path in self.paths],
+            unassigned=self.unassigned.copy(),
+            graph_api=self.graph_api,  # Assuming graph_api is immutable or shared
+            cevrp=self.cevrp  # Assuming cevrp is immutable or shared
+        )
 
     def get_path_cost(self):
         """

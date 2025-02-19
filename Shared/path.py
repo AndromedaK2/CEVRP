@@ -9,14 +9,25 @@ class Path:
     _demand: int = 0
     _energy: float = 0.0
     _feasible: bool = False
+    _minimum_stations: float = 0
 
-    def __init__(self, nodes: List[str] = None, path_cost: float = 0.0, demand: int = 0, energy: float = 0.0, feasible: bool = False):
+    def __init__(self, nodes: List[str] = None, path_cost: float = 0.0, demand: int = 0, energy: float = 0.0,
+                 feasible: bool = False, minimum_stations: float = 0):
         self.nodes = nodes if nodes else []
         self.path_cost = path_cost
         self.demand = demand
         self.energy = energy
         self.feasible = feasible
+        self.minimum_stations = minimum_stations
 
+
+    @property
+    def minimum_stations(self) -> float:
+        return self._minimum_stations
+
+    @minimum_stations.setter
+    def minimum_stations(self, value):
+        self._minimum_stations = value
 
     @property
     def feasible(self) -> bool:
@@ -80,15 +91,18 @@ class Path:
             demand=copy.deepcopy(self.demand),
             energy=copy.deepcopy(self.energy),
             feasible=copy.deepcopy(self.feasible),
+            minimum_stations=copy.deepcopy(self.minimum_stations)
         )
 
     def __str__(self) -> str:
-        return f"Path(nodes={self.nodes}, path_cost={self.path_cost}, demand={self.demand}, energy={self.energy}), feasible={self.feasible}"
+        return (f"Path(nodes={self.nodes}, path_cost={self.path_cost}, demand={self.demand}, energy={self.energy}), "
+                f"feasible={self.feasible}, minimum_stations={self.minimum_stations})")
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Path):
             return NotImplemented
         return (self.nodes == other.nodes and self.path_cost == other.path_cost and self.demand == other.demand
-                and self.energy == other.energy and self.feasible == other.feasible)
+                and self.energy == other.energy and self.feasible == other.feasible and self.minimum_stations ==
+                other.minimum_stations)
 
 

@@ -27,10 +27,65 @@ def calculate_path_energy(state, nodes, charging_stations):
     return energy
 
 
+def find_highest_energy_pair(state, nodes):
+    """
+    Finds the consecutive node pair with the highest energy consumption in a given route.
+
+    :param state: CevrpState instance containing energy calculations.
+    :param nodes: List of nodes in the current route.
+    :return: Tuple (index, node1, node2, max_energy) where:
+             - index is the position where the charging station should be inserted.
+             - node1 and node2 are the nodes in the highest energy-consuming edge.
+             - max_energy is the energy required for that edge.
+    """
+    max_energy = -float('inf')
+    best_index = None
+    best_pair = None
+
+    for i in range(len(nodes) - 1):
+        node1, node2 = nodes[i], nodes[i + 1]
+        energy_consumption = state.get_edge_energy_consumption(node1, node2)
+
+        if energy_consumption > max_energy:
+            max_energy = energy_consumption
+            best_index = i  # Insert the station after node1
+            best_pair = (node1, node2)
+
+    return best_index, best_pair[0], best_pair[1], max_energy
+
+
+
+def insert_charging_station_at_highest_energy(state, path):
+    """
+    Inserts a charging station at the highest energy-consuming edge in a route.
+
+    :param state: CevrpState instance containing graph details.
+    :param path: Path object representing the route.
+    :return: Updated path with a charging station inserted.
+    """
+    charging_stations = state.cevrp.charging_stations
+    best_index, node1, node2, max_energy = find_highest_energy_pair(state, path.nodes)
+
+    if best_index is None:
+        return path  # No changes if there's no valid high-energy edge.
+
+    # Find the best charging station to insert
+    station = find_best_charging_station(state, node1, state.cevrp.energy_capacity, state.cevrp.energy_consumption, charging_stations, max_energy)
+
+    if station:
+        path.nodes.insert(best_index + 1, station)  # Insert after node1
+        path.energy = calculate_path_energy(state, path.nodes, charging_stations)  # Recalculate energy usage
+
+    return path
+
+
+
 def smart_reinsertion(state: CevrpState, rnd_state: Optional[np.random.RandomState] = None) -> CevrpState:
     """Reinserts unassigned nodes into feasible routes, ensuring constraints."""
     state_copy = state.copy()
-    paths_copy = [path.copy() for path in state_copy.paths if not path.feasible]
+    paths_copy = [path.copy() for path in state_copy.paths]
+    feasible_paths = [path.copy() for path in paths_copy if path.feasible]
+    not_feasible_paths = [path.copy() for path in paths_copy if not path.feasible]
     unassigned_copy = state_copy.unassigned.copy()
     charging_stations = state_copy.cevrp.charging_stations
 
@@ -39,7 +94,7 @@ def smart_reinsertion(state: CevrpState, rnd_state: Optional[np.random.RandomSta
 
     rnd_state.shuffle(unassigned_copy)
 
-    for modified_path in paths_copy:
+    for modified_path in not_feasible_paths:
         i = 0
         while i < len(unassigned_copy):
             node = unassigned_copy[i]
@@ -88,7 +143,7 @@ def smart_reinsertion(state: CevrpState, rnd_state: Optional[np.random.RandomSta
         # Ensure all routes end at the depot
     paths_final = []
 
-    for original_path in paths_copy:
+    for original_path in not_feasible_paths:
         modified_path = original_path.copy()
         modified_path.nodes = original_path.nodes.copy()
 
@@ -117,6 +172,8 @@ def smart_reinsertion(state: CevrpState, rnd_state: Optional[np.random.RandomSta
                         modified_path.nodes.append(DEFAULT_SOURCE_NODE)
                         modified_path.energy += energy_to_depot
                     else:
+
+                        modified_path = insert_charging_station_at_highest_energy(state_copy, modified_path)
                         modified_path.feasible = False
                         paths_final.append(modified_path)
                         continue
@@ -135,15 +192,9 @@ def smart_reinsertion(state: CevrpState, rnd_state: Optional[np.random.RandomSta
 
     unassigned_final = [node for node in state.unassigned if node not in visited_nodes]
 
+    paths_final = paths_final + feasible_paths
 
-    """Prints the final paths in a readable format with total weight calculation."""
-    total_weight = sum(path.path_cost for path in paths_final)
-    for idx, path in enumerate(paths_final):
-        print(f"Route {idx + 1}:")
-        print(" -> ".join(path.nodes))
-        print(f"Cost: {path.path_cost}, Energy: {path.energy}, Feasible: {path.feasible}")
 
-    print(f"Total Weight: {total_weight}\n")
     return CevrpState(
         paths=[p.copy() for p in paths_final],
         unassigned=unassigned_final,

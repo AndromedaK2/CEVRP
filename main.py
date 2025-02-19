@@ -79,6 +79,10 @@ def solve_with_alns(paths: List[Path], cevrp: CEVRP) -> tuple:
     manager.compute_distances()
     graph = manager.build_graph()
     graph_api = GraphApi(graph)
+    for path in paths:
+        path.minimum_stations = graph_api.calculate_minimum_stations(path.nodes,
+                                                                     energy_consumption=cevrp.energy_consumption,
+                                                                     energy_capacity=cevrp.energy_capacity)
 
     cevrp_state = CevrpState(paths, graph_api=graph_api, cevrp=cevrp)
     return make_alns(

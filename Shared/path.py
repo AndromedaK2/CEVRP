@@ -75,7 +75,7 @@ class Path:
     def copy(self) -> "Path":
         """Creates a deep copy of the Path instance."""
         return Path(
-            nodes=copy.deepcopy(self.nodes),
+            nodes=self.nodes.copy(),
             path_cost=copy.deepcopy(self.path_cost),
             demand=copy.deepcopy(self.demand),
             energy=copy.deepcopy(self.energy),

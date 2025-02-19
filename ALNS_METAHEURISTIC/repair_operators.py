@@ -30,7 +30,7 @@ def calculate_path_energy(state, nodes, charging_stations):
 def smart_reinsertion(state: CevrpState, rnd_state: Optional[np.random.RandomState] = None) -> CevrpState:
     """Reinserts unassigned nodes into feasible routes, ensuring constraints."""
     state_copy = state.copy()
-    paths_copy = [path.copy() for path in state_copy.paths]
+    paths_copy = [path.copy() for path in state_copy.paths if not path.feasible]
     unassigned_copy = state_copy.unassigned.copy()
     charging_stations = state_copy.cevrp.charging_stations
 
@@ -128,13 +128,22 @@ def smart_reinsertion(state: CevrpState, rnd_state: Optional[np.random.RandomSta
                 modified_path.nodes.append(DEFAULT_SOURCE_NODE)
                 modified_path.energy = energy_to_depot
 
-            modified_path.path_cost = state.graph_api.calculate_path_cost(modified_path.nodes)
-            modified_path.feasible = True
+        modified_path.path_cost = state.graph_api.calculate_path_cost(modified_path.nodes)
+        modified_path.feasible = True
 
         paths_final.append(modified_path)
 
     unassigned_final = [node for node in state.unassigned if node not in visited_nodes]
 
+
+    """Prints the final paths in a readable format with total weight calculation."""
+    total_weight = sum(path.path_cost for path in paths_final)
+    for idx, path in enumerate(paths_final):
+        print(f"Route {idx + 1}:")
+        print(" -> ".join(path.nodes))
+        print(f"Cost: {path.path_cost}, Energy: {path.energy}, Feasible: {path.feasible}")
+
+    print(f"Total Weight: {total_weight}\n")
     return CevrpState(
         paths=[p.copy() for p in paths_final],
         unassigned=unassigned_final,

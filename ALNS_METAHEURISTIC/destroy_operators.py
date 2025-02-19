@@ -73,9 +73,12 @@ def remove_overcapacity_nodes(state: CevrpState, rnd_state: Optional[np.random.R
             valid_path.energy = energy_consumption
 
         # **Only keep the path if it starts and ends at the depot**
-        if len(valid_path.nodes) > 2 and valid_path.nodes[0] == DEFAULT_SOURCE_NODE:
+        if len(valid_path.nodes) > 2 and valid_path.nodes[0] == DEFAULT_SOURCE_NODE and valid_path.nodes[-1] == DEFAULT_SOURCE_NODE:
+            valid_path.feasible = True
             new_paths.append(valid_path)
-
+        else:
+            new_paths.append(valid_path)
+            valid_path.feasible = False
     # **Filter out charging stations from the final unassigned list**
     unassigned = [node for node in unassigned if node not in charging_stations]
     rnd_state.shuffle(unassigned)

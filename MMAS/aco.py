@@ -1,3 +1,4 @@
+import math
 from dataclasses import dataclass, field
 from typing import List, Tuple
 import networkx as nx
@@ -39,22 +40,31 @@ class ACO:
     def find_shortest_path(self, start: str, num_ants: int) -> Tuple[List[str], float, List[Path]]:
         """
         Finds the shortest path from the start to the destination in the graph.
-
-        Args:
-            start (str): The starting node for the ants.
-            num_ants (int): The number of ants to deploy.
-
-        Returns:
-            Tuple[List[str], float, List[Path]]: The flattened path, its cost, and the list of paths.
         """
         self._deploy_search_ants(start, num_ants)
 
-        if not self.best_path or self.graph_api.calculate_paths_cost(self.best_path) != self.best_path_cost:
-            if self.second_best_path and self.second_best_path_cost != float('inf'):
-                return self._flatten_path(self.second_best_path), self.second_best_path_cost, self.second_best_path
+        value = self.graph_api.calculate_paths_cost(self.best_path)
+
+        def are_equal(a: float, b: float) -> bool:
+            tolerance = 1e-12
+            if math.isinf(a) and math.isinf(b):
+                return True
+            return math.isclose(a, b, rel_tol=tolerance, abs_tol=tolerance)
+
+        if not self.best_path or not are_equal(value, self.best_path_cost):
+            if self.second_best_path and not math.isinf(self.second_best_path_cost):
+                return (
+                    self._flatten_path(self.second_best_path),
+                    self.second_best_path_cost,
+                    self.second_best_path
+                )
             return [], float('inf'), []
 
-        return self._flatten_path(self.best_path), self.best_path_cost, self.best_path
+        return (
+            self._flatten_path(self.best_path),
+            self.best_path_cost,
+            self.best_path
+        )
 
     def _deploy_search_ants(self, start: str, num_ants: int) -> None:
         """

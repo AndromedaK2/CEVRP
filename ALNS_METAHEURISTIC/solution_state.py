@@ -35,8 +35,8 @@ class CevrpState:
     def copy(self) -> "CevrpState":
         """Creates a deep copy of the CevrpState instance."""
         return CevrpState(
-            paths=copy.deepcopy(self.paths),
-            unassigned=self.unassigned.copy(),
+            paths=[path.copy() for path in self.paths],
+            unassigned=copy.deepcopy(self.unassigned),
             graph_api=self.graph_api,  # Assuming graph_api is immutable or shared
             cevrp=self.cevrp  # Assuming cevrp is immutable or shared
         )

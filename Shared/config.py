@@ -22,6 +22,6 @@ INSTANCE_FILES: List[str] = [
 ]
 
 DEFAULT_SOURCE_NODE: str = "1"
-NUM_ANTS: int = 300
+NUM_ANTS: int = 50
 MAX_ANT_STEPS: int = 100
-NUM_ITERATIONS: int = 300
+NUM_ITERATIONS: int = 50

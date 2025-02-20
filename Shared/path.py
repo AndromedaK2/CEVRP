@@ -86,7 +86,7 @@ class Path:
     def copy(self) -> "Path":
         """Creates a deep copy of the Path instance."""
         return Path(
-            nodes=self.nodes.copy(),
+            nodes=copy.deepcopy(self.nodes),
             path_cost=copy.deepcopy(self.path_cost),
             demand=copy.deepcopy(self.demand),
             energy=copy.deepcopy(self.energy),
@@ -98,11 +98,6 @@ class Path:
         return (f"Path(nodes={self.nodes}, path_cost={self.path_cost}, demand={self.demand}, energy={self.energy}), "
                 f"feasible={self.feasible}, minimum_stations={self.minimum_stations})")
 
-    def __eq__(self, other: object) -> bool:
-        if not isinstance(other, Path):
-            return NotImplemented
-        return (self.nodes == other.nodes and self.path_cost == other.path_cost and self.demand == other.demand
-                and self.energy == other.energy and self.feasible == other.feasible and self.minimum_stations ==
-                other.minimum_stations)
+
 
 

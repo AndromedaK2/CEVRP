@@ -19,16 +19,16 @@ def remove_overcapacity_nodes(state: CevrpState, rnd_state: Optional[np.random.R
     :param rnd_state: Random number generator state (optional).
     :return: A new CevrpState object with updated paths and unassigned nodes.
     """
-    state_copy = copy.deepcopy(state)
+    state_copy = state.copy()
     paths = state_copy.paths
-    energy_capacity = state.cevrp.energy_capacity
-    charging_stations = state.cevrp.charging_stations
+    energy_capacity = state_copy.cevrp.energy_capacity
+    charging_stations = state_copy.cevrp.charging_stations
 
     if len(paths) < 2:
         raise ValueError("At least two paths are required to perform this operation.")
 
     paths_copy = [path.copy() for path in paths]
-    unassigned = state.unassigned.copy()
+    unassigned = state_copy.unassigned
     new_paths = []  # Store valid paths
 
     for path in paths_copy:
@@ -49,7 +49,7 @@ def remove_overcapacity_nodes(state: CevrpState, rnd_state: Optional[np.random.R
                 energy_consumption = 0  # Fully recharge
 
             # Compute additional energy needed to reach the next node
-            additional_energy = state.get_edge_energy_consumption(current_node, next_node)
+            additional_energy = state_copy.get_edge_energy_consumption(current_node, next_node)
 
             # **Check if the vehicle can safely reach the next node**
             if energy_consumption + additional_energy > energy_capacity:
@@ -68,8 +68,8 @@ def remove_overcapacity_nodes(state: CevrpState, rnd_state: Optional[np.random.R
 
         # **Recalculate cost, demand, and energy**
         if valid_path.nodes:
-            valid_path.path_cost = state.graph_api.calculate_path_cost(valid_path.nodes)
-            valid_path.demand = state.graph_api.get_total_demand_path(valid_path.nodes)
+            valid_path.path_cost = state_copy.graph_api.calculate_path_cost(valid_path.nodes)
+            valid_path.demand = state_copy.graph_api.get_total_demand_path(valid_path.nodes)
             valid_path.energy = energy_consumption
 
         # **Only keep the path if it starts and ends at the depot**
@@ -83,6 +83,6 @@ def remove_overcapacity_nodes(state: CevrpState, rnd_state: Optional[np.random.R
     unassigned = [node for node in unassigned if node not in charging_stations]
     rnd_state.shuffle(unassigned)
     rnd_state.shuffle(new_paths)
-    return CevrpState(new_paths, unassigned, state.graph_api, state.cevrp)
+    return CevrpState(new_paths, unassigned, state_copy.graph_api, state_copy.cevrp)
 
 

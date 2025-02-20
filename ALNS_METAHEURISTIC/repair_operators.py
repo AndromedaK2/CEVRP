@@ -1,7 +1,11 @@
+import copy
+
 import numpy as np
 from typing import Optional
+
 from ALNS_METAHEURISTIC.solution_state import CevrpState
 from Shared.config import DEFAULT_SOURCE_NODE
+from Shared.path import Path
 
 
 def find_best_charging_station(state, last_node, energy_capacity, energy_consumption, charging_stations, current_energy):
@@ -83,11 +87,11 @@ def insert_charging_station_at_highest_energy(state, path):
 def smart_reinsertion(state: CevrpState, rnd_state: Optional[np.random.RandomState] = None) -> CevrpState:
     """Reinserts unassigned nodes into feasible routes, ensuring constraints."""
     state_copy = state.copy()
-    paths_copy = [path.copy() for path in state_copy.paths]
+    paths_copy = state_copy.paths
     feasible_paths = [path.copy() for path in paths_copy if path.feasible]
     not_feasible_paths = [path.copy() for path in paths_copy if not path.feasible]
-    unassigned_copy = state_copy.unassigned.copy()
-    charging_stations = state_copy.cevrp.charging_stations
+    unassigned_copy    =  copy.deepcopy(state_copy.unassigned)
+    charging_stations  = state_copy.cevrp.charging_stations
 
     visited_nodes = {node for path in paths_copy for node in path.nodes if node != DEFAULT_SOURCE_NODE}
     unassigned_copy = [node for node in unassigned_copy if node not in visited_nodes]
@@ -141,7 +145,7 @@ def smart_reinsertion(state: CevrpState, rnd_state: Optional[np.random.RandomSta
                 unassigned_copy.pop(i)
             i += 1
         # Ensure all routes end at the depot
-    paths_final = []
+    paths_final:list[Path] = []
 
     for original_path in not_feasible_paths:
         modified_path = original_path.copy()
@@ -153,14 +157,14 @@ def smart_reinsertion(state: CevrpState, rnd_state: Optional[np.random.RandomSta
             last_node = modified_path.nodes[-1]
 
             if last_node not in charging_stations:
-                energy_to_depot = state.get_edge_energy_consumption(last_node, DEFAULT_SOURCE_NODE)
+                energy_to_depot = state_copy.get_edge_energy_consumption(last_node, DEFAULT_SOURCE_NODE)
 
-                if current_energy + energy_to_depot > state.cevrp.energy_capacity:
+                if current_energy + energy_to_depot > state_copy.cevrp.energy_capacity:
                     station = find_best_charging_station(
-                        state,
+                        state_copy,
                         last_node=last_node,
-                        energy_capacity=state.cevrp.energy_capacity,
-                        energy_consumption=state.cevrp.energy_consumption,
+                        energy_capacity=state_copy.cevrp.energy_capacity,
+                        energy_consumption=state_copy.cevrp.energy_consumption,
                         charging_stations=charging_stations,
                         current_energy=current_energy
                     )
@@ -168,12 +172,13 @@ def smart_reinsertion(state: CevrpState, rnd_state: Optional[np.random.RandomSta
                     if station:
                         modified_path.nodes.append(station)
                         modified_path.energy = 0
-                        energy_to_depot = state.get_edge_energy_consumption(station, DEFAULT_SOURCE_NODE)
+                        energy_to_depot = state_copy.get_edge_energy_consumption(station, DEFAULT_SOURCE_NODE)
                         modified_path.nodes.append(DEFAULT_SOURCE_NODE)
                         modified_path.energy += energy_to_depot
                     else:
-
-                        modified_path = insert_charging_station_at_highest_energy(state_copy, modified_path)
+                        #modified_path = insert_charging_station_at_highest_energy(state_copy, modified_path)
+                        #modified_path.energy = calculate_path_energy(state_copy, modified_path.nodes,charging_stations )
+                        #modified_path.path_cost = state_copy.graph_api.calculate_path_cost(modified_path.nodes)
                         modified_path.feasible = False
                         paths_final.append(modified_path)
                         continue
@@ -181,22 +186,22 @@ def smart_reinsertion(state: CevrpState, rnd_state: Optional[np.random.RandomSta
                     modified_path.nodes.append(DEFAULT_SOURCE_NODE)
                     modified_path.energy += energy_to_depot
             else:
-                energy_to_depot = state.get_edge_energy_consumption(last_node, DEFAULT_SOURCE_NODE)
+                energy_to_depot = state_copy.get_edge_energy_consumption(last_node, DEFAULT_SOURCE_NODE)
                 modified_path.nodes.append(DEFAULT_SOURCE_NODE)
                 modified_path.energy = energy_to_depot
 
-        modified_path.path_cost = state.graph_api.calculate_path_cost(modified_path.nodes)
+        modified_path.path_cost = state_copy.graph_api.calculate_path_cost(modified_path.nodes)
         modified_path.feasible = True
 
         paths_final.append(modified_path)
 
-    unassigned_final = [node for node in state.unassigned if node not in visited_nodes]
+    unassigned_final = [node for node in unassigned_copy if node not in visited_nodes]
 
     paths_final = paths_final + feasible_paths
 
 
     return CevrpState(
-        paths=[p.copy() for p in paths_final],
+        paths=paths_final,
         unassigned=unassigned_final,
         graph_api=state.graph_api,
         cevrp=state.cevrp

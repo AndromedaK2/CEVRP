@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import List, Dict
 from itertools import cycle
 from Shared.path import Path
+from collections import defaultdict
 
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -94,49 +95,92 @@ class GraphApi:
         # Incremental cost
         return insertion_cost - original_cost
 
-    def visualize_graph(self, paths: List[Path], name:str) -> None:
+    def visualize_graph(self, paths: List[Path], name: str) -> None:
 
-        """Visualizes the graph with paths highlighted in unique colors, costs in the legend, and a title."""
+        """Visualizes the graph with highlighted paths, costs in legend, and total cost in title.
 
-        # Get node positions
+        Features:
+        - Curved overlapping edges for better visibility
+        - Automatic total cost calculation
+        - Unique colors for each path
+        - Adaptive edge curvature for parallel routes
+        """
+
+        # Get node positions from graph attributes
         node_positions = nx.get_node_attributes(self.graph, "pos")
         if not node_positions:
-            raise ValueError("Node positions are missing in the graph. Ensure nodes have the 'pos' attribute.")
+            raise ValueError("Node positions missing. Ensure nodes have 'pos' attribute.")
 
-        # Configure the plot
-        plt.figure(figsize=(12, 12))  # Adjusted size to improve visualization
-        plt.title(name, fontsize=16, fontweight="bold")  # Add title
-        plt.grid(visible=True, which="both", color="gray", linestyle="--", linewidth=0.5, alpha=0.7)
-        plt.gca().set_axisbelow(True)  # Ensure grid is below other elements
-        plt.axhline(0, color="black", linewidth=1)  # X-axis
-        plt.axvline(0, color="black", linewidth=1)  # Y-axis
+        # Initialize figure with custom size
+        plt.figure(figsize=(12, 12))
+
+        # Calculate total cost and create formatted title
+        total_cost = sum(path.path_cost for path in paths)
+        plt.title(f"{name}\nTotal Cost: {total_cost:.2f}",
+                  fontsize=16,
+                  fontweight="bold",
+                  pad=20)
+
+        # Configure grid and axes
+        plt.grid(visible=True, linestyle="--", linewidth=0.5, alpha=0.7)
+        plt.axhline(0, color="black", linewidth=1)  # X-axis line
+        plt.axvline(0, color="black", linewidth=1)  # Y-axis line
         plt.xlabel("X-axis", fontsize=14)
         plt.ylabel("Y-axis", fontsize=14)
 
-        # Draw nodes
-        nx.draw_networkx_nodes(self.graph, node_positions, node_color="lightblue", node_size=600)
-        nx.draw_networkx_labels(self.graph, node_positions, font_size=10, font_color="black")
+        # Draw base graph elements
+        nx.draw_networkx_nodes(self.graph, node_positions,
+                               node_color="lightblue",
+                               node_size=600)
+        nx.draw_networkx_labels(self.graph, node_positions,
+                                font_size=10)
 
-        # Iterate through paths and draw each with a unique color
-        color_iterator = cycle(colors.TABLEAU_COLORS.values())  # Create a cyclic color iterator
-        legend_items = []  # Store legend items as labels and color handles
-        for i, path in enumerate(paths):
+        # Path visualization setup
+        color_iterator = cycle(colors.TABLEAU_COLORS)
+        legend_items = []
+        edge_counts = defaultdict(int)  # Track edge usage for curvature
+
+        # Draw each path with unique styling
+        for idx, path in enumerate(paths):
             color = next(color_iterator)
             edges = list(zip(path.nodes, path.nodes[1:]))
-            nx.draw_networkx_edges(self.graph, node_positions, edgelist=edges, edge_color=color, width=3)
-            legend_items.append((f"Path {i + 1}: Cost {path.path_cost:.2f}", color))  # Add path to legend
 
-        # Add Legend at the top-right
-        legend_labels, legend_colors = zip(*legend_items)  # Separate labels and colors
-        legend_handles = [plt.Line2D([0], [0], color=color, lw=3) for color in legend_colors]  # Legend handles
-        plt.legend(legend_handles, legend_labels, loc="upper right", fontsize=10, frameon=True)
+            # Calculate curvature for overlapping edges
+            connection_styles = []
+            for u, v in edges:
+                # Use sorted nodes to handle undirected graphs
+                key = tuple(sorted((u, v)))
+                count = edge_counts[key]
+                rad = 0.3 * count  # Base curvature multiplier
+                connection_styles.append(f"arc3,rad={rad}")
+                edge_counts[key] += 1
 
-        # Set axis limits for better visualization
-        x_values, y_values = zip(*node_positions.values())
-        plt.xlim(min(x_values) - 1, max(x_values) + 1)
-        plt.ylim(min(y_values) - 1, max(y_values) + 1)
+            # Draw each edge individually with its specific connection style
+            for edge, conn_style in zip(edges, connection_styles):
+                nx.draw_networkx_edges(
+                    self.graph, node_positions,
+                    edgelist=[edge],
+                    edge_color=color,
+                    width=2,
+                    style="solid",
+                    connectionstyle=conn_style
+                )
 
-        # Show the graph
+            legend_items.append((f"Path {idx + 1}: {path.path_cost:.2f}", color))
+
+        # Create legend with custom handles
+        legend_handles = [plt.Line2D([0], [0], color=c, lw=2) for _, c in legend_items]
+        plt.legend(legend_handles, [label for label, _ in legend_items],
+                   loc="upper right",
+                   fontsize=9,
+                   framealpha=0.9)
+
+        # Set dynamic axis limits with padding
+        x_vals, y_vals = zip(*node_positions.values())
+        plt.xlim(min(x_vals) - 1, max(x_vals) + 1)
+        plt.ylim(min(y_vals) - 1, max(y_vals) + 1)
+
+        # Final rendering
         plt.tight_layout()
         plt.show()
 

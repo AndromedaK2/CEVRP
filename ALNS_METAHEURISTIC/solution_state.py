@@ -37,8 +37,8 @@ class CevrpState:
         return CevrpState(
             paths=[path.copy() for path in self.paths],
             unassigned=copy.deepcopy(self.unassigned),
-            graph_api=self.graph_api,  # Assuming graph_api is immutable or shared
-            cevrp=self.cevrp  # Assuming cevrp is immutable or shared
+            graph_api=copy.deepcopy(self.graph_api),  # Assuming graph_api is immutable or shared
+            cevrp=copy.deepcopy(self.cevrp)  # Assuming cevrp is immutable or shared
         )
 
     def get_path_cost(self):

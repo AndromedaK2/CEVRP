@@ -10,16 +10,25 @@ class Path:
     _energy: float = 0.0
     _feasible: bool = False
     _minimum_stations: float = 0
+    _max_energy_needed: float = 0.0
 
     def __init__(self, nodes: List[str] = None, path_cost: float = 0.0, demand: int = 0, energy: float = 0.0,
-                 feasible: bool = False, minimum_stations: float = 0):
+                 feasible: bool = False, minimum_stations: float = 0, max_energy_needed: float = 0.0):
         self.nodes = nodes if nodes else []
         self.path_cost = path_cost
         self.demand = demand
         self.energy = energy
         self.feasible = feasible
         self.minimum_stations = minimum_stations
+        self.max_energy_needed = max_energy_needed
 
+    @property
+    def max_energy_needed(self) -> float:
+        return self._max_energy_needed
+
+    @max_energy_needed.setter
+    def max_energy_needed(self, value):
+        self._max_energy_needed = value
 
     @property
     def minimum_stations(self) -> float:
@@ -96,7 +105,7 @@ class Path:
 
     def __str__(self) -> str:
         return (f"Path(nodes={self.nodes}, path_cost={self.path_cost}, demand={self.demand}, energy={self.energy}), "
-                f"feasible={self.feasible}, minimum_stations={self.minimum_stations})")
+                f"feasible={self.feasible}, minimum_stations={self.minimum_stations}), max_energy_needed={self.max_energy_needed}")
 
 
 

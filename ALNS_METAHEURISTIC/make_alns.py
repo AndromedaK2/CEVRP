@@ -1,4 +1,4 @@
-from alns import ALNS, Result
+from alns import ALNS
 import numpy.random as rnd
 from alns.accept import RecordToRecordTravel
 from alns.select import RouletteWheel
@@ -12,7 +12,7 @@ SEED = 1234
 
 def make_alns(
     initial_state: CevrpState,
-    num_iterations: int = 1000,
+    num_iterations: int = 100,
     destroy_operators: list = None,
     repair_operators: list = None,
     rw_weights: list = None,
@@ -68,9 +68,9 @@ def make_alns(
 
     # Run the ALNS algorithm
     result = alns.iterate(initial_state, select, accept, stop)
-
     # Extract the best solution state
     best_state = result.best_state
+
 
     # Extract the total cost of the best solution
     best_cost = best_state.objective()

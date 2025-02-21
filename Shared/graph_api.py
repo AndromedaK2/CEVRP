@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import List, Dict
 from itertools import cycle
+
+from Shared.cevrp import CEVRP
 from Shared.path import Path
 from collections import defaultdict
 
@@ -205,6 +207,15 @@ class GraphApi:
 
     def calculate_minimum_stations(self, nodes: list[str], energy_consumption: float, energy_capacity: float) -> float:
         return (self.calculate_path_cost(nodes) * energy_consumption) / energy_capacity
+
+    def calculate_max_energy_to_station(self, nodes:List[str], cevrp:CEVRP):
+        """Calculates the maximum energy required for a route to reach the nearest charging station."""
+        max_energy_needed = 0
+        for node in nodes:
+            for station in cevrp.charging_stations:
+                energy_required = self.calculate_edge_energy_consumption(node, station, cevrp.energy_consumption)
+                max_energy_needed = max(max_energy_needed, energy_required)
+        return max_energy_needed
 
     @staticmethod
     def calculate_paths_cost(paths: List[Path]) -> float:

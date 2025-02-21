@@ -218,6 +218,13 @@ class GraphApi:
         return max_energy_needed
 
     @staticmethod
+    def are_valid_paths(paths: List[Path]) -> bool:
+        for path in paths:
+            if len(path.nodes) <= 3:
+                return False
+        return True
+
+    @staticmethod
     def calculate_paths_cost(paths: List[Path]) -> float:
         """Calculate the total cost of the provided paths."""
         return sum(path.path_cost for path in paths)

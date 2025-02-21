@@ -122,11 +122,11 @@ class ACO:
         else:
             for _ in range(self.max_ant_steps):
                 ant.take_step()  # Use step-by-step exploration strategy
-                # Stop Criteria: Check if the ant has completed its task
+                # Stop Criteria:
                 if ant.reached_destination(self.use_route_construction):
-                    ant.is_fit = True
+                    if self.graph_api.are_valid_paths(ant.paths):
+                        ant.is_fit = True
                     break
-
 
         # Update the best path based on the ant's exploration
         self._update_best_path(ant)

@@ -81,6 +81,7 @@ def remove_overcapacity_nodes(state: CevrpState, rnd_state: Optional[np.random.R
     unassigned = [node for node in unassigned if node not in charging_stations]
     rnd_state.shuffle(unassigned)
     rnd_state.shuffle(new_paths)
+    state_copy.graph_api.visualize_graph(new_paths, charging_stations, state_copy.cevrp.name)
     return CevrpState(new_paths, unassigned, state_copy.graph_api, state_copy.cevrp)
 
 

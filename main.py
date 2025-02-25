@@ -102,10 +102,10 @@ if __name__ == '__main__':
     (aco_flatten_paths, aco_cost, aco_paths), aco_graph_api = solve_with_aco(cevrp_instance)
     print(f"ACO - Initial routes:\n{format_path(aco_paths)}")
     print(f"ACO - Initial total cost: {aco_cost}")
-    aco_graph_api.visualize_graph(aco_paths, cevrp_instance.name)
+    aco_graph_api.visualize_graph(aco_paths, cevrp_instance.charging_stations, cevrp_instance.name)
 
     # Apply ALNS
     (best_state, best_cost, best_paths, unassigned_nodes), alns_graph_api = solve_with_alns(aco_paths, cevrp_instance)
     print(f"ALNS - Final routes:\n{format_path(best_paths)}")
     print(f"ALNS - Final total cost: {best_cost}")
-    alns_graph_api.visualize_graph(best_paths, cevrp_instance.name)
+    alns_graph_api.visualize_graph(best_paths, cevrp_instance.charging_stations, cevrp_instance.name)

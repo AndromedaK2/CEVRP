@@ -3,6 +3,7 @@ from typing import List, Dict
 from itertools import cycle
 
 from Shared.cevrp import CEVRP
+from Shared.config import DEFAULT_SOURCE_NODE
 from Shared.path import Path
 from collections import defaultdict
 
@@ -97,67 +98,76 @@ class GraphApi:
         # Incremental cost
         return insertion_cost - original_cost
 
-    def visualize_graph(self, paths: List[Path], name: str) -> None:
-
-        """Visualizes the graph with highlighted paths, costs in legend, and total cost in title.
-
-        Features:
-        - Curved overlapping edges for better visibility
-        - Automatic total cost calculation
-        - Unique colors for each path
-        - Adaptive edge curvature for parallel routes
-        """
-
-        # Get node positions from graph attributes
+    def visualize_graph(self, paths: List[Path], charging_stations, name: str) -> None:
+        """Visualizes the graph with custom node markers and styled paths."""
+        # Get node positions and validate
         node_positions = nx.get_node_attributes(self.graph, "pos")
         if not node_positions:
             raise ValueError("Node positions missing. Ensure nodes have 'pos' attribute.")
 
-        # Initialize figure with custom size
+        # Create figure and set title with total cost
         plt.figure(figsize=(12, 12))
-
-        # Calculate total cost and create formatted title
         total_cost = sum(path.path_cost for path in paths)
         plt.title(f"{name}\nTotal Cost: {total_cost:.2f}",
-                  fontsize=16,
-                  fontweight="bold",
-                  pad=20)
+                  fontsize=16, fontweight="bold", pad=20)
 
         # Configure grid and axes
-        plt.grid(visible=True, linestyle="--", linewidth=0.5, alpha=0.7)
-        plt.axhline(0, color="black", linewidth=1)  # X-axis line
-        plt.axvline(0, color="black", linewidth=1)  # Y-axis line
+        plt.grid(True, linestyle="--", linewidth=0.5, alpha=0.7)
+        plt.axhline(0, color="black", linewidth=1)
+        plt.axvline(0, color="black", linewidth=1)
         plt.xlabel("X-axis", fontsize=14)
         plt.ylabel("Y-axis", fontsize=14)
 
-        # Draw base graph elements
-        nx.draw_networkx_nodes(self.graph, node_positions,
-                               node_color="lightblue",
-                               node_size=600)
-        nx.draw_networkx_labels(self.graph, node_positions,
-                                font_size=10)
+        # Identify special nodes
+        depot_node = DEFAULT_SOURCE_NODE
+        all_nodes = node_positions.keys()
 
-        # Path visualization setup
+        # Separate nodes into categories
+        regular_nodes = [n for n in all_nodes if n != depot_node and n not in charging_stations]
+        charging_nodes = [n for n in all_nodes if n in charging_stations]
+        depot_nodes = [depot_node] if depot_node in all_nodes else []
+
+        # Draw nodes with different markers
+        nx.draw_networkx_nodes(self.graph, node_positions,
+                               nodelist=regular_nodes,
+                               node_color="lightblue",
+                               node_size=600,
+                               node_shape="o")  # Circle for regular nodes
+
+        nx.draw_networkx_nodes(self.graph, node_positions,
+                               nodelist=charging_nodes,
+                               node_color="lightblue",
+                               node_size=700,
+                               node_shape="^")  # Triangle for charging stations
+
+        nx.draw_networkx_nodes(self.graph, node_positions,
+                               nodelist=depot_nodes,
+                               node_color="lightblue",
+                               node_size=800,
+                               node_shape="s")  # Square for depot
+
+        # Draw labels for all nodes
+        nx.draw_networkx_labels(self.graph, node_positions, font_size=10)
+
+        # Path visualization logic
         color_iterator = cycle(colors.TABLEAU_COLORS)
         legend_items = []
-        edge_counts = defaultdict(int)  # Track edge usage for curvature
+        edge_counts = defaultdict(int)
 
-        # Draw each path with unique styling
         for idx, path in enumerate(paths):
             color = next(color_iterator)
             edges = list(zip(path.nodes, path.nodes[1:]))
 
-            # Calculate curvature for overlapping edges
+            # Calculate edge curvature
             connection_styles = []
             for u, v in edges:
-                # Use sorted nodes to handle undirected graphs
                 key = tuple(sorted((u, v)))
                 count = edge_counts[key]
-                rad = 0.3 * count  # Base curvature multiplier
+                rad = 0.3 * count
                 connection_styles.append(f"arc3,rad={rad}")
                 edge_counts[key] += 1
 
-            # Draw each edge individually with its specific connection style
+            # Draw each edge with its style
             for edge, conn_style in zip(edges, connection_styles):
                 nx.draw_networkx_edges(
                     self.graph, node_positions,
@@ -170,19 +180,16 @@ class GraphApi:
 
             legend_items.append((f"Path {idx + 1}: {path.path_cost:.2f}", color))
 
-        # Create legend with custom handles
+        # Create legend
         legend_handles = [plt.Line2D([0], [0], color=c, lw=2) for _, c in legend_items]
         plt.legend(legend_handles, [label for label, _ in legend_items],
-                   loc="upper right",
-                   fontsize=9,
-                   framealpha=0.9)
+                   loc="upper right", fontsize=9, framealpha=0.9)
 
-        # Set dynamic axis limits with padding
+        # Set axis limits
         x_vals, y_vals = zip(*node_positions.values())
         plt.xlim(min(x_vals) - 1, max(x_vals) + 1)
         plt.ylim(min(y_vals) - 1, max(y_vals) + 1)
 
-        # Final rendering
         plt.tight_layout()
         plt.show()
 
@@ -220,7 +227,7 @@ class GraphApi:
     @staticmethod
     def are_valid_paths(paths: List[Path]) -> bool:
         for path in paths:
-            if len(path.nodes) <= 3:
+            if len(path.nodes) <= 4:
                 return False
         return True
 

@@ -12,7 +12,7 @@ SEED = 1234
 
 def make_alns(
     initial_state: CevrpState,
-    num_iterations: int = 100,
+    num_iterations: int = 10,
     destroy_operators: list = None,
     repair_operators: list = None,
     rw_weights: list = None,

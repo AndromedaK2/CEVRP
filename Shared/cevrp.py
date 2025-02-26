@@ -117,13 +117,6 @@ class CEVRP:
         new_current_battery = current_battery - (distance_cost * energy_consumption)
         return max(0.0, new_current_battery)
 
-    @property
-    def charge_battery(self) -> float:
-        """
-        Returns the maximum battery capacity for this instance.
-        """
-        return 0.0
-
     def add_charging_stations_to_nodes(self):
         """
         Adds charging station coordinates to node_coord_section if not already included.

@@ -1,3 +1,5 @@
+from ALNS_METAHEURISTIC.solution_state import CevrpState
+
 def find_best_charging_station(state, last_node, energy_capacity, energy_consumption, charging_stations, current_energy):
     """Finds the best charging station within energy constraints."""
     best_station, best_station_cost = None, float('inf')
@@ -70,3 +72,59 @@ def insert_charging_station_at_highest_energy(state, path):
         path.energy = calculate_path_energy(state, path.nodes, charging_stations)  # Recalculate energy usage
 
     return path
+
+
+
+
+def insert_charging_stations_after_each_node(state: CevrpState) -> CevrpState:
+    """
+    Inserts a charging station after each node in every route.
+    This function modifies the input state directly and returns it.
+
+    :param state: Current CevrpState containing paths.
+    :return: The modified CevrpState instance.
+    """
+    charging_stations = state.cevrp.charging_stations
+
+    for path in state.paths:
+        modified_nodes = [path.nodes[0]]  # Start with the depot
+        energy_used = 0  # Track energy consumption incrementally
+
+        for i in range(1, len(path.nodes) - 1):  # Stop before the last node (depot)
+            current_node = path.nodes[i]
+            prev_node = modified_nodes[-1]
+            modified_nodes.append(current_node)  # Add the original node
+
+            # Compute energy consumption incrementally
+            additional_energy = state.get_edge_energy_consumption(prev_node, current_node)
+            energy_used += additional_energy
+
+            # Always insert a charging station after each node if needed
+            best_station = find_best_charging_station(
+                state,
+                current_node,
+                energy_capacity=state.cevrp.energy_capacity,
+                energy_consumption=state.cevrp.energy_consumption,
+                charging_stations=charging_stations,
+                current_energy=energy_used
+            )
+
+            if best_station:
+                modified_nodes.append(best_station)  # Insert the charging station
+                energy_used = 0  # Reset energy consumption after charging
+
+        # Add the depot back at the end
+        last_node = modified_nodes[-1]
+        depot = path.nodes[-1]
+        energy_to_depot = state.get_edge_energy_consumption(last_node, depot)
+        energy_used += energy_to_depot
+        modified_nodes.append(depot)
+
+        # Update the path directly
+        path.nodes[:] = modified_nodes
+        path.path_cost = state.graph_api.calculate_path_cost(modified_nodes)
+        path.energy = energy_used
+        path.demand = state.graph_api.get_total_demand_path(modified_nodes)
+        path.feasible = path.energy <= state.cevrp.energy_capacity
+
+    return state

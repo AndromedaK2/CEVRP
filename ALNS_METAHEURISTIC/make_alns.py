@@ -5,6 +5,7 @@ from alns.select import RouletteWheel
 from alns.stop import MaxIterations
 
 from ALNS_METAHEURISTIC.destroy_operators import remove_overcapacity_nodes
+from ALNS_METAHEURISTIC.repair_functions import insert_charging_stations_after_each_node
 from ALNS_METAHEURISTIC.repair_operators import smart_reinsertion
 from ALNS_METAHEURISTIC.solution_state import CevrpState
 
@@ -35,6 +36,8 @@ def make_alns(
     """
     # Initialize ALNS with a seeded random number generator
     alns = ALNS(rnd.default_rng(SEED))
+
+    initial_state =  insert_charging_stations_after_each_node(initial_state)
 
     # Add destroy operators (default to random_destroy if none provided)
     if destroy_operators is None:

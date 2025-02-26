@@ -23,7 +23,7 @@ class CevrpState:
         """
         Computes the total route costs.
         """
-        return self.get_path_cost()
+        return self.get_paths_cost()
 
     @property
     def cost(self):
@@ -37,11 +37,11 @@ class CevrpState:
         return CevrpState(
             paths=[path.copy() for path in self.paths],
             unassigned=copy.deepcopy(self.unassigned),
-            graph_api=copy.deepcopy(self.graph_api),  # Assuming graph_api is immutable or shared
-            cevrp=copy.deepcopy(self.cevrp)  # Assuming cevrp is immutable or shared
+            graph_api=self.graph_api,  # Assuming graph_api is immutable or shared
+            cevrp=self.cevrp  # Assuming cevrp is immutable or shared
         )
 
-    def get_path_cost(self):
+    def get_paths_cost(self):
         """
         Calculates the total cost of all routes.
 

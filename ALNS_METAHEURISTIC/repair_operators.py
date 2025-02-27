@@ -126,3 +126,45 @@ def smart_reinsertion(state: CevrpState, rnd_state: Optional[np.random.RandomSta
         graph_api=state_copy.graph_api,
         cevrp=state_copy.cevrp
     )
+
+
+def adjacent_swap(state: CevrpState, rnd_state: Optional[np.random.RandomState] = None) -> CevrpState:
+    """
+    Applies an adjacent swap heuristic to improve routes in CEVRP, ensuring depots remain fixed.
+    Iterates all customer node pairs, selects the best valid improvement.
+    """
+    state_copy = state.copy()
+    modified_paths = []
+
+    for path in state_copy.paths:
+        original_nodes = path.nodes
+        best_nodes = original_nodes.copy()
+        best_cost = path.path_cost
+        best_energy = path.energy
+
+        # Iterate over customer nodes only (exclude depots at 0 and -1)
+        for i in range(1, len(original_nodes) - 2):
+            # Swap adjacent nodes
+            new_nodes = original_nodes.copy()
+            new_nodes[i], new_nodes[i + 1] = new_nodes[i + 1], new_nodes[i]
+
+            # Calculate cost and energy
+            new_cost = state_copy.graph_api.calculate_path_cost(new_nodes)
+            new_energy = state_copy.calculate_path_energy(new_nodes, state_copy.cevrp.charging_stations)
+
+            # Check if swap improves cost and respects energy
+            if new_cost < best_cost and new_energy <= state_copy.cevrp.capacity:
+                best_nodes = new_nodes
+                best_cost = new_cost
+                best_energy = new_energy
+
+        # Update path if improvement found
+        new_path = Path()
+        new_path.nodes = best_nodes
+        new_path.path_cost = best_cost
+        new_path.energy = best_energy
+        new_path.demand = path.demand  # Unchanged by swaps
+        new_path.feasible = True
+        modified_paths.append(new_path)
+    state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations, state_copy.cevrp.name)
+    return CevrpState(modified_paths, state_copy.unassigned, state_copy.graph_api, state_copy.cevrp)

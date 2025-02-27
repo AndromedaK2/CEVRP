@@ -2,7 +2,7 @@ from typing import List
 
 from ALNS_METAHEURISTIC.destroy_operators import remove_overcapacity_nodes, remove_charging_station
 from ALNS_METAHEURISTIC.make_alns import make_alns
-from ALNS_METAHEURISTIC.repair_operators import smart_reinsertion
+from ALNS_METAHEURISTIC.repair_operators import smart_reinsertion, adjacent_swap
 from ALNS_METAHEURISTIC.solution_state import CevrpState
 from Shared.config import INSTANCE_FILES, DEFAULT_SOURCE_NODE, NUM_ANTS, MAX_ANT_STEPS, NUM_ITERATIONS
 from Shared.graph_api import GraphApi
@@ -100,7 +100,7 @@ def solve_with_alns(paths: List[Path], cevrp: CEVRP) -> tuple:
     return make_alns(
         cevrp_state,
         destroy_operators=[remove_charging_station],
-        repair_operators=[smart_reinsertion],
+        repair_operators=[adjacent_swap],
     ), graph_api
 
 

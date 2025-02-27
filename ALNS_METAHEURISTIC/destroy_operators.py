@@ -138,4 +138,5 @@ def remove_charging_station(state: CevrpState, rnd_state: Optional[np.random.Ran
             new_path.feasible = True
             modified_paths.append(new_path)
 
+    state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations, state_copy.cevrp.name)
     return CevrpState(modified_paths, state_copy.unassigned, state_copy.graph_api, state_copy.cevrp)

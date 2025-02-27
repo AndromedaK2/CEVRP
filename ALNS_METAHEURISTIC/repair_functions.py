@@ -13,15 +13,6 @@ def find_best_charging_station(state, last_node, energy_capacity, energy_consump
     return best_station
 
 
-def calculate_path_energy(state, nodes, charging_stations):
-    """Calculates total energy usage for a path with resets at charging stations."""
-    energy = 0
-    for i in range(1, len(nodes)):
-        if nodes[i - 1] in charging_stations:
-            energy = 0
-        energy += state.get_edge_energy_consumption(nodes[i - 1], nodes[i])
-    return energy
-
 
 def find_highest_energy_pair(state, nodes):
     """
@@ -69,11 +60,9 @@ def insert_charging_station_at_highest_energy(state, path):
 
     if station:
         path.nodes.insert(best_index + 1, station)  # Insert after node1
-        path.energy = calculate_path_energy(state, path.nodes, charging_stations)  # Recalculate energy usage
+        path.energy = state.calculate_path_energy(state, path.nodes, charging_stations)  # Recalculate energy usage
 
     return path
-
-
 
 
 def insert_charging_stations_after_each_node(state: CevrpState) -> CevrpState:

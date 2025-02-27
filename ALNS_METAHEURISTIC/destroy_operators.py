@@ -89,3 +89,53 @@ def remove_overcapacity_nodes(state: CevrpState, rnd_state: Optional[np.random.R
     return CevrpState(new_paths, unassigned, state_copy.graph_api, state_copy.cevrp)
 
 
+def remove_charging_station(state: CevrpState, rnd_state: Optional[np.random.RandomState] = None) -> CevrpState:
+    """
+    Randomly removes one instance of a duplicated charging station from a route
+    while keeping the energy constraint valid.
+
+    :param state: The current CevrpState containing the solution.
+    :param rnd_state: Random number generator state.
+    :return: A new CevrpState with modified routes.
+    """
+    state_copy = state.copy()
+    modified_paths = []
+
+    for path in state_copy.paths:
+        station_positions = [i for i, node in enumerate(path.nodes) if node in state_copy.cevrp.charging_stations]
+
+        if len(station_positions) < 2:
+            # If there are no duplicates, keep the path unchanged
+            modified_paths.append(path)
+            continue
+
+        # Select a random charging station instance to remove
+        index_to_remove = rnd_state.choice(station_positions) if rnd_state else np.random.choice(station_positions)
+        modified_nodes = path.nodes[:index_to_remove] + path.nodes[index_to_remove + 1:]
+
+        # Recalculate energy consumption
+        energy_used = 0
+        for i in range(len(modified_nodes) - 1):
+            current_node, next_node = modified_nodes[i], modified_nodes[i + 1]
+
+            # Reset energy if the current node is a charging station
+            if current_node in state_copy.cevrp.charging_stations:
+                energy_used = 0
+
+            energy_used += state_copy.get_edge_energy_consumption(current_node, next_node)
+
+            # If energy constraint is violated, revert the change
+            if energy_used > state_copy.cevrp.energy_capacity:
+                modified_paths.append(path)  # Keep original path
+                break
+        else:
+            # If the removal is feasible, update the path
+            new_path = Path()
+            new_path.nodes = modified_nodes
+            new_path.path_cost = state_copy.graph_api.calculate_path_cost(modified_nodes)
+            new_path.energy = energy_used
+            new_path.demand = state_copy.graph_api.get_total_demand_path(modified_nodes)
+            new_path.feasible = True
+            modified_paths.append(new_path)
+
+    return CevrpState(modified_paths, state_copy.unassigned, state_copy.graph_api, state_copy.cevrp)

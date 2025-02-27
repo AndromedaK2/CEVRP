@@ -1,11 +1,12 @@
 from typing import List
 
-from ALNS_METAHEURISTIC.destroy_operators import remove_overcapacity_nodes
+from ALNS_METAHEURISTIC.destroy_operators import remove_overcapacity_nodes, remove_charging_station
 from ALNS_METAHEURISTIC.make_alns import make_alns
 from ALNS_METAHEURISTIC.repair_operators import smart_reinsertion
 from ALNS_METAHEURISTIC.solution_state import CevrpState
 from Shared.config import INSTANCE_FILES, DEFAULT_SOURCE_NODE, NUM_ANTS, MAX_ANT_STEPS, NUM_ITERATIONS
 from Shared.graph_api import GraphApi
+from Shared.heuristic import apply_2opt
 from Shared.path import Path
 from Shared.coordinates_manager import CoordinatesManager
 from MMAS.aco import ACO
@@ -57,20 +58,35 @@ def format_path(paths: List[Path]) -> str:
 
 def solve_with_aco(cevrp: CEVRP) -> tuple:
     """Solves the instance using ACO and returns the computed paths and cost."""
+
+    # Step 1: Build the graph
     manager = CoordinatesManager(cevrp.node_coord_section)
     manager.compute_distances()
     graph = manager.build_graph()
 
+    # Step 2: Initialize ACO
     aco = ACO(
         graph,
         max_ant_steps=MAX_ANT_STEPS,
         num_iterations=NUM_ITERATIONS,
         best_path_cost=cevrp.optimal_value,
         cevrp=cevrp,
-        use_route_construction=False
+        use_route_construction=False  # Ensure this setting is correct
     )
-    return aco.find_shortest_path(start=DEFAULT_SOURCE_NODE, num_ants=NUM_ANTS), aco.graph_api
 
+    # Step 3: Solve the ACO routing problem
+    flatten_paths, initial_cost, paths = aco.find_shortest_path(
+        start=DEFAULT_SOURCE_NODE,
+        num_ants=NUM_ANTS
+    )
+
+    # Step 4: Apply 2-opt optimization
+    new_paths = [apply_2opt(path, aco.graph_api) for path in paths]
+
+    # Step 5: Compute optimized cost only if paths changed
+    optimized_cost = aco.graph_api.calculate_paths_cost(new_paths) if new_paths != paths else initial_cost
+
+    return (flatten_paths, optimized_cost, new_paths), aco.graph_api
 
 def solve_with_alns(paths: List[Path], cevrp: CEVRP) -> tuple:
     """Applies ALNS to improve the routes found by ACO."""
@@ -79,15 +95,11 @@ def solve_with_alns(paths: List[Path], cevrp: CEVRP) -> tuple:
     manager.compute_distances()
     graph = manager.build_graph()
     graph_api = GraphApi(graph)
-    #for path in paths:
-    #    path.minimum_stations = graph_api.calculate_minimum_stations(path.nodes,
-    #                                                                 energy_consumption=cevrp.energy_consumption,
-    #                                                                 energy_capacity=cevrp.energy_capacity)
 
     cevrp_state = CevrpState(paths, graph_api=graph_api, cevrp=cevrp)
     return make_alns(
         cevrp_state,
-        destroy_operators=[remove_overcapacity_nodes],
+        destroy_operators=[remove_charging_station],
         repair_operators=[smart_reinsertion],
     ), graph_api
 

@@ -6,21 +6,6 @@ from ALNS_METAHEURISTIC.repair_functions import find_best_charging_station
 from Shared.config import DEFAULT_SOURCE_NODE
 from Shared.path import Path
 
-def apply_2opt(route: Path, state: CevrpState) -> Path:
-    """Applies the 2-opt algorithm to optimize the given route."""
-    best_route = route.copy()
-    best_cost = state.graph_api.calculate_path_cost(best_route.nodes)
-    for i in range(1, len(route.nodes) - 2):
-        for j in range(i + 1, len(route.nodes) - 1):
-            new_route = route.nodes[:i] + list(reversed(route.nodes[i:j + 1])) + route.nodes[j + 1:]
-            new_cost = state.graph_api.calculate_path_cost(new_route)
-
-            if new_cost < best_cost:
-                best_route.nodes = new_route
-                best_cost = new_cost
-
-    best_route.path_cost = best_cost
-    return best_route
 
 
 
@@ -127,8 +112,6 @@ def smart_reinsertion(state: CevrpState, rnd_state: Optional[np.random.RandomSta
 
         path.path_cost = state_copy.graph_api.calculate_path_cost(path.nodes)
         path.feasible = True
-
-        path = apply_2opt(path, state_copy)
         paths_final.append(path)
 
     unassigned_final = [node for node in unassigned_copy if node not in visited_nodes]

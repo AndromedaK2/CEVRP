@@ -51,7 +51,7 @@ def format_path(paths: List[Path]) -> str:
     formatted_routes = [header]
     for idx, path in enumerate(paths, start=1):
         route_str = " -> ".join(path.nodes)
-        formatted_routes.append(f"► Route {idx}: {route_str}\n  Cost: {path.path_cost:.2f}")
+        formatted_routes.append(f"► Route {idx}: {route_str}\n  Cost: {path.path_cost}")
         formatted_routes.append("-----------------------------------------")
 
     return "\n".join(formatted_routes)

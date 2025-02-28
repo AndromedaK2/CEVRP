@@ -1,3 +1,4 @@
+import time
 from typing import List
 
 from ALNS_METAHEURISTIC.destroy_operators import remove_charging_station
@@ -110,6 +111,7 @@ if __name__ == '__main__':
     print(f"Selected instance: {selected_file}")
 
     cevrp_instance = create_cevrp_instance(selected_file)
+    start_time = time.time()
 
     # Solve using ACO
     (aco_flatten_paths, aco_cost, aco_paths), aco_graph_api = solve_with_aco(cevrp_instance)
@@ -121,4 +123,8 @@ if __name__ == '__main__':
     (best_state, best_cost, best_paths, unassigned_nodes), alns_graph_api = solve_with_alns(aco_paths, cevrp_instance)
     print(f"ALNS - Final routes:\n{format_path(best_paths)}")
     print(f"ALNS - Final total cost: {best_cost}")
+    end_time = time.time()
+    execution_time = end_time - start_time
+    minutes, seconds = divmod(execution_time, 60)
+    print(f"execution time: {int(minutes)}m {seconds:.2f}s")
     alns_graph_api.visualize_graph(best_paths, cevrp_instance.charging_stations, cevrp_instance.name)

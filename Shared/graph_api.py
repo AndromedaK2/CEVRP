@@ -10,6 +10,7 @@ from collections import defaultdict
 import networkx as nx
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
+import plotly.graph_objects as go
 
 @dataclass
 class GraphApi:
@@ -98,7 +99,7 @@ class GraphApi:
         # Incremental cost
         return insertion_cost - original_cost
 
-    def visualize_graph(self, paths: List[Path], charging_stations, name: str) -> None:
+    def visualize_graph1(self, paths: List[Path], charging_stations, name: str) -> None:
         """Visualizes the graph with custom node markers and styled paths."""
         # Get node positions and validate
         node_positions = nx.get_node_attributes(self.graph, "pos")
@@ -187,12 +188,72 @@ class GraphApi:
 
         # Set axis limits
         x_vals, y_vals = zip(*node_positions.values())
-        plt.xlim(min(x_vals) - 1, max(x_vals) + 1)
-        plt.ylim(min(y_vals) - 1, max(y_vals) + 1)
+        plt.xlim(min(x_vals) - 3, max(x_vals) + 3)
+        plt.ylim(min(y_vals) - 3, max(y_vals) + 3)
 
         plt.tight_layout()
         plt.show()
 
+    def visualize_graph(self, paths: List[Path], charging_stations, name: str) -> None:
+        """Enhanced interactive visualization of the graph using Plotly with custom styling."""
+        # Get node positions
+        node_positions = nx.get_node_attributes(self.graph, "pos")
+        if not node_positions:
+            raise ValueError("Node positions missing. Ensure nodes have 'pos' attribute.")
+
+        # Initialize Plotly figure
+        fig = go.Figure()
+
+        # Identify special nodes
+        depot_node = DEFAULT_SOURCE_NODE
+        all_nodes = node_positions.keys()
+        regular_nodes = [n for n in all_nodes if n != depot_node and n not in charging_stations]
+        charging_nodes = [n for n in all_nodes if n in charging_stations]
+        depot_nodes = [depot_node] if depot_node in all_nodes else []
+
+        # Draw nodes with different markers
+        def add_nodes(node_list, color, symbol, name, size=12):
+            if node_list:
+                positions = [node_positions[n] for n in node_list if n in node_positions]
+                if positions:
+                    x, y = zip(*positions)
+                    fig.add_trace(go.Scatter(x=x, y=y, mode='markers+text', text=[str(n) for n in node_list],
+                                             textposition='top center',
+                                             marker=dict(size=size, color=color, symbol=symbol,
+                                                         line=dict(width=2, color='black')),
+                                             name=name))
+
+        add_nodes(regular_nodes, 'lightblue', 'circle', 'Customers', size=14)
+        add_nodes(charging_nodes, 'red', 'triangle-up', 'Charging Stations', size=16)
+        add_nodes(depot_nodes, 'green', 'square', 'Depot', size=18)
+
+        # Path visualization with curved edges
+        color_iterator = cycle(['blue', 'purple', 'orange', 'cyan', 'magenta'])
+        edge_counts = defaultdict(int)
+
+        for idx, path in enumerate(paths):
+            color = next(color_iterator)
+            edges = list(zip(path.nodes, path.nodes[1:]))
+
+            x_edges, y_edges = [], []
+            for u, v in edges:
+                x_edges += [node_positions[u][0], node_positions[v][0], None]
+                y_edges += [node_positions[u][1], node_positions[v][1], None]
+
+            fig.add_trace(
+                go.Scatter(x=x_edges, y=y_edges, mode='lines',
+                           line=dict(color=color, width=3, dash='solid'),
+                           opacity=0.8,
+                           name=f'Path {idx + 1}'))
+
+        # Set layout with enhanced aesthetics
+        fig.update_layout(title=f"{name} - Total Cost: {sum(path.path_cost for path in paths):.2f}",
+                          xaxis=dict(title='X-axis', showgrid=True, zeroline=False),
+                          yaxis=dict(title='Y-axis', showgrid=True, zeroline=False),
+                          plot_bgcolor='rgba(240,240,240,0.9)',
+                          showlegend=True)
+
+        fig.show()
     def calculate_path_cost(self, nodes: list[str]) -> float:
         """
         Calculates the total cost of a path based on the edges in the graph.

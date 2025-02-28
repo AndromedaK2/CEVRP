@@ -127,7 +127,6 @@ def smart_reinsertion(state: CevrpState, rnd_state: Optional[np.random.RandomSta
         cevrp=state_copy.cevrp
     )
 
-
 def adjacent_swap(state: CevrpState, rnd_state: Optional[np.random.RandomState] = None) -> CevrpState:
     """
     Applies an adjacent swap heuristic to improve routes in CEVRP, ensuring depots remain fixed.
@@ -164,6 +163,92 @@ def adjacent_swap(state: CevrpState, rnd_state: Optional[np.random.RandomState] 
         new_path.path_cost = best_cost
         new_path.energy = best_energy
         new_path.demand = path.demand  # Unchanged by swaps
+        new_path.feasible = True
+        modified_paths.append(new_path)
+    state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations, state_copy.cevrp.name)
+    return CevrpState(modified_paths, state_copy.unassigned, state_copy.graph_api, state_copy.cevrp)
+
+def general_swap(state: CevrpState, rnd_state: Optional[np.random.RandomState] = None) -> CevrpState:
+    """
+    Applies a general swap heuristic to improve routes in CEVRP as a repair operator.
+    Swaps non-consecutive nodes in each route and keeps the best feasible improvement,
+    considering energy and capacity constraints.
+
+    :param state: The current CevrpState containing the solution.
+    :param rnd_state: Random number generator state.
+    :return: A new CevrpState with modified routes.
+    """
+    state_copy = state.copy()
+    modified_paths = []
+
+    for path in state_copy.paths:
+        best_cost = state_copy.graph_api.calculate_path_cost(path.nodes)
+        best_route = path.nodes[:]
+        best_energy = state_copy.get_path_energy_consumption(path.nodes)
+
+        for i in range(1, len(path.nodes) - 3):  # Exclude depot
+            for j in range(i + 2, len(path.nodes) - 1):
+                new_route = path.nodes[:]
+                new_route[i], new_route[j] = new_route[j], new_route[i]  # Swap non-consecutive nodes
+                new_cost = state_copy.graph_api.calculate_path_cost(new_route)
+                new_energy = state_copy.calculate_path_energy(new_route, state_copy.cevrp.charging_stations)
+                energy_valid = new_energy <= state_copy.cevrp.energy_capacity
+
+                if new_cost < best_cost and energy_valid:
+                    best_route = new_route
+                    best_cost = new_cost
+                    best_energy = new_energy
+
+        # Update path with the best found solution
+        new_path = Path()
+        new_path.nodes = best_route
+        new_path.path_cost = best_cost
+        new_path.energy = best_energy
+        new_path.demand = path.demand
+        new_path.feasible = True
+        modified_paths.append(new_path)
+
+    state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations, state_copy.cevrp.name)
+    return CevrpState(modified_paths, state_copy.unassigned, state_copy.graph_api, state_copy.cevrp)
+
+def single_insertion(state: CevrpState, rnd_state: Optional[np.random.RandomState] = None) -> CevrpState:
+    """
+    Applies a single insertion heuristic to improve routes in CEVRP as a repair operator.
+    Removes a node and reinserts it in another position, keeping the best feasible improvement,
+    considering energy and capacity constraints.
+
+    :param state: The current CevrpState containing the solution.
+    :param rnd_state: Random number generator state.
+    :return: A new CevrpState with modified routes.
+    """
+    state_copy = state.copy()
+    modified_paths = []
+
+    for path in state_copy.paths:
+        best_cost = state_copy.graph_api.calculate_path_cost(path.nodes)
+        best_route = path.nodes[:]
+        best_energy = state_copy.get_path_energy_consumption(path.nodes)
+
+        for i in range(1, len(path.nodes) - 1):  # Exclude depot
+            for j in range(1, len(path.nodes) - 1):
+                if i != j:
+                    new_route = path.nodes[:]
+                    new_route.insert(j, new_route.pop(i))  # Remove and reinsert node
+                    new_cost = state_copy.graph_api.calculate_path_cost(new_route)
+                    new_energy = state_copy.calculate_path_energy(new_route, state_copy.cevrp.charging_stations)
+                    energy_valid = new_energy <= state_copy.cevrp.energy_capacity
+
+                    if new_cost < best_cost and energy_valid:
+                        best_route = new_route
+                        best_cost = new_cost
+                        best_energy = new_energy
+
+        # Update path with the best found solution
+        new_path = Path()
+        new_path.nodes = best_route
+        new_path.path_cost = best_cost
+        new_path.energy = best_energy
+        new_path.demand = path.demand
         new_path.feasible = True
         modified_paths.append(new_path)
     state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations, state_copy.cevrp.name)

@@ -6,7 +6,7 @@ from ALNS_METAHEURISTIC.make_alns import make_alns
 from ALNS_METAHEURISTIC.repair_operators import adjacent_swap, general_swap, single_insertion, block_insertion, \
     reverse_location
 from ALNS_METAHEURISTIC.solution_state import CevrpState
-from Shared.config import INSTANCE_FILES, DEFAULT_SOURCE_NODE, NUM_ANTS, MAX_ANT_STEPS, NUM_ITERATIONS
+from Shared.config import INSTANCE_FILES, DEFAULT_SOURCE_NODE, NUM_ANTS, MAX_ANT_STEPS, NUM_ITERATIONS, ALNS_ITERATIONS
 from Shared.graph_api import GraphApi
 from Shared.heuristic import apply_2opt, apply_3opt
 from Shared.path import Path
@@ -84,7 +84,7 @@ def solve_with_aco(cevrp: CEVRP) -> tuple:
 
     # Apply both optimizations in one line
     new_paths = [apply_3opt(apply_2opt(path, aco.graph_api), aco.graph_api) for path in paths]
-
+    aco.graph_api.visualize_graph(new_paths, cevrp.charging_stations, cevrp.name)
     # Step 5: Compute optimized cost only if paths changed
     optimized_cost = aco.graph_api.calculate_paths_cost(new_paths) if new_paths != paths else initial_cost
 
@@ -103,6 +103,7 @@ def solve_with_alns(paths: List[Path], cevrp: CEVRP) -> tuple:
         cevrp_state,
         destroy_operators=[remove_charging_station],
         repair_operators=[adjacent_swap, general_swap, single_insertion, block_insertion, reverse_location],
+        num_iterations= ALNS_ITERATIONS
     ), graph_api
 
 

@@ -8,6 +8,7 @@ from ALNS_METAHEURISTIC.destroy_operators import remove_overcapacity_nodes
 from ALNS_METAHEURISTIC.repair_functions import insert_charging_stations_after_each_node
 from ALNS_METAHEURISTIC.repair_operators import smart_reinsertion
 from ALNS_METAHEURISTIC.solution_state import CevrpState
+from Shared.heuristic import apply_local_search
 
 SEED = 1234
 
@@ -68,6 +69,9 @@ def make_alns(
 
     # Configure the stopping criterion (MaxIterations)
     stop = MaxIterations(num_iterations)
+
+    # Apply Random Local Search
+    alns.on_best(apply_local_search)
 
     # Run the ALNS algorithm
     result = alns.iterate(initial_state, select, accept, stop)

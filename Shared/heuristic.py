@@ -1,3 +1,9 @@
+from typing import Optional
+
+import numpy as np
+
+from ALNS_METAHEURISTIC.repair_operators import adjacent_swap, general_swap, block_insertion, reverse_location
+from ALNS_METAHEURISTIC.solution_state import CevrpState
 from Shared.graph_api import GraphApi
 from Shared.path import Path
 
@@ -38,7 +44,6 @@ def apply_2opt(path: Path, graph_api: GraphApi) -> Path:
                 best_route.nodes = new_route
                 best_cost = new_cost
                 best_route.path_cost = best_cost
-
     return best_route
 
 
@@ -72,3 +77,21 @@ def apply_3opt(path: Path, graph_api: GraphApi) -> Path:
 
     best_route.path_cost = best_cost
     return best_route
+
+def apply_local_search(state: CevrpState, rng: Optional[np.random.RandomState] = None) -> CevrpState:
+    """
+    Applies a local search operator to improve the given CEVRP solution.
+    A random local search operator is selected and applied.
+
+    :param state: The current CEVRP state.
+    :param rng: A numpy random number generator for reproducibility.
+    :return: The improved CEVRP state.
+    """
+    # Define available local search operators
+    local_search_operators = [adjacent_swap, general_swap, block_insertion, reverse_location]
+
+    # Select a random operator using numpy random generator
+    operator = rng.choice(local_search_operators)
+
+    # Apply the selected operator and return the modified state
+    return operator(state)

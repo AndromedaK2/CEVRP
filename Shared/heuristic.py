@@ -210,38 +210,47 @@ def single_insertion_local_search(state: CevrpState, rng: Optional[np.random.Ran
 def block_insertion_local_search(state: CevrpState, rng: Optional[np.random.RandomState] = None) -> None:
     """
     Applies a block insertion heuristic to improve routes in CEVRP.
-    Moves a block of consecutive nodes to a different position, ensuring feasibility.
+    Moves a block of consecutive nodes to a different position while ensuring feasibility.
 
     :param state: The current CEVRP state (modified in-place).
-    :param rng: A numpy random number generator for reproducibility.
+    :param rng: Optional numpy random state for reproducibility.
     """
+    if rng is None:
+        rng = np.random.default_rng()  # Create a new RNG if none is provided
+
     for path in state.paths:
-        best_cost = state.graph_api.calculate_path_cost(path.nodes)
-        best_energy = state.get_path_energy_consumption(path.nodes)
+        if len(path.nodes) < 5:  # Skip paths too short for meaningful block moves
+            continue
 
-        for b in range(2, len(path.nodes) - 3):  # Block size
-            for i in range(1, len(path.nodes) - 1 - b):  # Start index
-                for j in range(i + b, len(path.nodes) - 1):  # Insertion index
-                    # Move block i:i+b to position j
-                    block = path.nodes[i:i + b]
-                    path.nodes = path.nodes[:i] + path.nodes[i + b:j + 1] + block + path.nodes[j + 1:]
+        current_cost = state.graph_api.calculate_path_cost(path.nodes)
 
-                    # Calculate new cost and energy
-                    new_cost = state.graph_api.calculate_path_cost(path.nodes)
-                    new_energy = state.calculate_path_energy(path.nodes, state.cevrp.charging_stations)
+        # Determine feasible block size (2 <= size < len(path.nodes) - 1)
+        max_block_size = min(4, len(path.nodes) - 2)  # Ensure block can be extracted without including depots
+        if max_block_size < 2:
+            continue
+        block_size = rng.integers(2, max_block_size + 1)
 
-                    # Keep change if it improves cost and maintains feasibility
-                    if new_cost < best_cost and new_energy <= state.cevrp.energy_capacity:
-                        best_cost = new_cost
-                        best_energy = new_energy
-                    else:
-                        # Revert block movement if no improvement
-                        path.nodes = path.nodes[:i] + block + path.nodes[i:j + 1] + path.nodes[j + 1:]
+        # Select block start index (avoiding depot at 0)
+        start_idx = rng.integers(1, len(path.nodes) - block_size)
 
-        # Update path properties after all block insertions
-        path.path_cost = best_cost
-        path.energy = best_energy
+        # Extract block and create remaining nodes
+        block = path.nodes[start_idx:start_idx + block_size]
+        remaining_nodes = path.nodes[:start_idx] + path.nodes[start_idx + block_size:]
 
+        # Choose insertion point in remaining nodes (all valid positions)
+        insert_idx = rng.integers(0, len(remaining_nodes) + 1)  # +1 to allow insertion at end
+
+        # Reconstruct path with block inserted
+        new_nodes = remaining_nodes[:insert_idx] + block + remaining_nodes[insert_idx:]
+
+        # Validate new path's feasibility and improvement
+        new_cost = state.graph_api.calculate_path_cost(new_nodes)
+        new_energy = state.calculate_path_energy(new_nodes, state.cevrp.charging_stations)
+
+        if new_cost < current_cost and new_energy <= state.cevrp.energy_capacity:
+            path.nodes[:] = new_nodes
+            path.path_cost = new_cost
+            path.energy = new_energy
 
 def search_reverse_location_local_search(state: CevrpState, rng: Optional[np.random.RandomState] = None) -> None:
     """

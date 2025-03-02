@@ -165,7 +165,7 @@ def adjacent_swap(state: CevrpState, rnd_state: Optional[np.random.RandomState] 
         new_path.demand = path.demand  # Unchanged by swaps
         new_path.feasible = True
         modified_paths.append(new_path)
-    #state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations, state_copy.cevrp.name)
+    state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations, state_copy.cevrp.name)
     return CevrpState(modified_paths, state_copy.unassigned, state_copy.graph_api, state_copy.cevrp)
 
 def general_swap(state: CevrpState, rnd_state: Optional[np.random.RandomState] = None) -> CevrpState:
@@ -251,7 +251,7 @@ def single_insertion(state: CevrpState, rnd_state: Optional[np.random.RandomStat
         new_path.demand = path.demand
         new_path.feasible = True
         modified_paths.append(new_path)
-    #state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations, state_copy.cevrp.name)
+    state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations, state_copy.cevrp.name)
     return CevrpState(modified_paths, state_copy.unassigned, state_copy.graph_api, state_copy.cevrp)
 
 def block_insertion(state: CevrpState, rnd_state: Optional[np.random.RandomState] = None) -> CevrpState:
@@ -293,7 +293,7 @@ def block_insertion(state: CevrpState, rnd_state: Optional[np.random.RandomState
         new_path.demand = path.demand
         new_path.feasible = True
         modified_paths.append(new_path)
-    # state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations, state_copy.cevrp.name)
+    state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations, state_copy.cevrp.name)
     return CevrpState(modified_paths, state_copy.unassigned, state_copy.graph_api, state_copy.cevrp)
 
 def reverse_location(state: CevrpState, rnd_state: Optional[np.random.RandomState] = None) -> CevrpState:
@@ -334,5 +334,5 @@ def reverse_location(state: CevrpState, rnd_state: Optional[np.random.RandomStat
         new_path.feasible = True
         modified_paths.append(new_path)
 
-    #state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations, state_copy.cevrp.name)
+    state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations, state_copy.cevrp.name)
     return CevrpState(modified_paths, state_copy.unassigned, state_copy.graph_api, state_copy.cevrp)

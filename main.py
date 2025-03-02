@@ -102,7 +102,7 @@ def solve_with_alns(paths: List[Path], cevrp: CEVRP) -> tuple:
     return make_alns(
         cevrp_state,
         destroy_operators=[remove_charging_station],
-        repair_operators=[adjacent_swap, general_swap, single_insertion, block_insertion, reverse_location],
+        repair_operators=[general_swap, single_insertion, block_insertion, reverse_location],
         num_iterations= ALNS_ITERATIONS
     ), graph_api
 

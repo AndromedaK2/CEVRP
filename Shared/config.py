@@ -1,4 +1,3 @@
-# config.py
 from typing import List
 
 INSTANCE_FILES: List[str] = [

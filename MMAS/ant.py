@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, List, Set, Optional
+from typing import Dict, List, Set
 
 from MMAS import pheromone_operators
 from Shared.cevrp import CEVRP

@@ -254,6 +254,7 @@ class GraphApi:
                           showlegend=True)
 
         fig.show()
+
     def calculate_path_cost(self, nodes: list[str]) -> float:
         """
         Calculates the total cost of a path based on the edges in the graph.

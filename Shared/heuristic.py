@@ -102,7 +102,6 @@ def apply_local_search(state: CevrpState, rng: Optional[np.random.RandomState] =
     state.graph_api.visualize_graph(state.paths, state.cevrp.charging_stations, state.cevrp.name)
 
 
-
 def adjacent_swap_local_search(state: CevrpState, rng: Optional[np.random.RandomState] = None) -> None:
     """
     Applies an adjacent swap heuristic to improve routes in CEVRP, ensuring depots remain fixed.

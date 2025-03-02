@@ -2,7 +2,6 @@ import math
 import random
 from typing import Dict
 
-# Constants for default values and error messages
 DEFAULT_PR = 0.05
 MIN_CUSTOMERS = 2
 PHEROMONE_RANGE_ERROR = "The value of rho must be in the range (0, 1)."

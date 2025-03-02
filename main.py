@@ -3,7 +3,7 @@ from typing import List
 
 from ALNS_METAHEURISTIC.destroy_operators import remove_charging_station
 from ALNS_METAHEURISTIC.make_alns import make_alns
-from ALNS_METAHEURISTIC.repair_operators import adjacent_swap, general_swap, single_insertion, block_insertion, \
+from ALNS_METAHEURISTIC.repair_operators import general_swap, single_insertion, block_insertion, \
     reverse_location
 from ALNS_METAHEURISTIC.solution_state import CevrpState
 from Shared.config import INSTANCE_FILES, DEFAULT_SOURCE_NODE, NUM_ANTS, MAX_ANT_STEPS, NUM_ITERATIONS, ALNS_ITERATIONS
@@ -82,13 +82,26 @@ def solve_with_aco(cevrp: CEVRP) -> tuple:
         num_ants=NUM_ANTS
     )
 
-    # Apply both optimizations in one line
-    new_paths = [apply_3opt(apply_2opt(path, aco.graph_api), aco.graph_api) for path in paths]
-    aco.graph_api.visualize_graph(new_paths, cevrp.charging_stations, cevrp.name)
-    # Step 5: Compute optimized cost only if paths changed
-    optimized_cost = aco.graph_api.calculate_paths_cost(new_paths) if new_paths != paths else initial_cost
+    # Step 4: Visualize the routes BEFORE optimization
+    aco.graph_api.visualize_graph(paths, cevrp.charging_stations, f"Initial Routes - {cevrp.name}")
 
-    return (flatten_paths, optimized_cost, new_paths), aco.graph_api
+    # Step 5: Apply 2-opt Optimization
+    paths_2opt = [apply_2opt(path, aco.graph_api) for path in paths]
+
+    # Step 6: Visualize the routes AFTER 2-opt
+    aco.graph_api.visualize_graph(paths_2opt, cevrp.charging_stations, f"After 2-opt - {cevrp.name}")
+
+    # Step 7: Apply 3-opt Optimization
+    #paths_3opt = [apply_3opt(path, aco.graph_api) for path in paths]
+
+    # Step 8: Visualize the routes AFTER 3-opt
+    #aco.graph_api.visualize_graph(paths_3opt, cevrp.charging_stations, f"After 3-opt - {cevrp.name}")
+
+    # Step 9: Compute optimized cost only if paths changed
+    optimized_cost = aco.graph_api.calculate_paths_cost(paths_2opt) if paths_2opt != paths else initial_cost
+
+    return (flatten_paths, optimized_cost, paths_2opt), aco.graph_api
+
 
 def solve_with_alns(paths: List[Path], cevrp: CEVRP) -> tuple:
     """Applies ALNS to improve the routes found by ACO."""

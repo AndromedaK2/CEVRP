@@ -13,7 +13,6 @@ def find_best_charging_station(state, last_node, energy_capacity, energy_consump
     return best_station
 
 
-
 def find_highest_energy_pair(state, nodes):
     """
     Finds the consecutive node pair with the highest energy consumption in a given route.

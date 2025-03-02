@@ -78,7 +78,7 @@ def apply_3opt(path: Path, graph_api: GraphApi) -> Path:
     return best_route
 
 
-def apply_local_search(state: CevrpState, rng: Optional[np.random.RandomState] = None) -> CevrpState:
+def apply_local_search(state: CevrpState, rng: Optional[np.random.RandomState] = None):
     """
     Applies a local search operator to improve the given CEVRP solution.
     A random local search operator is selected and applied.
@@ -98,7 +98,9 @@ def apply_local_search(state: CevrpState, rng: Optional[np.random.RandomState] =
     operator = rng.choice(local_search_operators)
 
     # Apply the selected operator and return the modified state
-    return operator(state)
+    operator(state)
+    state.graph_api.visualize_graph(state.paths, state.cevrp.charging_stations, state.cevrp.name)
+
 
 
 def adjacent_swap_local_search(state: CevrpState, rng: Optional[np.random.RandomState] = None) -> None:
@@ -135,7 +137,6 @@ def adjacent_swap_local_search(state: CevrpState, rng: Optional[np.random.Random
         path.path_cost = best_cost
         path.energy = best_energy
         path.feasible = True  # Assumes swaps maintain feasibility
-    state.graph_api.visualize_graph(state.paths, state.cevrp.charging_stations, state.cevrp.name)
 
 
 def general_swap_local_search(state: CevrpState, rng: Optional[np.random.RandomState] = None) -> None:

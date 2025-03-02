@@ -336,3 +336,183 @@ def reverse_location(state: CevrpState, rnd_state: Optional[np.random.RandomStat
 
     state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations, state_copy.cevrp.name)
     return CevrpState(modified_paths, state_copy.unassigned, state_copy.graph_api, state_copy.cevrp)
+
+def greedy_insertion(state: CevrpState, rng: Optional[np.random.RandomState] = None) -> CevrpState:
+    """
+    Inserts unassigned nodes into the best feasible position in existing routes,
+    ensuring energy and demand feasibility. Correctly manages the unassigned list.
+
+    :param state: The current CEVRP state.
+    :param rng: Optional numpy random state for reproducibility.
+    :return: A new CEVRP state with updated routes and unassigned nodes.
+    """
+    state_copy = state.copy()
+    # Reset unassigned list to track only nodes that couldn't be inserted
+    state_copy.unassigned = []
+    modified_paths = [path.copy() for path in state_copy.paths]
+
+    for node in state.unassigned:  # Process each node from the original unassigned list
+        best_insertion = None
+        best_cost = float('inf')
+        best_path_idx = None
+
+        for path_idx, path in enumerate(modified_paths):
+            # Try all valid insertion positions (after depot and before depot at end)
+            for i in range(1, len(path.nodes)):
+                new_nodes = path.nodes[:i] + [node] + path.nodes[i:]
+                new_cost = state_copy.graph_api.calculate_path_cost(new_nodes)
+                new_energy = state_copy.calculate_path_energy(new_nodes, state_copy.cevrp.charging_stations)
+                new_demand = state_copy.graph_api.get_total_demand_path(new_nodes)
+
+                # Check feasibility and cost improvement
+                if (new_energy <= state_copy.cevrp.energy_capacity and
+                    new_demand <= state_copy.cevrp.capacity and
+                    new_cost < best_cost):
+                    best_insertion = new_nodes
+                    best_cost = new_cost
+                    best_path_idx = path_idx
+
+        if best_insertion:
+            # Update the path with the inserted node
+            modified_paths[best_path_idx] = Path(
+                nodes=best_insertion,
+                path_cost=best_cost,
+                energy=state_copy.calculate_path_energy(best_insertion, state_copy.cevrp.charging_stations),
+                demand=state_copy.graph_api.get_total_demand_path(best_insertion),
+                feasible=True
+            )
+        else:
+            # Add to unassigned if no feasible insertion found
+            state_copy.unassigned.append(node)
+    state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations, state_copy.cevrp.name)
+    return CevrpState(modified_paths, state_copy.unassigned, state_copy.graph_api, state_copy.cevrp)
+
+def regret_k_insertion(state: CevrpState, rng: Optional[np.random.RandomState] = None) -> CevrpState:
+    """
+    Inserts unassigned nodes using Regret-k heuristic with k as a variable.
+    Ensures energy/demand feasibility and proper charging station handling.
+    Excludes the last node (depot) from insertion positions.
+
+    :param state: The current CEVRP state.
+    :param rng: Optional numpy random state for reproducibility.
+    :return: A new CEVRP state with updated routes.
+    """
+    state_copy = state.copy()
+    modified_paths = [path.copy() for path in state_copy.paths]
+    unassigned = state_copy.unassigned.copy()
+    state_copy.unassigned = []
+
+    # Define k as a variable (e.g., k = 2 or dynamically determined)
+    k = 2  # You can set this dynamically based on your logic
+
+    while unassigned:
+        best_node = None
+        best_insertion = None
+        max_regret = -float('inf')
+        current_best_cost = float('inf')
+
+        # Evaluate each node's insertion options
+        for node in unassigned:
+            insertion_options = []
+
+            # Check all paths and positions (excluding the last node, which is the depot)
+            for path_idx, path in enumerate(modified_paths):
+                for insert_pos in range(1, len(path.nodes) - 1):  # Exclude the last node (depot)
+                    new_nodes = path.nodes[:insert_pos] + [node] + path.nodes[insert_pos:]
+
+                    # Calculate feasibility metrics
+                    new_cost = state_copy.graph_api.calculate_path_cost(new_nodes)
+                    new_energy = state_copy.calculate_path_energy(new_nodes, state_copy.cevrp.charging_stations)
+                    new_demand = state_copy.graph_api.get_total_demand_path(new_nodes)
+
+                    # Check constraints
+                    if (new_energy <= state_copy.cevrp.energy_capacity and
+                            new_demand <= state_copy.cevrp.capacity):
+                        insertion_options.append((new_cost, insert_pos, path_idx))
+
+            # Skip nodes with no feasible insertions
+            if not insertion_options:
+                continue
+
+            # Sort and get top k options
+            insertion_options.sort(key=lambda x: x[0])
+            top_k = insertion_options[:k]
+
+            # Calculate regret value
+            best_cost = top_k[0][0]
+            regret = sum((cost - best_cost) for cost, _, _ in top_k[1:])  # Sum of differences
+
+            # Update best candidate
+            if regret > max_regret or (regret == max_regret and best_cost < current_best_cost):
+                max_regret = regret
+                best_node = node
+                best_insertion = (top_k[0][1], top_k[0][2])  # (position, path_idx)
+                current_best_cost = best_cost
+
+        if best_node and best_insertion:
+            # Update the selected path
+            insert_pos, path_idx = best_insertion
+            path = modified_paths[path_idx]
+            new_nodes = path.nodes[:insert_pos] + [best_node] + path.nodes[insert_pos:]
+
+            modified_paths[path_idx] = Path(
+                nodes=new_nodes,
+                path_cost=current_best_cost,
+                energy=state_copy.calculate_path_energy(new_nodes, state_copy.cevrp.charging_stations),
+                demand=state_copy.graph_api.get_total_demand_path(new_nodes),
+                feasible=True
+            )
+            unassigned.remove(best_node)
+        else:
+            break  # No more feasible insertions
+
+    state_copy.unassigned = unassigned
+    state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations, state_copy.cevrp.name)
+    return CevrpState(modified_paths, state_copy.unassigned, state_copy.graph_api, state_copy.cevrp)
+
+def best_feasible_insertion(state: CevrpState, rng: Optional[np.random.RandomState] = None) -> CevrpState:
+    """
+    Inserts unassigned nodes into the first feasible position in a route, ensuring feasibility.
+
+    :param state: The current CEVRP state.
+    :param rng: Optional numpy random state for reproducibility.
+    :return: A new CEVRP state with updated routes.
+    """
+    state_copy = state.copy()
+    modified_paths = state_copy.paths.copy()
+
+    # Create a copy of the unassigned list to iterate safely
+    for node in state_copy.unassigned[:]:
+        inserted = False  # Track if node was inserted
+
+        for path_idx, path in enumerate(modified_paths):
+            for i in range(1, len(path.nodes)):  # Avoid inserting before depot
+                if path.nodes[i] in state_copy.cevrp.charging_stations or path.nodes[
+                    i - 1] in state_copy.cevrp.charging_stations:
+                    continue  # Avoid inserting before/after charging stations
+
+                new_nodes = path.nodes[:i] + [node] + path.nodes[i:]
+                new_energy = state_copy.calculate_path_energy(new_nodes, state_copy.cevrp.charging_stations)
+                new_demand = state_copy.graph_api.get_total_demand_path(new_nodes)
+
+                # If feasible, insert and stop searching for this node
+                if new_energy <= state_copy.cevrp.energy_capacity and new_demand <= state_copy.cevrp.capacity:
+                    modified_paths[path_idx] = Path(
+                        nodes=new_nodes,
+                        path_cost=state_copy.graph_api.calculate_path_cost(new_nodes),
+                        energy=new_energy,
+                        demand=new_demand,
+                        feasible=True
+                    )
+                    inserted = True
+                    break  # Stop looking for insertion positions for this node
+
+            if inserted:
+                break  # Stop checking other routes if inserted
+
+        # Only remove from `unassigned` if it was inserted
+        if inserted and node in state_copy.unassigned:
+            state_copy.unassigned.remove(node)
+
+    state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations, state_copy.cevrp.name)
+    return CevrpState(modified_paths, state_copy.unassigned, state_copy.graph_api, state_copy.cevrp)

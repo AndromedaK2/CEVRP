@@ -141,3 +141,64 @@ def remove_charging_station(state: CevrpState, rnd_state: Optional[np.random.Ran
     state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations, state_copy.cevrp.name)
     return CevrpState(modified_paths, state_copy.unassigned, state_copy.graph_api, state_copy.cevrp)
 
+
+def worst_removal(state: CevrpState, rng: Optional[np.random.RandomState] = None) -> CevrpState:
+    """
+    Removes the worst (most costly) customer nodes while preserving depots and charging stations.
+    Removed nodes are stored in `state_copy.unassigned` for later reinsertion.
+    """
+    removal_fraction = 0.2
+    state_copy = state.copy()
+    candidate_nodes = []
+
+    # Identify removable nodes (exclude depots and charging stations)
+    for path in state_copy.paths:
+        for i in range(1, len(path.nodes) - 1):  # Skip first/last node (depots)
+            node = path.nodes[i]
+
+            # Explicitly exclude depots and charging stations
+            if node == DEFAULT_SOURCE_NODE or node in state_copy.cevrp.charging_stations:
+                continue
+
+            # Calculate removal cost savings
+            original_cost = path.path_cost
+            new_path = path.nodes[:i] + path.nodes[i + 1:]
+            new_cost = state_copy.graph_api.calculate_path_cost(new_path)
+            removal_cost = original_cost - new_cost  # Higher = better to remove
+            candidate_nodes.append((node, removal_cost))
+
+    # Sort by descending removal cost and select top 20%
+    candidate_nodes.sort(key=lambda x: x[1], reverse=True)
+    num_to_remove = int(len(candidate_nodes) * removal_fraction)
+    nodes_to_remove = [node for node, _ in candidate_nodes[:num_to_remove]]
+
+    # Update paths while preserving depots
+    modified_paths = []
+    for path in state_copy.paths:
+        new_nodes = [n for n in path.nodes if n not in nodes_to_remove]
+
+        # Energy feasibility check
+        new_energy = state_copy.calculate_path_energy(new_nodes, state_copy.cevrp.charging_stations)
+        if new_energy > state_copy.cevrp.energy_capacity:
+            modified_paths.append(path)  # Keep original if infeasible
+        else:
+            # Create new path with updated metrics
+            new_cost = state_copy.graph_api.calculate_path_cost(new_nodes)
+            new_demand = state_copy.graph_api.get_total_demand_path(new_nodes)
+            modified_paths.append(Path(
+                nodes=new_nodes,
+                path_cost=new_cost,
+                energy=new_energy,
+                demand=new_demand,
+                feasible=True
+            ))
+
+    # Update unassigned list and return new state
+    state_copy.unassigned.extend(nodes_to_remove)
+    state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations, state_copy.cevrp.name)
+    return CevrpState(
+        modified_paths,
+        state_copy.unassigned,
+        state_copy.graph_api,
+        state_copy.cevrp
+    )

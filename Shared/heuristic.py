@@ -99,7 +99,7 @@ def apply_local_search(state: CevrpState, rng: Optional[np.random.RandomState] =
 
     # Apply the selected operator and return the modified state
     operator(state)
-    state.graph_api.visualize_graph(state.paths, state.cevrp.charging_stations, state.cevrp.name)
+    #state.graph_api.visualize_graph(state.paths, state.cevrp.charging_stations, state.cevrp.name)
 
 
 def adjacent_swap_local_search(state: CevrpState, rng: Optional[np.random.RandomState] = None) -> None:
@@ -251,6 +251,7 @@ def block_insertion_local_search(state: CevrpState, rng: Optional[np.random.Rand
             path.nodes[:] = new_nodes
             path.path_cost = new_cost
             path.energy = new_energy
+
 
 def search_reverse_location_local_search(state: CevrpState, rng: Optional[np.random.RandomState] = None) -> None:
     """

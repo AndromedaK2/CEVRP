@@ -54,7 +54,7 @@ def make_alns(
 
     # Configure the selection mechanism (RouletteWheel)
     if rw_weights is None:
-        rw_weights = [25, 5, 1, 0.5]
+        rw_weights = [8, 5, 1, 0.5]
     select = RouletteWheel(
         scores=rw_weights,
         decay=rw_decay,
@@ -72,6 +72,9 @@ def make_alns(
 
     # Apply Random Local Search
     alns.on_best(apply_local_search)
+    alns.on_accept(apply_local_search)
+    alns.on_better(apply_local_search)
+    alns.on_reject(apply_local_search)
 
     # Run the ALNS algorithm
     result = alns.iterate(initial_state, select, accept, stop)

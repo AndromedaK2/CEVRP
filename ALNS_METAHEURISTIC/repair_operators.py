@@ -472,7 +472,11 @@ def regret_k_insertion(state: CevrpState, rng: Optional[np.random.RandomState] =
 
 def best_feasible_insertion(state: CevrpState, rng: Optional[np.random.RandomState] = None) -> CevrpState:
     """
-    Inserts unassigned nodes into the first feasible position in a route, ensuring feasibility.
+    Inserts unassigned nodes into the first feasible position in a route, ensuring both
+    energy and demand feasibility. Nodes can be inserted before/after charging stations.
+
+    Nodes **can** be inserted **immediately after the depot** or **before the last depot**,
+    but **cannot be inserted before the first depot or after the last depot**.
 
     :param state: The current CEVRP state.
     :param rng: Optional numpy random state for reproducibility.
@@ -486,26 +490,43 @@ def best_feasible_insertion(state: CevrpState, rng: Optional[np.random.RandomSta
         inserted = False  # Track if node was inserted
 
         for path_idx, path in enumerate(modified_paths):
-            for i in range(1, len(path.nodes)):  # Avoid inserting before depot
-                if path.nodes[i] in state_copy.cevrp.charging_stations or path.nodes[
-                    i - 1] in state_copy.cevrp.charging_stations:
-                    continue  # Avoid inserting before/after charging stations
+            for i in range(1, len(path.nodes)):  # Avoid inserting at invalid positions
 
+                # **Allow insertion AFTER the first depot (at index 1)**
+                if i == 1 and path.nodes[0] == DEFAULT_SOURCE_NODE:
+                    pass  # Valid insertion: DEPOT + NODE + NEXT
+
+                # **Allow insertion BEFORE the last depot**
+                elif i == len(path.nodes) - 1 and path.nodes[i] == DEFAULT_SOURCE_NODE:
+                    pass  # Valid insertion: DEPOT + NODES + NODE + DEPOT
+
+                # **General case: Ensure we don’t insert before the first depot**
+                elif path.nodes[i - 1] == DEFAULT_SOURCE_NODE:
+                    continue  # Skip if trying to insert before the first depot
+
+                # Create new route with the node inserted at position i
                 new_nodes = path.nodes[:i] + [node] + path.nodes[i:]
-                new_energy = state_copy.calculate_path_energy(new_nodes, state_copy.cevrp.charging_stations)
-                new_demand = state_copy.graph_api.get_total_demand_path(new_nodes)
 
-                # If feasible, insert and stop searching for this node
-                if new_energy <= state_copy.cevrp.energy_capacity and new_demand <= state_copy.cevrp.capacity:
-                    modified_paths[path_idx] = Path(
-                        nodes=new_nodes,
-                        path_cost=state_copy.graph_api.calculate_path_cost(new_nodes),
-                        energy=new_energy,
-                        demand=new_demand,
-                        feasible=True
-                    )
-                    inserted = True
-                    break  # Stop looking for insertion positions for this node
+                # Check demand feasibility
+                new_demand = state_copy.graph_api.get_total_demand_path(new_nodes)
+                if new_demand > state_copy.cevrp.capacity:
+                    continue  # Skip this insertion if it exceeds vehicle capacity
+
+                # Check energy feasibility (battery constraints)
+                new_energy = state_copy.calculate_path_energy(new_nodes, state_copy.cevrp.charging_stations)
+                if new_energy > state_copy.cevrp.energy_capacity:
+                    continue  # Skip this insertion if it exceeds energy capacity
+
+                # If both constraints are satisfied, insert and stop searching for this node
+                modified_paths[path_idx] = Path(
+                    nodes=new_nodes,
+                    path_cost=state_copy.graph_api.calculate_path_cost(new_nodes),
+                    energy=new_energy,
+                    demand=new_demand,
+                    feasible=True
+                )
+                inserted = True
+                break  # Stop looking for insertion positions for this node
 
             if inserted:
                 break  # Stop checking other routes if inserted
@@ -514,5 +535,7 @@ def best_feasible_insertion(state: CevrpState, rng: Optional[np.random.RandomSta
         if inserted and node in state_copy.unassigned:
             state_copy.unassigned.remove(node)
 
+    # Visualize the modified paths
     state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations, state_copy.cevrp.name)
+
     return CevrpState(modified_paths, state_copy.unassigned, state_copy.graph_api, state_copy.cevrp)

@@ -138,13 +138,15 @@ class ACO:
         Args:
             ant (Ant): The ant whose path is being evaluated.
         """
+        if not ant.is_fit:
+            return
         if ant.path_cost < self.best_path_cost:
             self.second_best_path_cost, self.second_best_path = self.best_path_cost, self.best_path.copy()
             self.best_path_cost, self.best_path = ant.path_cost, ant.paths.copy()
-            ant.best_path_cost = ant.path_cost
+            #ant.best_path_cost = ant.path_cost
         elif ant.path_cost < self.second_best_path_cost:
             self.second_best_path_cost, self.second_best_path = ant.path_cost, ant.paths.copy()
-            ant.best_path_cost = ant.path_cost
+            #ant.best_path_cost = ant.path_cost
 
     def _deploy_backward_search(self) -> None:
         """
@@ -157,12 +159,6 @@ class ACO:
     @staticmethod
     def _flatten_path(paths: List[Path]) -> List[str]:
         """
-        Flatten the nodes in the provided paths into a single list.
-
-        Args:
-            paths (List[Path]): The list of paths to flatten.
-
-        Returns:
-            List[str]: The flattened list of nodes.
+        Flatten the nodes in the provided paths into a single list
         """
         return [node for path in paths for node in path.nodes]

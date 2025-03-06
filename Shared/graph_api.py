@@ -78,6 +78,10 @@ class GraphApi:
     def get_demand_node(self, node: str | int) -> float:
         return self.graph.nodes[node].get('demand', 0)
 
+    def get_node_coordinates(self, node: str) -> tuple[float, float] | None:
+        node_positions = nx.get_node_attributes(self.graph, "pos")
+        return node_positions.get(node)
+
     def calculate_segment_cost_with_insertion(self, u: str, node: str, v: str) -> float:
         """
         Calculates the incremental cost of inserting a node between two other nodes.

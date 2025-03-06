@@ -104,8 +104,13 @@ class Path:
         )
 
     def __str__(self) -> str:
-        return (f"Path(nodes={self.nodes}, path_cost={self.path_cost}, demand={self.demand}, energy={self.energy}), "
-                f"feasible={self.feasible}, minimum_stations={self.minimum_stations}), max_energy_needed={self.max_energy_needed}")
+        return (f"Path(nodes={self.nodes}, "
+                f"path_cost={self.path_cost}, "
+                f"demand={self.demand}, "
+                f"energy={self.energy}), "
+                f"feasible={self.feasible}, "
+                f"minimum_stations={self.minimum_stations}), "
+                f"max_energy_needed={self.max_energy_needed}")
 
 
 

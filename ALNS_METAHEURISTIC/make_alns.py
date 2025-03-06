@@ -78,6 +78,12 @@ def make_alns(
 
     # Run the ALNS algorithm
     result = alns.iterate(initial_state, select, accept, stop)
+
+    # Plots the collected objective values at each iteration.
+    result.plot_objectives()
+    # Plots an overview of the destroy and repair operators' performance.
+    result.plot_operator_counts()
+
     # Extract the best solution state
     best_state = result.best_state
 

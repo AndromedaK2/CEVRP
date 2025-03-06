@@ -3,6 +3,7 @@ import numpy.random as rnd
 from alns.accept import RecordToRecordTravel
 from alns.select import RouletteWheel
 from alns.stop import MaxIterations
+from matplotlib import pyplot as plt
 
 from ALNS_METAHEURISTIC.destroy_operators import remove_overcapacity_nodes
 from ALNS_METAHEURISTIC.repair_functions import insert_charging_stations_after_each_node
@@ -79,10 +80,20 @@ def make_alns(
     # Run the ALNS algorithm
     result = alns.iterate(initial_state, select, accept, stop)
 
-    # Plots the collected objective values at each iteration.
-    result.plot_objectives()
-    # Plots an overview of the destroy and repair operators' performance.
+    # Plot the objective value progression
+    fig, ax = plt.subplots(figsize=(20, 10))
+    result.plot_objectives(ax=ax)
+
+    plt.subplots_adjust(left=0.2)
+    ax.yaxis.set_tick_params(labelsize=14)
+
+    plt.title("Objective Value Progress", fontsize=16)
+    plt.show()
+
     result.plot_operator_counts()
+    plt.subplots_adjust(left=0.4)
+    plt.title("Operator Usage Frequency", fontsize=16)
+    plt.show()
 
     # Extract the best solution state
     best_state = result.best_state

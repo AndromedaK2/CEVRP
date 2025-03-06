@@ -1,16 +1,16 @@
 import time
 from typing import List
 
-from ALNS_METAHEURISTIC.destroy_operators import remove_charging_station, worst_removal
+from ALNS_METAHEURISTIC.destroy_operators import remove_charging_station, worst_removal, cluster_removal
 from ALNS_METAHEURISTIC.make_alns import make_alns
 from ALNS_METAHEURISTIC.repair_operators import greedy_insertion, regret_k_insertion, best_feasible_insertion
 from ALNS_METAHEURISTIC.solution_state import CevrpState
 from Shared.config import INSTANCE_FILES, DEFAULT_SOURCE_NODE, NUM_ANTS, MAX_ANT_STEPS, NUM_ITERATIONS, ALNS_ITERATIONS
-from Shared.exceptions import NoSolutionFoundError
+from Shared.Utils.exceptions import NoSolutionFoundError
 from Shared.graph_api import GraphApi
 from Shared.heuristic import apply_2opt
 from Shared.path import Path
-from Shared.coordinates_manager import CoordinatesManager
+from Shared.Utils.coordinates_manager import CoordinatesManager
 from MMAS.aco import ACO
 from Shared.cevrp import CEVRP
 
@@ -112,7 +112,7 @@ def solve_with_alns(paths: List[Path], cevrp: CEVRP) -> tuple:
     cevrp_state = CevrpState(paths, graph_api=graph_api, cevrp=cevrp)
     return make_alns(
         cevrp_state,
-        destroy_operators=[remove_charging_station, worst_removal],
+        destroy_operators=[remove_charging_station, worst_removal, cluster_removal],
         repair_operators=[greedy_insertion, regret_k_insertion, best_feasible_insertion],
         num_iterations= ALNS_ITERATIONS
     ), graph_api

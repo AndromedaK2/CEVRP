@@ -466,7 +466,7 @@ def regret_k_insertion(state: CevrpState, rng: Optional[np.random.RandomState] =
         else:
             break  # No more feasible insertions
 
-    state_copy.unassigned = unassigned
+    state_copy.unassigned.extend(unassigned)
     state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations, state_copy.cevrp.name)
     return CevrpState(modified_paths, state_copy.unassigned, state_copy.graph_api, state_copy.cevrp)
 

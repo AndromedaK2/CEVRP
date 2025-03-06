@@ -1,7 +1,9 @@
-from typing import Optional
+from typing import Optional, List
 
 import numpy as np
+from sklearn.cluster import MiniBatchKMeans
 
+from ALNS_METAHEURISTIC.destroy_functions import is_path_valid, update_path, find_closest_customer
 from ALNS_METAHEURISTIC.solution_state import CevrpState
 from Shared.config import DEFAULT_SOURCE_NODE
 from Shared.path import Path
@@ -202,3 +204,97 @@ def worst_removal(state: CevrpState, rng: Optional[np.random.RandomState] = None
         state_copy.graph_api,
         state_copy.cevrp
     )
+
+
+def cluster_removal(state: CevrpState, rng: Optional[np.random.RandomState] = None) -> CevrpState:
+    """
+    Removes customers in geographic clusters, ensuring route feasibility post-removal.
+    """
+    # Initialize appropriate RNG type
+    if rng is None:
+        rng = np.random.default_rng()  # Modern Generator
+
+
+    kmeans_seed = rng.integers(0, 2**32 - 1)
+
+    delta = 5  # Max nodes to remove; adjust based on problem size if needed
+    state_copy = state.copy()
+    modified_paths = [path.copy() for path in state_copy.paths]  # Ensure deep copy if needed
+    removed_nodes = []
+
+    # Step 1: Select initial route with sufficient customers
+    candidate_routes = [p for p in modified_paths if len(p.nodes) > 3 and
+                        any(node not in state_copy.cevrp.charging_stations and node != DEFAULT_SOURCE_NODE
+                            for node in p.nodes)]
+    if not candidate_routes:
+        return state
+
+    selected_path = rng.choice(candidate_routes)
+    customers = [n for n in selected_path.nodes if
+                 n not in state_copy.cevrp.charging_stations and n != DEFAULT_SOURCE_NODE]
+
+    if len(customers) < 2:
+        return state
+
+    # Step 2: Adaptive clustering based on customer count
+    n_clusters = min(2, len(customers))  # Ensure clusters <= customer count
+    coordinates = np.array([state_copy.graph_api.get_node_coordinates(c) for c in customers])
+
+    # Use MiniBatchKMeans for efficiency with large datasets
+    kmeans = MiniBatchKMeans(n_clusters=min(2, len(customers)),
+                             random_state=kmeans_seed).fit(coordinates)
+
+    clusters = [[] for _ in range(n_clusters)]
+    for i, label in enumerate(kmeans.labels_):
+        clusters[label].append(customers[i])
+
+    # Select largest cluster for removal to maximize impact
+    selected_cluster = max(clusters, key=len)
+    to_remove = rng.choice(selected_cluster, size=min(delta, len(selected_cluster)), replace=False)
+    removed_nodes.extend(to_remove)
+
+    # Update path and validate feasibility
+    new_nodes = [n for n in selected_path.nodes if n not in to_remove]
+    if not is_path_valid(new_nodes, state_copy):
+        return state  # Abort if removal breaks feasibility
+    update_path(selected_path, new_nodes, state_copy)
+
+    # Step 3: Expand removal to nearby routes if needed
+    while len(removed_nodes) < delta:
+        # Find the closest customer in other routes to any removed node
+        closest = find_closest_customer(removed_nodes, modified_paths, state_copy)
+        if not closest:
+            break
+
+        target_route = closest['route']
+        customers = [n for n in target_route.nodes if
+                     n not in state_copy.cevrp.charging_stations and n != DEFAULT_SOURCE_NODE]
+        if len(customers) < 2:
+            break
+
+        # Re-cluster target route's customers
+        n_clusters = min(2, len(customers))
+        coordinates = np.array([state_copy.graph_api.get_node_coordinates(c) for c in customers])
+        kmeans = MiniBatchKMeans(n_clusters=n_clusters, random_state=kmeans_seed).fit(coordinates)
+        clusters = [[] for _ in range(n_clusters)]
+        for i, label in enumerate(kmeans.labels_):
+            clusters[label].append(customers[i])
+
+        selected_cluster = max(clusters, key=len)
+        add_remove = rng.choice(selected_cluster,
+                                size=min(delta - len(removed_nodes), len(selected_cluster)),
+                                replace=False)
+        removed_nodes.extend(add_remove)
+
+        new_nodes = [n for n in target_route.nodes if n not in add_remove]
+        if not is_path_valid(new_nodes, state_copy):
+            break
+        update_path(target_route, new_nodes, state_copy)
+
+    # Step 4: Cleanup empty paths and update state
+    modified_paths = [p for p in modified_paths if len(p.nodes) > 2]  # Remove depot-only paths
+    state_copy.unassigned.extend(removed_nodes)
+    state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations, state_copy.cevrp.name)
+    return CevrpState(modified_paths, state_copy.unassigned, state_copy.graph_api, state_copy.cevrp)
+
+

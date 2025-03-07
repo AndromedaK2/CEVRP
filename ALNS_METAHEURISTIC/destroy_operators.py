@@ -193,9 +193,9 @@ def worst_removal(state: CevrpState, rng: Optional[np.random.RandomState] = None
                 feasible=True
             ))
 
-    # Update unassigned list with route index
-    for node, route_idx in nodes_to_remove:
-        state_copy.unassigned.append(node)  # Store node with its route index
+    # Update unassigned list
+    for node, _ in nodes_to_remove:
+        state_copy.unassigned.append(node)
 
     state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations, state_copy.cevrp.name)
 

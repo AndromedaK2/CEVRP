@@ -158,10 +158,6 @@ def worst_removal(state: CevrpState, rng: Optional[np.random.RandomState] = None
         for i in range(1, len(path.nodes) - 1):  # Skip first/last node (depots)
             node = path.nodes[i]
 
-            # Explicitly exclude depots and charging stations
-            if node == DEFAULT_SOURCE_NODE or node in state_copy.cevrp.charging_stations:
-                continue
-
             # Calculate removal cost savings
             original_cost = path.path_cost
             new_path = path.nodes[:i] + path.nodes[i + 1:]

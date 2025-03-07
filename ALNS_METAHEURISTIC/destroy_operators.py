@@ -147,33 +147,35 @@ def remove_charging_station(state: CevrpState, rnd_state: Optional[np.random.Ran
 def worst_removal(state: CevrpState, rng: Optional[np.random.RandomState] = None) -> CevrpState:
     """
     Removes the worst (most costly) customer nodes while preserving depots and charging stations.
-    Removed nodes are stored in `state_copy.unassigned` for later reinsertion.
+    Removed nodes are stored in `state_copy.unassigned` along with their route index.
     """
     removal_fraction = 0.2
     state_copy = state.copy()
     candidate_nodes = []
 
     # Identify removable nodes (exclude depots and charging stations)
-    for path in state_copy.paths:
+    for route_idx, path in enumerate(state_copy.paths):  # Track route index
         for i in range(1, len(path.nodes) - 1):  # Skip first/last node (depots)
             node = path.nodes[i]
 
-            # Calculate removal cost savings
-            original_cost = path.path_cost
+            original_cost = path.path_cost  # Calculate removal cost savings
             new_path = path.nodes[:i] + path.nodes[i + 1:]
             new_cost = state_copy.graph_api.calculate_path_cost(new_path)
             removal_cost = original_cost - new_cost  # Higher = better to remove
-            candidate_nodes.append((node, removal_cost))
+
+            # Store node, removal cost, and its route index
+            candidate_nodes.append((node, removal_cost, route_idx))
 
     # Sort by descending removal cost and select top 20%
     candidate_nodes.sort(key=lambda x: x[1], reverse=True)
     num_to_remove = int(len(candidate_nodes) * removal_fraction)
-    nodes_to_remove = [node for node, _ in candidate_nodes[:num_to_remove]]
+    nodes_to_remove = [(node, route_idx) for node, _, route_idx in candidate_nodes[:num_to_remove]]
 
     # Update paths while preserving depots
     modified_paths = []
-    for path in state_copy.paths:
-        new_nodes = [n for n in path.nodes if n not in nodes_to_remove]
+    for route_idx, path in enumerate(state_copy.paths):
+        # Remove only nodes that belong to this route
+        new_nodes = [n for n in path.nodes if (n, route_idx) not in nodes_to_remove]
 
         # Energy feasibility check
         new_energy = state_copy.calculate_path_energy(new_nodes, state_copy.cevrp.charging_stations)
@@ -191,9 +193,12 @@ def worst_removal(state: CevrpState, rng: Optional[np.random.RandomState] = None
                 feasible=True
             ))
 
-    # Update unassigned list and return new state
-    state_copy.unassigned.extend(nodes_to_remove)
+    # Update unassigned list with route index
+    for node, route_idx in nodes_to_remove:
+        state_copy.unassigned.append(node)  # Store node with its route index
+
     state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations, state_copy.cevrp.name)
+
     return CevrpState(
         modified_paths,
         state_copy.unassigned,

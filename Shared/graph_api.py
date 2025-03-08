@@ -5,7 +5,7 @@ from itertools import cycle
 from Shared.cevrp import CEVRP
 from Shared.config import DEFAULT_SOURCE_NODE
 from Shared.path import Path
-from collections import defaultdict
+from collections import defaultdict, deque
 
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -289,6 +289,43 @@ class GraphApi:
                 energy_required = self.calculate_edge_energy_consumption(node, station, cevrp.energy_consumption)
                 max_energy_needed = max(max_energy_needed, energy_required)
         return max_energy_needed
+
+    def is_path_connected(self, nodes: List[str]) -> bool:
+        """
+        Checks if all nodes in the given path remain connected after a modification.
+
+        :param nodes: The list of nodes (as strings) representing the path.
+        :return: True if the path is fully connected, False otherwise.
+        """
+        if not nodes:
+            return False  # An empty path is not connected
+
+        visited = set()
+        queue = deque([nodes[0]])  # Start BFS from the first node
+
+        while queue:
+            current = queue.popleft()
+            if current in visited:
+                continue
+            visited.add(current)
+
+            # Check all distinct neighbors within the path
+            for neighbor in nodes:
+                if neighbor != current and neighbor not in visited and self.has_edge(current, neighbor):
+                    queue.append(neighbor)
+
+        # Path is connected if all nodes have been visited
+        return len(visited) == len(set(nodes))  # Ensures all unique nodes were reachable
+
+    def has_edge(self, u: str, v: str) -> bool:
+        """
+        Checks if there is a direct edge between two nodes in the graph.
+
+        :param u: The first node.
+        :param v: The second node.
+        :return: True if an edge exists between u and v, False otherwise.
+        """
+        return self.graph.has_edge(u, v)
 
     @staticmethod
     def are_valid_paths(paths: List[Path]) -> bool:

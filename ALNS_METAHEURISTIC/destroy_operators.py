@@ -108,16 +108,31 @@ def remove_charging_station(state: CevrpState, rnd_state: Optional[np.random.Ran
         station_positions = [i for i, node in enumerate(path.nodes) if node in state_copy.cevrp.charging_stations]
 
         if len(station_positions) < 2:
-            # If there are no duplicates, keep the path unchanged
+            # No duplicated charging stations, keep the path unchanged
             modified_paths.append(path)
             continue
 
-        # Select a random charging station instance to remove
+        # Select a charging station instance to remove
         index_to_remove = rnd_state.choice(station_positions) if rnd_state else np.random.choice(station_positions)
+        removed_station = path.nodes[index_to_remove]
+
+        # Ensure removing the station does not break a critical connection
+        if 0 < index_to_remove < len(path.nodes) - 1:
+            prev_node = path.nodes[index_to_remove - 1]
+            next_node = path.nodes[index_to_remove + 1]
+
+            # Check if the neighboring nodes can still be connected
+            if not state_copy.graph_api.has_edge(prev_node, next_node):
+                # If no direct edge exists between neighbors, keep the station
+                modified_paths.append(path)
+                continue
+
+        # Remove the charging station
         modified_nodes = path.nodes[:index_to_remove] + path.nodes[index_to_remove + 1:]
 
-        # Recalculate energy consumption
+        # Recalculate energy consumption and validate feasibility
         energy_used = 0
+        feasible = True
         for i in range(len(modified_nodes) - 1):
             current_node, next_node = modified_nodes[i], modified_nodes[i + 1]
 
@@ -127,12 +142,18 @@ def remove_charging_station(state: CevrpState, rnd_state: Optional[np.random.Ran
 
             energy_used += state_copy.get_edge_energy_consumption(current_node, next_node)
 
-            # If energy constraint is violated, revert the change
+            # If the energy constraint is violated, keep the original path
             if energy_used > state_copy.cevrp.energy_capacity:
-                modified_paths.append(path)  # Keep original path
+                feasible = False
                 break
-        else:
-            # If the removal is feasible, update the path
+
+        # Ensure the path remains connected after the removal
+        if not state_copy.graph_api.is_path_connected(modified_nodes):
+            modified_paths.append(path)  # Keep the original path if connectivity is lost
+            continue
+
+        # If removal is feasible, update the path
+        if feasible:
             new_path = Path()
             new_path.nodes = modified_nodes
             new_path.path_cost = state_copy.graph_api.calculate_path_cost(modified_nodes)
@@ -140,9 +161,15 @@ def remove_charging_station(state: CevrpState, rnd_state: Optional[np.random.Ran
             new_path.demand = state_copy.graph_api.get_total_demand_path(modified_nodes)
             new_path.feasible = True
             modified_paths.append(new_path)
+        else:
+            modified_paths.append(path)  # Keep the original path if energy feasibility is not met
 
+    # Visualize the graph before and after the removal
+    state_copy.graph_api.visualize_graph(state_copy.paths, state_copy.cevrp.charging_stations,
+                                         f"Before Remove-Charging-Station {state_copy.cevrp.name}")
     state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations,
                                          f"After Remove-Charging-Station {state_copy.cevrp.name}")
+
     return CevrpState(modified_paths, state_copy.unassigned, state_copy.graph_api, state_copy.cevrp, state)
 
 

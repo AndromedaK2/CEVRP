@@ -101,6 +101,7 @@ def remove_charging_station(state: CevrpState, rnd_state: Optional[np.random.Ran
     :return: A new CevrpState with modified routes.
     """
     state_copy = state.copy()
+    state_copy.store_previous_state()
     modified_paths = []
 
     for path in state_copy.paths:
@@ -141,7 +142,7 @@ def remove_charging_station(state: CevrpState, rnd_state: Optional[np.random.Ran
             modified_paths.append(new_path)
 
     state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations, state_copy.cevrp.name)
-    return CevrpState(modified_paths, state_copy.unassigned, state_copy.graph_api, state_copy.cevrp)
+    return CevrpState(modified_paths, state_copy.unassigned, state_copy.graph_api, state_copy.cevrp, state)
 
 
 def worst_removal(state: CevrpState, rng: Optional[np.random.RandomState] = None) -> CevrpState:
@@ -151,6 +152,7 @@ def worst_removal(state: CevrpState, rng: Optional[np.random.RandomState] = None
     """
     removal_fraction = 0.2
     state_copy = state.copy()
+    state_copy.store_previous_state()
     candidate_nodes = []
 
     # Identify removable nodes (exclude depots and charging stations)
@@ -199,12 +201,7 @@ def worst_removal(state: CevrpState, rng: Optional[np.random.RandomState] = None
 
     state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations, state_copy.cevrp.name)
 
-    return CevrpState(
-        modified_paths,
-        state_copy.unassigned,
-        state_copy.graph_api,
-        state_copy.cevrp
-    )
+    return CevrpState(modified_paths,state_copy.unassigned,state_copy.graph_api,state_copy.cevrp,state)
 
 
 def cluster_removal(state: CevrpState, rng: Optional[np.random.RandomState] = None) -> CevrpState:
@@ -220,6 +217,7 @@ def cluster_removal(state: CevrpState, rng: Optional[np.random.RandomState] = No
 
     delta = 5  # Max nodes to remove; adjust based on problem size if needed
     state_copy = state.copy()
+    state_copy.store_previous_state()
     modified_paths = [path.copy() for path in state_copy.paths]  # Ensure deep copy if needed
     removed_nodes = []
 
@@ -296,6 +294,6 @@ def cluster_removal(state: CevrpState, rng: Optional[np.random.RandomState] = No
     modified_paths = [p for p in modified_paths if len(p.nodes) > 2]  # Remove depot-only paths
     state_copy.unassigned.extend(removed_nodes)
     state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations, state_copy.cevrp.name)
-    return CevrpState(modified_paths, state_copy.unassigned, state_copy.graph_api, state_copy.cevrp)
+    return CevrpState(modified_paths, state_copy.unassigned, state_copy.graph_api, state_copy.cevrp, state )
 
 

@@ -2,7 +2,7 @@ import numpy as np
 from typing import Optional
 
 from ALNS_METAHEURISTIC.solution_state import CevrpState
-from ALNS_METAHEURISTIC.repair_functions import find_best_charging_station
+from ALNS_METAHEURISTIC.repair_functions import find_best_charging_station, create_paths, are_paths_depot_constrained
 from Shared.config import DEFAULT_SOURCE_NODE
 from Shared.path import Path
 
@@ -384,8 +384,11 @@ def greedy_insertion(state: CevrpState, rng: Optional[np.random.RandomState] = N
         else:
             # Add to unassigned if no feasible insertion found
             state_copy.unassigned.append(node)
+
     state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations, state_copy.cevrp.name)
-    return CevrpState(modified_paths, state_copy.unassigned, state_copy.graph_api, state_copy.cevrp)
+    if  are_paths_depot_constrained(modified_paths) and len(state_copy.unassigned) == 0:
+        return CevrpState(modified_paths, state_copy.unassigned, state_copy.graph_api, state_copy.cevrp)
+    return state.previous_state
 
 def regret_k_insertion(state: CevrpState, rng: Optional[np.random.RandomState] = None) -> CevrpState:
     """
@@ -468,7 +471,9 @@ def regret_k_insertion(state: CevrpState, rng: Optional[np.random.RandomState] =
 
     state_copy.unassigned.extend(unassigned)
     state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations, state_copy.cevrp.name)
-    return CevrpState(modified_paths, state_copy.unassigned, state_copy.graph_api, state_copy.cevrp)
+    if  are_paths_depot_constrained(modified_paths) and len(state_copy.unassigned) == 0:
+        return CevrpState(modified_paths, state_copy.unassigned, state_copy.graph_api, state_copy.cevrp)
+    return state.previous_state
 
 def best_feasible_insertion(state: CevrpState, rng: Optional[np.random.RandomState] = None) -> CevrpState:
     """
@@ -538,4 +543,6 @@ def best_feasible_insertion(state: CevrpState, rng: Optional[np.random.RandomSta
     # Visualize the modified paths
     state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations, state_copy.cevrp.name)
 
-    return CevrpState(modified_paths, state_copy.unassigned, state_copy.graph_api, state_copy.cevrp)
+    if  are_paths_depot_constrained(modified_paths) and len(state_copy.unassigned) == 0:
+        return CevrpState(modified_paths, state_copy.unassigned, state_copy.graph_api, state_copy.cevrp)
+    return state.previous_state

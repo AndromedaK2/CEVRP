@@ -75,7 +75,6 @@ def make_alns(
     alns.on_best(apply_local_search)
     alns.on_accept(apply_local_search)
     alns.on_better(apply_local_search)
-    alns.on_reject(apply_local_search)
 
     # Run the ALNS algorithm
     result = alns.iterate(initial_state, select, accept, stop)
@@ -92,7 +91,7 @@ def make_alns(
 
     result.plot_operator_counts()
     plt.subplots_adjust(left=0.4)
-    plt.title("Operator Usage Frequency", fontsize=16)
+    #plt.title("Operator Usage Frequency", fontsize=16)
     plt.show()
 
     # Extract the best solution state

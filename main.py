@@ -16,7 +16,7 @@ from Shared.cevrp import CEVRP
 
 
 def select_instance(instance_files: List[str]) -> str:
-    """Prompts the user to select an instance file."""
+    """Prompts the user to select an instance file from a list."""
     print("Select an instance by entering its number:")
     for idx, file_path in enumerate(instance_files):
         print(f"{idx + 1}: {file_path}")
@@ -34,11 +34,13 @@ def create_cevrp_instance(file_path: str) -> CEVRP:
     """Parses and creates a CEVRP instance from the selected file path."""
     try:
         cevrp = CEVRP.parse_evrp_instance_from_file(file_path, include_stations=False)
-        print(f"Instance successfully created from: {file_path}")
+        print(f"✅ Instance successfully created from: {file_path}")
         return cevrp
-    except Exception as e:
-        print(f"Error creating instance from: {file_path}, Error: {e}")
-        exit(1)
+    except FileNotFoundError:
+        raise FileNotFoundError(f"❌ File {file_path} not found.")
+    except Exception as exception:
+        raise RuntimeError(f"❌ Error creating instance from {file_path}: {exception}")
+
 
 
 def format_path(paths: List[Path]) -> str:
@@ -136,23 +138,24 @@ if __name__ == '__main__':
         print(f"Selected instance: {selected_file}")
 
         cevrp_instance = create_cevrp_instance(selected_file)
-        start_time = time.time()
+
 
         # Solve using ACO
+        start_time = time.time()
         (aco_flatten_paths, aco_cost, aco_paths), aco_graph_api = solve_with_aco(cevrp_instance)
+        execution_time = time.time() - start_time
+        print(f"⏱ ACO Solution Execution time: {int(execution_time // 60)}m {execution_time % 60:.2f}s")
         print(f"ACO - Initial routes:\n{format_path(aco_paths)}")
         print(f"ACO - Initial total cost: {aco_cost}")
         aco_graph_api.visualize_graph(aco_paths, cevrp_instance.charging_stations, cevrp_instance.name)
 
         # Apply ALNS
-        (best_state, best_cost, best_paths, unassigned_nodes), alns_graph_api = solve_with_alns(aco_paths, cevrp_instance)
+        start_time = time.time()
+        (best_state, best_cost, best_paths, unassigned_nodes), alns_graph_api = solve_with_alns(aco_paths,                                                                              cevrp_instance)
+        execution_time = time.time() - start_time
+        print(f"⏱ ALNS Optimization Execution time: {int(execution_time // 60)}m {execution_time % 60:.2f}s")
         print(f"ALNS - Final routes:\n{format_path(best_paths)}")
         print(f"ALNS - Final total cost: {best_cost}")
-
-        end_time = time.time()
-        execution_time = end_time - start_time
-        minutes, seconds = divmod(execution_time, 60)
-        print(f"Execution time: {int(minutes)}m {seconds:.2f}s")
 
         alns_graph_api.visualize_graph(best_paths, cevrp_instance.charging_stations, cevrp_instance.name)
 

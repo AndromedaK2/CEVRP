@@ -124,7 +124,7 @@ class ACO:
                 ant.take_step()  # Use step-by-step exploration strategy
                 # Stop Criteria:
                 if ant.reached_destination(self.use_route_construction):
-                    if self.graph_api.are_valid_paths(ant.paths):
+                    if self._are_valid_paths(ant.paths):
                         ant.is_fit = True
                     break
 
@@ -143,12 +143,10 @@ class ACO:
         if ant.path_cost < self.best_path_cost:
             self.second_best_path_cost, self.second_best_path = self.best_path_cost, self.best_path.copy()
             self.best_path_cost, self.best_path = ant.path_cost, ant.paths.copy()
-            ant.best_path_cost = ant.path_cost
+            # ant.best_path_cost = ant.path_cost
         elif ant.path_cost < self.second_best_path_cost:
             self.second_best_path_cost, self.second_best_path = ant.path_cost, ant.paths.copy()
-            ant.best_path_cost = ant.path_cost
-        else:
-            ant.is_fit = False
+            # ant.best_path_cost = ant.path_cost
 
     def _deploy_backward_search(self) -> None:
         """
@@ -157,6 +155,13 @@ class ACO:
         for ant in self.search_ants:
             if ant.is_fit:
                 ant.deposit_pheromones_on_paths()
+
+    @staticmethod
+    def _are_valid_paths(paths: List[Path]) -> bool:
+        for path in paths:
+            if len(path.nodes) <= 4:
+                return False
+        return True
 
     @staticmethod
     def _flatten_path(paths: List[Path]) -> List[str]:

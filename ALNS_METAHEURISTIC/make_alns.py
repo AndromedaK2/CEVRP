@@ -74,6 +74,7 @@ def make_alns(
     # Apply Random Local Search
     alns.on_best(apply_local_search)
 
+
     # Run the ALNS algorithm
     result = alns.iterate(initial_state, select, accept, stop)
 

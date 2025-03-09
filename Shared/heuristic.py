@@ -55,6 +55,7 @@ def apply_2opt_star(paths: List[Path], graph_api: GraphApi, cevrp: CEVRP) -> Lis
     Args:
         paths (List[Path]): The list of routes to optimize.
         graph_api (GraphApi): API to calculate path costs.
+        cevrp (CEVRP): An instance of CEVRP.
 
     Returns:
         List[Path]: The optimized list of paths after 2-opt*.

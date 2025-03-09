@@ -143,12 +143,10 @@ class ACO:
         if ant.path_cost < self.best_path_cost:
             self.second_best_path_cost, self.second_best_path = self.best_path_cost, self.best_path.copy()
             self.best_path_cost, self.best_path = ant.path_cost, ant.paths.copy()
-            ant.best_path_cost = ant.path_cost
+            #ant.best_path_cost = ant.path_cost
         elif ant.path_cost < self.second_best_path_cost:
             self.second_best_path_cost, self.second_best_path = ant.path_cost, ant.paths.copy()
-            ant.best_path_cost = ant.path_cost
-        else:
-            ant.is_fit = False
+            #ant.best_path_cost = ant.path_cost
 
     def _deploy_backward_search(self) -> None:
         """

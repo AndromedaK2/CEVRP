@@ -1,7 +1,6 @@
 import copy
 from typing import List
 from Shared.cevrp import CEVRP
-from Shared.config import DEFAULT_SOURCE_NODE
 from Shared.graph_api import GraphApi
 from Shared.path import Path
 

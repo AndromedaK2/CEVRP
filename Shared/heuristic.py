@@ -136,6 +136,64 @@ def apply_3opt(path: Path, graph_api: GraphApi) -> Path:
     return best_route
 
 
+def apply_node_shift(paths: List[Path], graph_api: GraphApi, cevrp: CEVRP) -> List[Path]:
+    """
+    Applies the Node-Shift local search operator to optimize routes in CEVRP.
+    Moves a node within its own route to a new position to reduce cost.
+
+    Args:
+        paths (List[Path]): The list of routes to optimize.
+        graph_api (GraphApi): API to calculate path costs.
+        cevrp (CEVRP): The CEVRP instance containing vehicle constraints.
+
+    Returns:
+        List[Path]: The optimized list of paths after applying Node-Shift.
+    """
+
+    best_paths = [path.copy() for path in paths]
+
+    for route in best_paths:
+        if len(route.nodes) < 4:  # Must have at least one customer + depot at start and end
+            continue
+
+        best_route_nodes = route.nodes[:]
+        best_cost = route.path_cost
+
+        # Try shifting each customer to a different position in the same route
+        for i in range(1, len(route.nodes) - 1):  # Ignore depot (index 0 and last)
+            node_to_shift = route.nodes[i]
+
+            for j in range(1, len(route.nodes) - 1):  # Possible new positions
+                if i == j:  # Don't move the node to the same place
+                    continue
+
+                # Generate new route by shifting node
+                new_route_nodes = route.nodes[:]
+                new_route_nodes.pop(i)  # Remove node from current position
+                new_route_nodes.insert(j, node_to_shift)  # Insert node at new position
+
+                # Ensure depot remains at start and end
+                new_route_nodes = fix_depot(new_route_nodes, route.nodes[0])
+
+                # Check feasibility
+                new_demand = graph_api.get_total_demand_path(new_route_nodes)
+                if new_demand <= cevrp.capacity:
+                    continue  # Skip if new route violates capacity
+
+                # Calculate cost improvement
+                new_cost = graph_api.calculate_path_cost(new_route_nodes)
+
+                if new_cost < best_cost:  # Best Improvement strategy
+                    best_route_nodes = new_route_nodes
+                    best_cost = new_cost
+
+        # Apply best found shift
+        route.nodes = best_route_nodes
+        route.path_cost = best_cost
+
+    return best_paths
+
+
 def apply_local_search(state: CevrpState, rng: Optional[np.random.RandomState] = None):
     """
     Applies a local search operator to improve the given CEVRP solution.
@@ -279,22 +337,21 @@ def block_insertion_local_search(state: CevrpState, rng: Optional[np.random.Rand
     :param state: The current CEVRP state (modified in-place).
     :param rng: Optional numpy random state for reproducibility.
     """
+
     if rng is None:
-        rng = np.random.default_rng()  # Create a new RNG if none is provided
+        rng = np.random.default_rng()
 
     for path in state.paths:
         if len(path.nodes) < 5:  # Skip paths too short for meaningful block moves
             continue
 
         current_cost = state.graph_api.calculate_path_cost(path.nodes)
-
-        # Ensure depot remains at the beginning and end
         depot = path.nodes[0]
         if path.nodes[-1] != depot:
             continue  # Ensure paths are well-formed
 
-        # Determine feasible block size (2 ≤ size < len(path.nodes) - 1)
-        max_block_size = min(4, len(path.nodes) - 2)  # Ensure block can be extracted without including depots
+        # Determine feasible block size (2 ≤ size ≤ min(4, len(path.nodes)-2))
+        max_block_size = min(4, len(path.nodes) - 2)
         if max_block_size < 2:
             continue
         block_size = rng.integers(2, max_block_size + 1)
@@ -310,8 +367,8 @@ def block_insertion_local_search(state: CevrpState, rng: Optional[np.random.Rand
         if remaining_nodes[0] != depot or remaining_nodes[-1] != depot:
             continue
 
-        # Choose insertion point in remaining nodes (avoiding depot at start)
-        insert_idx = rng.integers(1, len(remaining_nodes))  # Must be within valid positions
+        # Choose insertion point in remaining nodes (avoiding depot at start and before last)
+        insert_idx = rng.integers(1, len(remaining_nodes) - 1)
 
         # Reconstruct path with block inserted
         new_nodes = remaining_nodes[:insert_idx] + block + remaining_nodes[insert_idx:]
@@ -320,7 +377,7 @@ def block_insertion_local_search(state: CevrpState, rng: Optional[np.random.Rand
         new_cost = state.graph_api.calculate_path_cost(new_nodes)
         new_energy = state.calculate_path_energy(new_nodes, state.cevrp.charging_stations)
 
-        # Ensure connectivity is preserved
+        # Ensure connectivity and feasibility
         if (
                 new_cost < current_cost and
                 new_energy <= state.cevrp.energy_capacity and

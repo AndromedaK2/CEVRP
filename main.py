@@ -5,10 +5,10 @@ from ALNS_METAHEURISTIC.destroy_operators import remove_charging_station, worst_
 from ALNS_METAHEURISTIC.make_alns import make_alns
 from ALNS_METAHEURISTIC.repair_operators import greedy_insertion, regret_k_insertion, best_feasible_insertion
 from ALNS_METAHEURISTIC.solution_state import CevrpState
-from Shared.config import INSTANCE_FILES, DEFAULT_SOURCE_NODE, NUM_ANTS, MAX_ANT_STEPS, NUM_ITERATIONS, ALNS_ITERATIONS
+from Shared.config import config
 from Shared.Utils.exceptions import NoSolutionFoundError
 from Shared.graph_api import GraphApi
-from Shared.heuristic import apply_2opt, apply_2opt_star
+from Shared.heuristic import apply_2opt, apply_2opt_star, apply_node_shift
 from Shared.path import Path
 from Shared.Utils.coordinates_manager import CoordinatesManager
 from MMAS.aco import ACO
@@ -69,8 +69,8 @@ def solve_with_aco(cevrp: CEVRP) -> tuple:
     # Step 2: Initialize ACO
     aco = ACO(
         graph,
-        max_ant_steps=MAX_ANT_STEPS,
-        num_iterations=NUM_ITERATIONS,
+        max_ant_steps=config.max_ant_steps,
+        num_iterations=config.num_iterations,
         best_path_cost=cevrp.optimal_value,
         cevrp=cevrp,
         use_route_construction=False
@@ -78,8 +78,8 @@ def solve_with_aco(cevrp: CEVRP) -> tuple:
 
     # Step 3: Solve the ACO routing problem
     flatten_paths, initial_cost, paths = aco.find_shortest_path(
-        start=DEFAULT_SOURCE_NODE,
-        num_ants=NUM_ANTS
+        start=config.default_source_node,
+        num_ants=config.num_ants,
     )
 
     # Raise an exception if no valid solution is found
@@ -98,13 +98,19 @@ def solve_with_aco(cevrp: CEVRP) -> tuple:
     # Step 7: Apply 2-opt-star Optimization
     paths_2opt_star = apply_2opt_star(paths_2opt, aco.graph_api, cevrp)
 
-    # Step 8: Visualize the routes AFTER 2-opt
-    aco.graph_api.visualize_graph(paths_2opt_star, cevrp.charging_stations, f"After 2-opt-Star - {cevrp.name}")
+    # Step 8: Visualize the routes AFTER 2-opt-star
+    aco.graph_api.visualize_graph(paths_2opt_star, cevrp.charging_stations, f"After 2-opt-star - {cevrp.name}")
 
-    # Step 9: Compute optimized cost only if paths changed
-    optimized_cost = aco.graph_api.calculate_paths_cost(paths_2opt_star) if paths_2opt_star != paths else initial_cost
+    # Step 9: Apply node-shift Optimization
+    paths_node_shift = apply_node_shift(paths_2opt_star, aco.graph_api, cevrp)
 
-    return (flatten_paths, optimized_cost, paths_2opt), aco.graph_api
+    # Step 10: Visualize the routes AFTER 2-opt
+    aco.graph_api.visualize_graph(paths_node_shift, cevrp.charging_stations, f"After node-shift - {cevrp.name}")
+
+    # Step 11: Compute optimized cost only if paths changed
+    optimized_cost = aco.graph_api.calculate_paths_cost(paths_node_shift) if paths_node_shift != paths else initial_cost
+
+    return (flatten_paths, optimized_cost, paths_node_shift), aco.graph_api
 
 
 def solve_with_alns(paths: List[Path], cevrp: CEVRP) -> tuple:
@@ -120,13 +126,13 @@ def solve_with_alns(paths: List[Path], cevrp: CEVRP) -> tuple:
         cevrp_state,
         destroy_operators=[remove_charging_station, worst_removal, cluster_removal],
         repair_operators=[greedy_insertion, regret_k_insertion, best_feasible_insertion],
-        num_iterations= ALNS_ITERATIONS
+        num_iterations= config.alns_iterations
     ), graph_api
 
 
 if __name__ == '__main__':
     try:
-        selected_file = select_instance(INSTANCE_FILES)
+        selected_file = select_instance(config.instance_files)
         print(f"Selected instance: {selected_file}")
 
         cevrp_instance = create_cevrp_instance(selected_file)

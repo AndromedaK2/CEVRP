@@ -5,7 +5,7 @@ from sklearn.cluster import MiniBatchKMeans
 
 from ALNS_METAHEURISTIC.destroy_functions import is_path_valid, update_path, find_closest_customer
 from ALNS_METAHEURISTIC.solution_state import CevrpState
-from Shared.config import DEFAULT_SOURCE_NODE
+from Shared.config import config
 from Shared.path import Path
 
 
@@ -37,7 +37,7 @@ def remove_overcapacity_nodes(state: CevrpState, rnd_state: Optional[np.random.R
         num_nodes = len(nodes)
         # **Remove paths that contain only the depot and one customer**
         if num_nodes <= 3:
-            unassigned.update(node for node in nodes if node != DEFAULT_SOURCE_NODE)
+            unassigned.update(node for node in nodes if node != config.default_source_node)
             continue
 
         energy_consumption = 0
@@ -69,7 +69,7 @@ def remove_overcapacity_nodes(state: CevrpState, rnd_state: Optional[np.random.R
         # Nodes that couldn't be added
         remaining_nodes = nodes[len(valid_nodes):]
         # **Filter out charging stations from unassigned nodes**
-        unassigned.update(node for node in remaining_nodes if node != DEFAULT_SOURCE_NODE and node not in charging_stations)
+        unassigned.update(node for node in remaining_nodes if node != config.default_source_node and node not in charging_stations)
 
         # **Recalculate cost, demand, and energy**
         if len(valid_nodes) > 1:
@@ -79,8 +79,8 @@ def remove_overcapacity_nodes(state: CevrpState, rnd_state: Optional[np.random.R
             valid_path.demand = state_copy.graph_api.get_total_demand_path(valid_nodes)
             valid_path.energy = energy_consumption
             valid_path.feasible = (
-                valid_nodes[0] == DEFAULT_SOURCE_NODE
-                and valid_nodes[-1] == DEFAULT_SOURCE_NODE
+                valid_nodes[0] == config.default_source_node
+                and valid_nodes[-1] == config.default_source_node
                 and len(valid_nodes) > 2
             )
             new_paths.append(valid_path)
@@ -114,7 +114,6 @@ def remove_charging_station(state: CevrpState, rnd_state: Optional[np.random.Ran
 
         # Select a charging station instance to remove
         index_to_remove = rnd_state.choice(station_positions) if rnd_state else np.random.choice(station_positions)
-        removed_station = path.nodes[index_to_remove]
 
         # Ensure removing the station does not break a critical connection
         if 0 < index_to_remove < len(path.nodes) - 1:
@@ -252,14 +251,14 @@ def cluster_removal(state: CevrpState, rng: Optional[np.random.RandomState] = No
 
     # Step 1: Select initial route with sufficient customers
     candidate_routes = [p for p in modified_paths if len(p.nodes) > 3 and
-                        any(node not in state_copy.cevrp.charging_stations and node != DEFAULT_SOURCE_NODE
+                        any(node not in state_copy.cevrp.charging_stations and node != config.default_source_node
                             for node in p.nodes)]
     if not candidate_routes:
         return state
 
     selected_path = rng.choice(candidate_routes)
     customers = [n for n in selected_path.nodes if
-                 n not in state_copy.cevrp.charging_stations and n != DEFAULT_SOURCE_NODE]
+                 n not in state_copy.cevrp.charging_stations and n != config.default_source_node]
 
     if len(customers) < 2:
         return state
@@ -296,7 +295,7 @@ def cluster_removal(state: CevrpState, rng: Optional[np.random.RandomState] = No
 
         target_route = closest['route']
         customers = [n for n in target_route.nodes if
-                     n not in state_copy.cevrp.charging_stations and n != DEFAULT_SOURCE_NODE]
+                     n not in state_copy.cevrp.charging_stations and n != config.default_source_node]
         if len(customers) < 2:
             break
 

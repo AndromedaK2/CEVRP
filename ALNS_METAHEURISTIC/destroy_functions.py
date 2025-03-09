@@ -2,13 +2,13 @@ from typing import List, Optional
 from scipy.spatial import distance
 
 from ALNS_METAHEURISTIC.solution_state import CevrpState
-from Shared.config import DEFAULT_SOURCE_NODE
+from Shared.config import config
 from Shared.path import Path
 
 
 def is_path_valid(nodes: List[str], state: CevrpState) -> bool:
     """Check energy, demand, and structural feasibility."""
-    if nodes[0] != DEFAULT_SOURCE_NODE or nodes[-1] != DEFAULT_SOURCE_NODE:
+    if nodes[0] != config.default_source_node or nodes[-1] != config.default_source_node:
         return False
     demand = state.graph_api.get_total_demand_path(nodes)
     if demand > state.cevrp.capacity:
@@ -32,10 +32,10 @@ def find_closest_customer(removed_nodes: List[str], paths: List[Path], state: Ce
     for removed in removed_nodes:
         coord = state.graph_api.get_node_coordinates(removed)
         for path in paths:
-            if path.nodes == [DEFAULT_SOURCE_NODE]:  # Skip depot-only
+            if path.nodes == [config.default_source_node]:  # Skip depot-only
                 continue
             for node in path.nodes:
-                if node in state.cevrp.charging_stations or node == DEFAULT_SOURCE_NODE:
+                if node in state.cevrp.charging_stations or node == config.default_source_node:
                     continue
                 node_coord = state.graph_api.get_node_coordinates(node)
                 dist = distance.euclidean(coord, node_coord)

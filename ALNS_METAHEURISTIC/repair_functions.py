@@ -1,7 +1,7 @@
 from typing import List
 
 from ALNS_METAHEURISTIC.solution_state import CevrpState
-from Shared.config import DEFAULT_SOURCE_NODE
+from Shared.config import config
 from Shared.path import Path
 
 
@@ -137,7 +137,7 @@ def create_paths(nodes: List[str], state) -> List[Path]:
     if not nodes:
         return []
 
-    depot = DEFAULT_SOURCE_NODE  # Ensure depot consistency
+    depot = config.default_source_node  # Ensure depot consistency
     paths: List[Path] = []  # List to store all feasible Path objects
 
     while nodes:
@@ -193,6 +193,6 @@ def are_paths_depot_constrained(paths:List[Path]) -> bool:
     :return: True if all paths start and end at the depot, False otherwise.
     """
     for path in paths:
-        if not path.nodes or path.nodes[0] != DEFAULT_SOURCE_NODE or path.nodes[-1] != DEFAULT_SOURCE_NODE:
+        if not path.nodes or path.nodes[0] != config.default_source_node or path.nodes[-1] != config.default_source_node:
             return False  # Invalid path
     return True  # All paths are valid

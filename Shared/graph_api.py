@@ -3,7 +3,7 @@ from typing import List, Dict
 from itertools import cycle
 
 from Shared.cevrp import CEVRP
-from Shared.config import DEFAULT_SOURCE_NODE
+from Shared.config import config
 from Shared.path import Path
 from collections import defaultdict, deque
 
@@ -124,7 +124,7 @@ class GraphApi:
         plt.ylabel("Y-axis", fontsize=14)
 
         # Identify special nodes
-        depot_node = DEFAULT_SOURCE_NODE
+        depot_node = config.default_source_node
         all_nodes = node_positions.keys()
 
         # Separate nodes into categories
@@ -209,7 +209,7 @@ class GraphApi:
         fig = go.Figure()
 
         # Identify special nodes
-        depot_node = DEFAULT_SOURCE_NODE
+        depot_node = config.default_source_node
         all_nodes = node_positions.keys()
         regular_nodes = [n for n in all_nodes if n != depot_node and n not in charging_stations]
         charging_nodes = [n for n in all_nodes if n in charging_stations]

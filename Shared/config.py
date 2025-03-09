@@ -24,6 +24,27 @@ DEFAULT_SOURCE_NODE: str = "1"
 
 NUM_ANTS: int = 120
 MAX_ANT_STEPS: int = 1000
-NUM_ITERATIONS: int = 550
+NUM_ITERATIONS: int = 500
 
 ALNS_ITERATIONS: int = 30
+
+
+from dataclasses import dataclass
+
+@dataclass
+class Config:
+    instance_files: List[str]
+    default_source_node: str
+    num_ants: int
+    max_ant_steps: int
+    num_iterations: int
+    alns_iterations: int
+
+config = Config(
+    instance_files=INSTANCE_FILES,
+    default_source_node=DEFAULT_SOURCE_NODE,
+    num_ants=NUM_ANTS,
+    max_ant_steps=MAX_ANT_STEPS,
+    num_iterations=NUM_ITERATIONS,
+    alns_iterations=ALNS_ITERATIONS
+)

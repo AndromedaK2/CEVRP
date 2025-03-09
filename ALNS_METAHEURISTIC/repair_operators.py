@@ -2,8 +2,8 @@ import numpy as np
 from typing import Optional
 
 from ALNS_METAHEURISTIC.solution_state import CevrpState
-from ALNS_METAHEURISTIC.repair_functions import find_best_charging_station, create_paths, are_paths_depot_constrained
-from Shared.config import DEFAULT_SOURCE_NODE
+from ALNS_METAHEURISTIC.repair_functions import find_best_charging_station, are_paths_depot_constrained
+from Shared.config import config
 from Shared.path import Path
 
 
@@ -19,7 +19,7 @@ def smart_reinsertion(state: CevrpState, rnd_state: Optional[np.random.RandomSta
 
     unassigned_copy = state_copy.unassigned
     charging_stations = state_copy.cevrp.charging_stations
-    visited_nodes = {node for path in paths_copy for node in path.nodes if node != DEFAULT_SOURCE_NODE}
+    visited_nodes = {node for path in paths_copy for node in path.nodes if node != config.default_source_node}
 
     unassigned_copy = [node for node in unassigned_copy if node not in visited_nodes]
     rnd_state.shuffle(unassigned_copy)
@@ -33,7 +33,7 @@ def smart_reinsertion(state: CevrpState, rnd_state: Optional[np.random.RandomSta
                 continue
 
             candidate_path = path.copy()
-            insert_position = len(candidate_path.nodes) - 1 if candidate_path.nodes[-1] == DEFAULT_SOURCE_NODE else (
+            insert_position = len(candidate_path.nodes) - 1 if candidate_path.nodes[-1] == config.default_source_node else (
                 len(candidate_path.nodes))
             energy_used = candidate_path.energy
             prev_node = path.nodes[insert_position - 1]
@@ -74,13 +74,13 @@ def smart_reinsertion(state: CevrpState, rnd_state: Optional[np.random.RandomSta
     paths_final:list[Path] = []
 
     for path in not_feasible_paths:
-        if path.nodes[-1] != DEFAULT_SOURCE_NODE:
+        if path.nodes[-1] != config.default_source_node:
 
             current_energy = path.energy
             last_node = path.nodes[-1]
 
             if last_node not in charging_stations:
-                energy_to_depot = state_copy.get_edge_energy_consumption(last_node, DEFAULT_SOURCE_NODE)
+                energy_to_depot = state_copy.get_edge_energy_consumption(last_node, config.default_source_node)
 
                 if current_energy + energy_to_depot > state_copy.cevrp.energy_capacity:
                     station = find_best_charging_station(
@@ -95,19 +95,19 @@ def smart_reinsertion(state: CevrpState, rnd_state: Optional[np.random.RandomSta
                     if station:
                         path.nodes.append(station)
                         path.energy = 0
-                        energy_to_depot = state_copy.get_edge_energy_consumption(station, DEFAULT_SOURCE_NODE)
-                        path.nodes.append(DEFAULT_SOURCE_NODE)
+                        energy_to_depot = state_copy.get_edge_energy_consumption(station, config.default_source_node)
+                        path.nodes.append(config.default_source_node)
                         path.energy += energy_to_depot
                     else:
                         path.feasible = False
                         paths_final.append(path)
                         continue
                 else:
-                    path.nodes.append(DEFAULT_SOURCE_NODE)
+                    path.nodes.append(config.default_source_node)
                     path.energy += energy_to_depot
             else:
-                energy_to_depot = state_copy.get_edge_energy_consumption(last_node, DEFAULT_SOURCE_NODE)
-                path.nodes.append(DEFAULT_SOURCE_NODE)
+                energy_to_depot = state_copy.get_edge_energy_consumption(last_node, config.default_source_node)
+                path.nodes.append(config.default_source_node)
                 path.energy = energy_to_depot
 
         path.path_cost = state_copy.graph_api.calculate_path_cost(path.nodes)
@@ -500,15 +500,15 @@ def best_feasible_insertion(state: CevrpState, rng: Optional[np.random.RandomSta
             for i in range(1, len(path.nodes)):  # Avoid inserting at invalid positions
 
                 # **Allow insertion AFTER the first depot (at index 1)**
-                if i == 1 and path.nodes[0] == DEFAULT_SOURCE_NODE:
+                if i == 1 and path.nodes[0] == config.default_source_node:
                     pass  # Valid insertion: DEPOT + NODE + NEXT
 
                 # **Allow insertion BEFORE the last depot**
-                elif i == len(path.nodes) - 1 and path.nodes[i] == DEFAULT_SOURCE_NODE:
+                elif i == len(path.nodes) - 1 and path.nodes[i] == config.default_source_node:
                     pass  # Valid insertion: DEPOT + NODES + NODE + DEPOT
 
                 # **General case: Ensure we don’t insert before the first depot**
-                elif path.nodes[i - 1] == DEFAULT_SOURCE_NODE:
+                elif path.nodes[i - 1] == config.default_source_node:
                     continue  # Skip if trying to insert before the first depot
 
                 # Create new route with the node inserted at position i

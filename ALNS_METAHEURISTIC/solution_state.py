@@ -1,7 +1,6 @@
 import copy
 from typing import List
 from Shared.cevrp import CEVRP
-from Shared.config import DEFAULT_SOURCE_NODE
 from Shared.graph_api import GraphApi
 from Shared.path import Path
 
@@ -23,9 +22,6 @@ class CevrpState:
         self.cevrp = cevrp
         self.previous_state = previous_state  # Store previous state before modifications
 
-    def store_previous_state(self):
-        """Stores a deep copy of the current state before modification."""
-        self.previous_state = self.copy()
 
     def objective(self):
         """
@@ -66,9 +62,11 @@ class CevrpState:
     def get_edge_energy_consumption(self, i: str, j: str):
         return self.graph_api.calculate_edge_energy_consumption(i, j, self.cevrp.energy_consumption)
 
-    def calculate_path_energy(self, nodes, charging_stations):
+    def calculate_path_energy(self, nodes, charging_stations = None):
         """Calculates total energy usage for a path with resets at charging stations."""
         energy = 0
+        if charging_stations is None:
+            charging_stations = self.cevrp.charging_stations
         for i in range(1, len(nodes)):
             if nodes[i - 1] in charging_stations:
                 energy = 0

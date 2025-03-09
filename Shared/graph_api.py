@@ -346,14 +346,6 @@ class GraphApi:
 
         return new_demand1 <= capacity and new_demand2 <= capacity
 
-
-    @staticmethod
-    def are_valid_paths(paths: List[Path]) -> bool:
-        for path in paths:
-            if len(path.nodes) <= 4:
-                return False
-        return True
-
     @staticmethod
     def calculate_paths_cost(paths: List[Path]) -> float:
         """Calculate the total cost of the provided paths."""

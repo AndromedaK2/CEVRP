@@ -124,7 +124,7 @@ class ACO:
                 ant.take_step()  # Use step-by-step exploration strategy
                 # Stop Criteria:
                 if ant.reached_destination(self.use_route_construction):
-                    if self.graph_api.are_valid_paths(ant.paths):
+                    if self._are_valid_paths(ant.paths):
                         ant.is_fit = True
                     break
 
@@ -155,6 +155,13 @@ class ACO:
         for ant in self.search_ants:
             if ant.is_fit:
                 ant.deposit_pheromones_on_paths()
+
+    @staticmethod
+    def _are_valid_paths(paths: List[Path]) -> bool:
+        for path in paths:
+            if len(path.nodes) <= 4:
+                return False
+        return True
 
     @staticmethod
     def _flatten_path(paths: List[Path]) -> List[str]:

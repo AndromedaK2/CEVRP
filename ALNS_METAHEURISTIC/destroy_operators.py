@@ -163,10 +163,11 @@ def remove_charging_station(state: CevrpState, rnd_state: Optional[np.random.Ran
             modified_paths.append(path)  # Keep the original path if energy feasibility is not met
 
     # Visualize the graph before and after the removal
-    state_copy.graph_api.visualize_graph(state_copy.paths, state_copy.cevrp.charging_stations,
-                                         f"Before Remove-Charging-Station {state_copy.cevrp.name}")
-    state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations,
-                                         f"After Remove-Charging-Station {state_copy.cevrp.name}")
+    if state_copy.visualization:
+        state_copy.graph_api.visualize_graph(state_copy.paths, state_copy.cevrp.charging_stations,
+                                             f"Before Remove-Charging-Station {state_copy.cevrp.name}")
+        state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations,
+                                             f"After Remove-Charging-Station {state_copy.cevrp.name}")
 
     return CevrpState(modified_paths, state_copy.unassigned, state_copy.graph_api, state_copy.cevrp, state)
 
@@ -224,8 +225,9 @@ def worst_removal(state: CevrpState, rng: Optional[np.random.RandomState] = None
     for node, _ in nodes_to_remove:
         state_copy.unassigned.append(node)
 
-    state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations,
-                                         f"After Worst-Removal {state_copy.cevrp.name}")
+    if state_copy.visualization:
+        state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations,
+                                             f"After Worst-Removal {state_copy.cevrp.name}")
 
     return CevrpState(modified_paths,state_copy.unassigned,state_copy.graph_api,state_copy.cevrp,state)
 
@@ -317,8 +319,9 @@ def cluster_removal(state: CevrpState, rng: Optional[np.random.RandomState] = No
     # Step 4: Cleanup empty paths and update state
     modified_paths = [p for p in modified_paths if len(p.nodes) > 2]  # Remove depot-only paths
     state_copy.unassigned.extend(removed_nodes)
-    state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations,
-                                         f"After Cluster-Removal {state_copy.cevrp.name}")
+    if state_copy.visualization :
+        state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations,
+                                             f"After Cluster-Removal {state_copy.cevrp.name}")
     return CevrpState(modified_paths, state_copy.unassigned, state_copy.graph_api, state_copy.cevrp, state )
 
 

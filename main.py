@@ -123,12 +123,12 @@ def solve_with_alns(paths: List[Path], cevrp: CEVRP) -> tuple:
     graph = manager.build_graph()
     graph_api = GraphApi(graph)
 
-    cevrp_state = CevrpState(paths, graph_api=graph_api, cevrp=cevrp)
+    cevrp_state = CevrpState(paths, graph_api=graph_api, cevrp=cevrp, visualization=config.alns_visualization)
     return make_alns(
         cevrp_state,
         destroy_operators=[remove_charging_station, worst_removal, cluster_removal],
         repair_operators=[greedy_insertion, regret_k_insertion, best_feasible_insertion],
-        num_iterations= config.alns_iterations
+        num_iterations= config.alns_iterations,
     ), graph_api
 
 

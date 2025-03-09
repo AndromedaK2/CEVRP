@@ -333,7 +333,6 @@ def reverse_location(state: CevrpState, rnd_state: Optional[np.random.RandomStat
         new_path.demand = path.demand
         new_path.feasible = True
         modified_paths.append(new_path)
-
     state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations, state_copy.cevrp.name)
     return CevrpState(modified_paths, state_copy.unassigned, state_copy.graph_api, state_copy.cevrp)
 
@@ -384,9 +383,9 @@ def greedy_insertion(state: CevrpState, rng: Optional[np.random.RandomState] = N
         else:
             # Add to unassigned if no feasible insertion found
             state_copy.unassigned.append(node)
-
-    state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations,
-                                         f"After Greedy-Insertion {state_copy.cevrp.name}")
+    if state_copy.visualization:
+        state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations,
+                                             f"After Greedy-Insertion {state_copy.cevrp.name}")
     if  are_paths_depot_constrained(modified_paths) and len(state_copy.unassigned) == 0:
         return CevrpState(modified_paths, state_copy.unassigned, state_copy.graph_api, state_copy.cevrp)
     return state.previous_state
@@ -471,8 +470,9 @@ def regret_k_insertion(state: CevrpState, rng: Optional[np.random.RandomState] =
             break  # No more feasible insertions
 
     state_copy.unassigned.extend(unassigned)
-    state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations,
-                                         f"After Regret-k-Insertion {state_copy.cevrp.name}")
+    if state_copy.visualization:
+        state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations,
+                                             f"After Regret-k-Insertion {state_copy.cevrp.name}")
     if  are_paths_depot_constrained(modified_paths) and len(state_copy.unassigned) == 0:
         return CevrpState(modified_paths, state_copy.unassigned, state_copy.graph_api, state_copy.cevrp)
     return state.previous_state
@@ -543,8 +543,9 @@ def best_feasible_insertion(state: CevrpState, rng: Optional[np.random.RandomSta
             state_copy.unassigned.remove(node)
 
     # Visualize the modified paths
-    state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations,
-                                         f"After Best-Feasible-Insertion - {state_copy.cevrp.name}")
+    if state_copy.visualization:
+        state_copy.graph_api.visualize_graph(modified_paths, state_copy.cevrp.charging_stations,
+                                             f"After Best-Feasible-Insertion - {state_copy.cevrp.name}")
 
     if  are_paths_depot_constrained(modified_paths) and len(state_copy.unassigned) == 0:
         return CevrpState(modified_paths, state_copy.unassigned, state_copy.graph_api, state_copy.cevrp)

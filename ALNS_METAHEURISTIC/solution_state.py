@@ -5,8 +5,11 @@ from Shared.graph_api import GraphApi
 from Shared.path import Path
 
 class CevrpState:
+
+    _visualization: bool = False
+
     def __init__(self, paths: list[Path], unassigned=None, graph_api: GraphApi = None,
-                 cevrp: CEVRP = None, previous_state: "CevrpState" = None):
+                 cevrp: CEVRP = None, previous_state: "CevrpState" = None, visualization=False):
         """
         Initializes a CevrpState object.
 
@@ -21,6 +24,7 @@ class CevrpState:
         self.graph_api = graph_api  # Store the graph_api instance
         self.cevrp = cevrp
         self.previous_state = previous_state  # Store previous state before modifications
+        self.visualization = visualization
 
 
     def objective(self):
@@ -36,6 +40,14 @@ class CevrpState:
         """
         return self.objective()
 
+    @property
+    def visualization(self):
+        return self._visualization
+
+    @visualization.setter
+    def visualization(self, value):
+        self._visualization = value
+
     def copy(self) -> "CevrpState":
         """Creates a deep copy of the CevrpState instance."""
         return CevrpState(
@@ -43,7 +55,8 @@ class CevrpState:
             unassigned=copy.deepcopy(self.unassigned),
             graph_api=self.graph_api,  # Assuming graph_api is immutable or shared
             cevrp=self.cevrp,  # Assuming cevrp is immutable or shared
-            previous_state=self.previous_state  # Preserve previous state in copy
+            previous_state=self.previous_state,  # Preserve previous state in copy
+            visualization=self.visualization,
         )
 
     def get_paths_cost(self):

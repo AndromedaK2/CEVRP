@@ -217,12 +217,14 @@ def apply_local_search(state: CevrpState, rng: Optional[np.random.RandomState] =
     # Apply the selected operator
     operator(state)
 
-    # Get operator name for the title
-    operator_name = operator.__name__
 
-    # Visualize with operator name in the title
-    title = f"Local Search: {operator_name} - {state.cevrp.name}"
-    state.graph_api.visualize_graph(state.paths, state.cevrp.charging_stations, title)
+    if state.visualization:
+        # Get operator name for the title
+        operator_name = operator.__name__
+
+        # Visualize with operator name in the title
+        title = f"Local Search: {operator_name} - {state.cevrp.name}"
+        state.graph_api.visualize_graph(state.paths, state.cevrp.charging_stations, title)
 
 
 def adjacent_swap_local_search(state: CevrpState, rng: Optional[np.random.RandomState] = None) -> None:

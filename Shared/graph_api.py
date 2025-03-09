@@ -327,6 +327,26 @@ class GraphApi:
         """
         return self.graph.has_edge(u, v)
 
+    def is_feasible(self,route1_nodes: List[str], route2_nodes: List[str], capacity:int) -> bool:
+        """
+        Checks if the swap maintains energy and capacity feasibility.
+
+        Args:
+            route1_nodes (List[str]): First modified route.
+            route2_nodes (List[str]): Second modified route.
+
+        Returns:
+            bool: True if the swap is feasible, False otherwise.
+            :param route2_nodes:
+            :param route1_nodes:
+            :param capacity:
+        """
+        new_demand1 = self.get_total_demand_path(route1_nodes)
+        new_demand2 = self.get_total_demand_path(route2_nodes)
+
+        return new_demand1 <= capacity and new_demand2 <= capacity
+
+
     @staticmethod
     def are_valid_paths(paths: List[Path]) -> bool:
         for path in paths:

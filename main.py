@@ -8,7 +8,7 @@ from ALNS_METAHEURISTIC.solution_state import CevrpState
 from Shared.config import INSTANCE_FILES, DEFAULT_SOURCE_NODE, NUM_ANTS, MAX_ANT_STEPS, NUM_ITERATIONS, ALNS_ITERATIONS
 from Shared.Utils.exceptions import NoSolutionFoundError
 from Shared.graph_api import GraphApi
-from Shared.heuristic import apply_2opt
+from Shared.heuristic import apply_2opt, apply_2opt_star
 from Shared.path import Path
 from Shared.Utils.coordinates_manager import CoordinatesManager
 from MMAS.aco import ACO
@@ -95,8 +95,14 @@ def solve_with_aco(cevrp: CEVRP) -> tuple:
     # Step 6: Visualize the routes AFTER 2-opt
     aco.graph_api.visualize_graph(paths_2opt, cevrp.charging_stations, f"After 2-opt - {cevrp.name}")
 
-    # Step 7: Compute optimized cost only if paths changed
-    optimized_cost = aco.graph_api.calculate_paths_cost(paths_2opt) if paths_2opt != paths else initial_cost
+    # Step 7: Apply 2-opt-star Optimization
+    paths_2opt_star = apply_2opt_star(paths_2opt, aco.graph_api, cevrp)
+
+    # Step 8: Visualize the routes AFTER 2-opt
+    aco.graph_api.visualize_graph(paths_2opt_star, cevrp.charging_stations, f"After 2-opt-Star - {cevrp.name}")
+
+    # Step 9: Compute optimized cost only if paths changed
+    optimized_cost = aco.graph_api.calculate_paths_cost(paths_2opt_star) if paths_2opt_star != paths else initial_cost
 
     return (flatten_paths, optimized_cost, paths_2opt), aco.graph_api
 

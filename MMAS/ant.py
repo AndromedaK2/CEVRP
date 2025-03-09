@@ -244,7 +244,7 @@ class Ant:
                 new_pheromone_value = pheromone_operators.calculate_pheromone_value(
                     self.evaporation_rate,
                     self.graph_api.get_edge_pheromones(u, v),
-                    self.path_cost,
+                    self.best_path_cost,
                     self.graph_api.get_length_graph()
                 )
                 self.graph_api.deposit_pheromones(u, v, new_pheromone_value)

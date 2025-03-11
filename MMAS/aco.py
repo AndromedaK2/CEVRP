@@ -46,7 +46,9 @@ class ACO:
         """
         self._deploy_search_ants(start, num_ants)
 
-        value = self.graph_api.calculate_paths_cost(self.best_path)
+        value = 0
+        if self.best_path.count != 0:
+            value = self.graph_api.calculate_paths_cost(self.best_path)
 
         def are_equal(a: float, b: float) -> bool:
             tolerance = 1e-12

@@ -22,13 +22,15 @@ INSTANCE_FILES: List[str] = [
 
 DEFAULT_SOURCE_NODE: str = "1"
 
-NUM_ANTS: int = 240
+NUM_ANTS: int = 12
 MAX_ANT_STEPS: int = 1000
 NUM_ITERATIONS: int = 700
 ACO_VISUALIZATION: bool = False
+MAX_ITERATION_IMPROVEMENT: int = 600
 
-ALNS_ITERATIONS: int = 300
+ALNS_ITERATIONS: int = 2000
 ALNS_VISUALIZATION: bool = False
+
 
 
 from dataclasses import dataclass
@@ -40,6 +42,7 @@ class Config:
     num_ants: int
     max_ant_steps: int
     num_iterations: int
+    max_iteration_improvement: int
     aco_visualization: bool
     alns_iterations: int
     alns_visualization: bool
@@ -54,4 +57,5 @@ config = Config(
     alns_iterations=ALNS_ITERATIONS,
     alns_visualization=ALNS_VISUALIZATION,
     aco_visualization=ACO_VISUALIZATION,
+    max_iteration_improvement=MAX_ITERATION_IMPROVEMENT,
 )

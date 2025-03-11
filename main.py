@@ -42,7 +42,6 @@ def create_cevrp_instance(file_path: str) -> CEVRP:
         raise RuntimeError(f"❌ Error creating instance from {file_path}: {exception}")
 
 
-
 def format_path(paths: List[Path]) -> str:
     """Formats and returns a string representation of routes."""
     header = ("\n".join([
@@ -60,7 +59,42 @@ def format_path(paths: List[Path]) -> str:
     return "\n".join(formatted_routes)
 
 
-def solve_with_aco(cevrp: CEVRP) -> tuple:
+def compute_execution_params(instance_name: str) -> tuple:
+    """
+    Compute the execution time (ExeTime) and max_no_improve based on the instance name and number of nodes.
+
+    Parameters:
+        instance_name (str): Name of the instance, e.g., 'Shared/Instances/E-n22-k4.evrp'.
+
+    Returns:
+        tuple: (exe_time, max_no_improve)
+    """
+    # Extract the instance identifier (e.g., 'E-n22-k4')
+    instance_id = instance_name.split('/')[-1].replace('.evrp', '')
+
+    # Extract numerical part from instance name
+    dimension = int(instance_id.split('-')[1][1:])
+
+    # Determine problem category and theta value
+    if 22 <= dimension <= 101:
+        theta = 1
+        max_no_improve = 500  # Small instances
+    elif 143 <= dimension <= 916:
+        theta = 2
+        max_no_improve = 50  # Medium instances
+    elif dimension == 1001:
+        theta = 3
+        max_no_improve = 5  # Large instances
+    else:
+        raise ValueError("Instance dimension out of expected range.")
+
+    # Compute execution time
+    exe_time = theta * dimension / 100
+
+    return exe_time, max_no_improve
+
+
+def solve_with_aco(cevrp: CEVRP, selected_file_instance:str) -> tuple:
     """Solves the instance using ACO and returns the computed paths and cost."""
 
     # Step 1: Build the graph
@@ -68,14 +102,13 @@ def solve_with_aco(cevrp: CEVRP) -> tuple:
     manager.compute_distances()
     graph = manager.build_graph()
 
+    exe_time, max_no_improve =  compute_execution_params(selected_file_instance)
+
+
     # Step 2: Initialize ACO
-    aco = ACO(
-        graph,
-        max_ant_steps=config.max_ant_steps,
-        num_iterations=config.num_iterations,
-        best_path_cost=cevrp.optimal_value,
-        cevrp=cevrp,
-        use_route_construction=False
+    aco = ACO(graph,max_ant_steps=config.max_ant_steps,
+        num_iterations=config.num_iterations, best_path_cost=cevrp.optimal_value,
+        cevrp=cevrp, max_iteration_improvement=max_no_improve, exec_time=exe_time,
     )
 
     # Step 3: Solve the ACO routing problem
@@ -142,7 +175,7 @@ if __name__ == '__main__':
 
         # Solve using ACO
         start_time = time.time()
-        (aco_flatten_paths, aco_cost, aco_paths), aco_graph_api = solve_with_aco(cevrp_instance)
+        (aco_flatten_paths, aco_cost, aco_paths), aco_graph_api = solve_with_aco(cevrp_instance, selected_file)
         execution_time = time.time() - start_time
         print(f"⏱ ACO Solution Execution time: {int(execution_time // 60)}m {execution_time % 60:.2f}s")
         print(f"ACO - Initial routes:\n{format_path(aco_paths)}")

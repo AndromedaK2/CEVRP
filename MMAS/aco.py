@@ -22,7 +22,10 @@ class ACO:
     second_best_path: List[Path] = field(default_factory=list)
     second_best_path_cost: float = float('inf')
     cevrp: CEVRP = field(default_factory=CEVRP)
-    use_route_construction: bool = True
+    max_iteration_improvement: int = 100
+    exec_time: float = 0.0
+    use_route_construction: bool = False
+
 
     def __post_init__(self):
         if not self.graph:
@@ -75,9 +78,10 @@ class ACO:
             num_ants (int): The number of ants to deploy.
         """
         for _ in range(self.num_iterations):
-            self._initialize_ants(start, num_ants)
-            self._deploy_forward_search()
-            self._deploy_backward_search()
+          #  if self.max_iteration_improvement >= 0:
+                self._initialize_ants(start, num_ants)
+                self._deploy_forward_search()
+                self._deploy_backward_search()
 
     def _initialize_ants(self, start: str, num_ants: int):
         """
@@ -115,18 +119,13 @@ class ACO:
             ant (Ant): The ant to explore the graph.
         """
 
-        if self.use_route_construction:
-            ant.route_construction()  # Use route construction strategy
+        for _ in range(self.max_ant_steps):
+            ant.take_step()  # Use step-by-step exploration strategy
+            # Stop Criteria:
             if ant.reached_destination(self.use_route_construction):
-                ant.is_fit = True
-        else:
-            for _ in range(self.max_ant_steps):
-                ant.take_step()  # Use step-by-step exploration strategy
-                # Stop Criteria:
-                if ant.reached_destination(self.use_route_construction):
-                    if self._are_valid_paths(ant.paths):
-                        ant.is_fit = True
-                    break
+                if self._are_valid_paths(ant.paths):
+                    ant.is_fit = True
+                break
 
         # Update the best path based on the ant's exploration
         self._update_best_path(ant)

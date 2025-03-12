@@ -137,6 +137,8 @@ class ACO:
         elif ant.path_cost < self.second_best_path_cost:
             self.second_best_path_cost, self.second_best_path = ant.path_cost, ant.paths.copy()
             self.current_best_path_cost = self.second_best_path_cost
+        else:
+            ant.is_fit = False
 
 
     def _deploy_backward_search(self) -> None:
@@ -179,7 +181,6 @@ class ACO:
             self.best_path_cost,
             self.best_path
         )
-
 
     @staticmethod
     def _are_valid_paths(paths: List[Path]) -> bool:

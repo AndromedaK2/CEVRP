@@ -240,14 +240,13 @@ class Ant:
         """
         for path in self.paths:
             for i in range(len(path.nodes) - 1):
-                u, v = path.nodes[i], path.nodes[i + 1]
                 new_pheromone_value = pheromone_operators.calculate_pheromone_value(
                     self.evaporation_rate,
-                    self.graph_api.get_edge_pheromones(u, v),
+                    self.graph_api.get_edge_pheromones(path.nodes[i], path.nodes[i + 1]),
                     self.path_cost,
-                    self.graph_api.get_length_graph()
+                    self.graph_api.len_graph
                 )
-                self.graph_api.deposit_pheromones(u, v, new_pheromone_value)
+                self.graph_api.deposit_pheromones(path.nodes[i], path.nodes[i + 1], new_pheromone_value)
 
     def _compute_all_edges_desirability(self, neighbors_with_demand: List[Dict[str, int]]) -> float:
         """

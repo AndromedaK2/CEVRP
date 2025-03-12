@@ -1,3 +1,4 @@
+import operator
 from dataclasses import dataclass
 from typing import List, Dict
 from itertools import cycle
@@ -15,6 +16,9 @@ import plotly.graph_objects as go
 @dataclass
 class GraphApi:
     graph: nx.DiGraph
+
+    def __post_init__(self):
+        self.len_graph = len(self.graph.nodes)
 
     def set_edge_pheromones(self, u: str, v: str, pheromone_amount: float) -> None:
         if self.graph.has_edge(u, v):
@@ -34,24 +38,9 @@ class GraphApi:
             return self.graph[u][v].get("cost", 0.0)
         return 0.0
 
-    def get_all_nodes(self) -> List[str]:
-        return list(self.graph.nodes)
-
-    def get_total_demand(self) -> int:
-        total_demand = 0
-        for neighbor in self.graph.nodes:
-            total_demand += self.graph.nodes[neighbor].get('demand', 0)
-        return  total_demand
-
     def get_total_demand_path(self, nodes) -> int:
-        total_demand = 0
-        for node in nodes:
-            demand = self.get_demand_node(node)
-            total_demand +=demand
-        return  total_demand
-
-    def get_length_graph(self) -> int:
-        return len(self.graph.nodes)
+        get_demand = self.get_demand_node
+        return sum(map(get_demand, nodes))
 
     def get_neighbors(self, node: str) -> List[str]:
         return list(self.graph.neighbors(node))
@@ -68,12 +57,11 @@ class GraphApi:
         if node not in self.graph:
             return []
 
-        neighbors_with_demand = []
-        for neighbor in self.get_neighbors(node):
-            demand = self.graph.nodes[neighbor].get('demand', 0)
-            neighbors_with_demand.append({'node': neighbor, 'demand': demand})
-
-        return neighbors_with_demand
+        nodes_data = self.graph.nodes
+        return [
+            {'node': neighbor, 'demand': nodes_data[neighbor].get('demand', 0)}
+            for neighbor in self.get_neighbors(node)
+        ]
 
     def get_demand_node(self, node: str | int) -> float:
         return self.graph.nodes[node].get('demand', 0)
@@ -349,7 +337,7 @@ class GraphApi:
     @staticmethod
     def calculate_paths_cost(paths: List[Path]) -> float:
         """Calculate the total cost of the provided paths."""
-        return sum(path.path_cost for path in paths)
+        return sum(map(operator.attrgetter('path_cost'), paths))
 
     @staticmethod
     def get_total_demand_of_neighbors(neighbors_with_demand: List[Dict[str, int]]) -> int:
@@ -361,4 +349,4 @@ class GraphApi:
         Returns:
             int: The sum of the demands of all the given neighbors.
         """
-        return sum(neighbor_info['demand'] for neighbor_info in neighbors_with_demand)
+        return sum(map(operator.itemgetter('demand'), neighbors_with_demand))

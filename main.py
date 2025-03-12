@@ -53,7 +53,7 @@ def compute_execution_params(instance_name: str) -> tuple:
     return exe_time_minutes, max_no_improve
 
 
-def solve_with_aco(cevrp: CEVRP, selected_file_instance:str, config_aco:Config, start_time_aco) -> tuple:
+def solve_with_aco(cevrp: CEVRP, selected_file_instance:str, config_aco:Config, start_time_aco: float) -> tuple:
     """Solves the instance using ACO and returns the computed paths and cost."""
 
     # Step 1: Build the graph
@@ -136,7 +136,7 @@ if __name__ == '__main__':
         # Solve using ACO
         start_time = time.time()
         (aco_flatten_paths, aco_cost, aco_paths), aco_graph_api = solve_with_aco(
-            cevrp_instance, selected_file, start_time)
+            cevrp_instance, selected_file, config, start_time)
 
         execution_time = time.time() - start_time
         print(f"⏱ ACO Solution Execution time: {int(execution_time // 60)}m {execution_time % 60:.2f}s")

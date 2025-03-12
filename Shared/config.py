@@ -22,18 +22,20 @@ INSTANCE_FILES: List[str] = [
     "Shared/Instances/X-n1001-k43.evrp"
 ]
 
-
+# Without use
 NUM_ANTS: int = 30
-MAX_ANT_STEPS: int = 10000
-
-DEFAULT_SOURCE_NODE: str = "1"
 NUM_ITERATIONS: int = 50
-ACO_VISUALIZATION: bool = False
 MAX_ITERATION_IMPROVEMENT: int = 5
-
 ALNS_ITERATIONS: int = 200
-ALNS_VISUALIZATION: bool = False
 
+
+# Dont Touch
+MAX_ANT_STEPS: int = 10000
+DEFAULT_SOURCE_NODE: str = "1"
+
+#Variable
+ACO_VISUALIZATION: bool = False
+ALNS_VISUALIZATION: bool = False
 EXPERIMENT_TYPE = "baseline"
 
 
@@ -59,7 +61,7 @@ class Config:
                 num_ants=NUM_ANTS,
                 max_ant_steps=MAX_ANT_STEPS,
                 # VARIABLES
-                num_iterations=NUM_ITERATIONS,
+                num_iterations=50,
                 max_iteration_improvement=MAX_ITERATION_IMPROVEMENT,
                 aco_visualization=ACO_VISUALIZATION,
                 alns_iterations=ALNS_ITERATIONS,

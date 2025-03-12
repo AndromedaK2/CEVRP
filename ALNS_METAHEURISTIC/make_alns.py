@@ -3,7 +3,7 @@ import numpy.random as rnd
 from alns.accept import RecordToRecordTravel
 from alns.select import RouletteWheel
 from alns.stop import MaxIterations
-from matplotlib import pyplot as plt
+from matplotlib import pyplot as plt, colors
 
 from ALNS_METAHEURISTIC.destroy_operators import remove_overcapacity_nodes
 from ALNS_METAHEURISTIC.repair_functions import insert_charging_stations_after_each_node
@@ -55,7 +55,7 @@ def make_alns(
 
     # Configure the selection mechanism (RouletteWheel)
     if rw_weights is None:
-        rw_weights = [8, 5, 1, 0.5]
+        rw_weights = [25, 5, 1, 0.5]
     select = RouletteWheel(
         scores=rw_weights,
         decay=rw_decay,
@@ -88,8 +88,19 @@ def make_alns(
     plt.title("Objective Value Progress", fontsize=16)
     plt.show()
 
-    result.plot_operator_counts()
-    plt.subplots_adjust(left=0.4)
+    fig, ax = plt.subplots(figsize=(12, 12))
+
+    result.plot_operator_counts(
+        fig=fig,
+    )
+    ax.set_xticks([])
+    plt.subplots_adjust(
+        left=0.2,
+        right=0.95,
+        top=0.95,
+        bottom=0.1
+    )
+
     plt.show()
 
     # Extract the best solution state

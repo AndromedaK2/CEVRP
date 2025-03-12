@@ -25,6 +25,7 @@ class CEVRP:
     stations_coord_section: np.ndarray = field(default_factory=lambda: np.array([]))
     charging_stations: List[str] = field(default_factory=list)
     depot_section: List[int] = field(default_factory=list)
+    num_ants: int = 1
 
     @staticmethod
     def parse_evrp_instance_from_file(file_path: str, include_stations: bool = False) -> "CEVRP":
@@ -85,6 +86,9 @@ class CEVRP:
         # Extract file name for the instance name
         file_name = file_path.split("/")[-1].split("\\")[-1]
 
+        # Clients + stations + depot
+        num_ants = len(node_coord_array) + 1
+
         return CEVRP(
             name=file_name,
             comment=instance_data.get("COMMENT", "Default Comment"),
@@ -101,7 +105,8 @@ class CEVRP:
             demand_section=demand_dict,
             stations_coord_section=stations_coord_section,
             charging_stations=charging_stations,
-            depot_section=depot_section
+            depot_section=depot_section,
+            num_ants=num_ants
         )
 
 

@@ -20,17 +20,18 @@ INSTANCE_FILES: List[str] = [
     "Shared/Instances/X-n1001-k43.evrp"
 ]
 
-DEFAULT_SOURCE_NODE: str = "1"
 
-NUM_ANTS: int = 100
+NUM_ANTS: int = 30
 MAX_ANT_STEPS: int = 10000
-NUM_ITERATIONS: int = 2
+
+
+DEFAULT_SOURCE_NODE: str = "1"
+NUM_ITERATIONS: int = 50
 ACO_VISUALIZATION: bool = False
 MAX_ITERATION_IMPROVEMENT: int = 5
 
 ALNS_ITERATIONS: int = 200
 ALNS_VISUALIZATION: bool = False
-
 
 
 from dataclasses import dataclass

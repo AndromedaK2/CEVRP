@@ -116,7 +116,7 @@ def solve_with_aco(cevrp: CEVRP, selected_file_instance:str, start_time_seconds)
     # Step 3: Solve the ACO routing problem
     flatten_paths, initial_cost, paths = aco.find_shortest_path(
         start=config.default_source_node,
-        num_ants=config.num_ants,
+        num_ants=cevrp.num_ants,
     )
 
     # Raise an exception if no valid solution is found

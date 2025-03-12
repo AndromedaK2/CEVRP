@@ -40,12 +40,14 @@ class ACO:
         self.max_iteration_improvement_counter = self.max_iteration_improvement
         self._initialize_pheromones()
 
+
     def _initialize_pheromones(self):
         """
         Initialize all edges of the graph with a maximum pheromone value.
         """
         for edge in self.graph.edges:
             self.graph_api.set_edge_pheromones(edge[0], edge[1], self.max_pheromone_level)
+
 
     def find_shortest_path(self, start: str, num_ants: int) -> Tuple[List[str], float, List[Path]]:
         """
@@ -99,12 +101,14 @@ class ACO:
             )
             self.search_ants.append(ant)
 
+
     def _deploy_forward_search(self) -> None:
         """
         Deploy forward search ants in the graph.
         """
         for ant in self.search_ants:
             self._ant_exploration(ant)
+
 
     def _ant_exploration(self, ant: Ant):
         """
@@ -123,6 +127,7 @@ class ACO:
 
         # Update the best path based on the ant's exploration
         self._update_best_path(ant)
+
 
     def _update_best_path(self, ant: Ant):
         """
@@ -151,12 +156,14 @@ class ACO:
             if ant.is_fit:
                 ant.deposit_pheromones_on_paths()
 
+
     def _found_better_solution(self):
         if self.current_best_path_cost < self.last_best_path_cost:
             self.last_best_path_cost = self.current_best_path_cost
             self.max_iteration_improvement_counter = self.max_iteration_improvement
         else:
             self.max_iteration_improvement -= 1
+
 
     def _get_best_solution_found(self):
         value = 0
@@ -183,6 +190,7 @@ class ACO:
             self.best_path_cost,
             self.best_path
         )
+
 
     @staticmethod
     def _are_valid_paths(paths: List[Path]) -> bool:

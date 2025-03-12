@@ -30,7 +30,7 @@ def compute_edge_desirability(
     return pow(pheromone_value, alpha) * pow(1 / edge_cost, beta)
 
 
-def roulette_wheel_selection(probabilities: Dict[str, float]) -> str:
+def roulette_wheel_selection(probabilities: Dict[str, float], seed: int = 1234) -> str:
     """
     Selects an element based on probability in a roulette wheel fashion.
     source: https://en.wikipedia.org/wiki/Fitness_proportionate_selection
@@ -40,7 +40,10 @@ def roulette_wheel_selection(probabilities: Dict[str, float]) -> str:
 
     Returns:
         str: Selected element based on probability distribution.
+        :param probabilities:
+        :param seed:
     """
+    random.seed(seed)
     sorted_probabilities = dict(sorted(probabilities.items(), key=lambda item: -item[1]))
     pick = random.random()
     current = 0.0

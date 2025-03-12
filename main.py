@@ -5,7 +5,7 @@ from ALNS_METAHEURISTIC.destroy_operators import remove_charging_station, worst_
 from ALNS_METAHEURISTIC.make_alns import make_alns
 from ALNS_METAHEURISTIC.repair_operators import greedy_insertion, regret_k_insertion, best_feasible_insertion
 from ALNS_METAHEURISTIC.solution_state import CevrpState
-from Shared.config import config
+from Shared.config import Config
 from Shared.Utils.exceptions import NoSolutionFoundError
 from Shared.graph_api import GraphApi
 from Shared.heuristic import apply_2opt, apply_2opt_star, apply_node_shift
@@ -97,7 +97,7 @@ def compute_execution_params(instance_name: str) -> tuple:
     return exe_time_minutes, max_no_improve
 
 
-def solve_with_aco(cevrp: CEVRP, selected_file_instance:str, start_time_seconds) -> tuple:
+def solve_with_aco(cevrp: CEVRP, selected_file_instance:str, config_aco:Config, start_time_aco) -> tuple:
     """Solves the instance using ACO and returns the computed paths and cost."""
 
     # Step 1: Build the graph
@@ -106,16 +106,16 @@ def solve_with_aco(cevrp: CEVRP, selected_file_instance:str, start_time_seconds)
     graph = manager.build_graph()
 
     exe_time_minutes, max_no_improve = compute_execution_params(selected_file_instance)
-    stop_time = start_time + (exe_time_minutes * 60)  # Convert minutes to seconds
+    stop_time = start_time_aco + (exe_time_minutes * 60)  # Convert minutes to seconds
     # Step 2: Initialize ACO
-    aco = ACO(graph,max_ant_steps=config.max_ant_steps,
-        num_iterations=config.num_iterations, best_path_cost=cevrp.optimal_value,
-        cevrp=cevrp, max_iteration_improvement=max_no_improve, exec_time=stop_time,
-    )
+    aco = ACO(graph, max_ant_steps=config_aco.max_ant_steps,
+              num_iterations=config_aco.num_iterations, best_path_cost=cevrp.optimal_value,
+              cevrp=cevrp, max_iteration_improvement=max_no_improve, exec_time=stop_time,
+              )
 
     # Step 3: Solve the ACO routing problem
     flatten_paths, initial_cost, paths = aco.find_shortest_path(
-        start=config.default_source_node,
+        start=config_aco.default_source_node,
         num_ants=cevrp.num_ants,
     )
 
@@ -150,7 +150,7 @@ def solve_with_aco(cevrp: CEVRP, selected_file_instance:str, start_time_seconds)
     return (flatten_paths, optimized_cost, paths_node_shift), aco.graph_api
 
 
-def solve_with_alns(paths: List[Path], cevrp: CEVRP) -> tuple:
+def solve_with_alns(paths: List[Path], cevrp: CEVRP, config_alns:Config) -> tuple:
     """Applies ALNS to improve the routes found by ACO."""
     cevrp.add_charging_stations_to_nodes()
     manager = CoordinatesManager(cevrp.node_coord_section)
@@ -158,17 +158,19 @@ def solve_with_alns(paths: List[Path], cevrp: CEVRP) -> tuple:
     graph = manager.build_graph()
     graph_api = GraphApi(graph)
 
-    cevrp_state = CevrpState(paths, graph_api=graph_api, cevrp=cevrp, visualization=config.alns_visualization)
+    cevrp_state = CevrpState(paths, graph_api=graph_api, cevrp=cevrp, visualization=config_alns.alns_visualization)
     return make_alns(
         cevrp_state,
         destroy_operators=[remove_charging_station, worst_removal, cluster_removal],
         repair_operators=[greedy_insertion, regret_k_insertion, best_feasible_insertion],
-        num_iterations= config.alns_iterations,
+        num_iterations= config_alns.alns_iterations,
     ), graph_api
 
 
 if __name__ == '__main__':
     try:
+
+        config = Config.create_experiment_config()
         selected_file = select_instance(config.instance_files)
         print(f"Selected instance: {selected_file}")
 
@@ -188,7 +190,9 @@ if __name__ == '__main__':
 
         # Apply ALNS
         start_time = time.time()
-        (best_state, best_cost, best_paths, unassigned_nodes), alns_graph_api = solve_with_alns(aco_paths,                                                                              cevrp_instance)
+        (best_state, best_cost, best_paths, unassigned_nodes), alns_graph_api \
+            = solve_with_alns(aco_paths,cevrp_instance,config)
+
         execution_time = time.time() - start_time
         print(f"⏱ ALNS Optimization Execution time: {int(execution_time // 60)}m {execution_time % 60:.2f}s")
         print(f"ALNS - Final routes:\n{format_path(best_paths)}")

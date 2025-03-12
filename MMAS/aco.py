@@ -1,4 +1,5 @@
 import math
+import time
 from dataclasses import dataclass, field
 from typing import List, Tuple
 import networkx as nx
@@ -21,6 +22,8 @@ class ACO:
     best_path_cost: float = float('inf')
     second_best_path: List[Path] = field(default_factory=list)
     second_best_path_cost: float = float('inf')
+    current_best_path_cost: float = float('inf')
+    last_best_path_cost: float = float('inf')
     cevrp: CEVRP = field(default_factory=CEVRP)
     max_iteration_improvement: int = 100
     exec_time: float = 0.0
@@ -45,31 +48,8 @@ class ACO:
         Finds the shortest path from the start to the destination in the graph.
         """
         self._deploy_search_ants(start, num_ants)
+        return self._get_best_solution_found()
 
-        value = 0
-        if self.best_path.count != 0:
-            value = self.graph_api.calculate_paths_cost(self.best_path)
-
-        def are_equal(a: float, b: float) -> bool:
-            tolerance = 1e-12
-            if math.isinf(a) and math.isinf(b):
-                return True
-            return math.isclose(a, b, rel_tol=tolerance, abs_tol=tolerance)
-
-        if not self.best_path or not are_equal(value, self.best_path_cost):
-            if self.second_best_path and not math.isinf(self.second_best_path_cost):
-                return (
-                    self._flatten_path(self.second_best_path),
-                    self.second_best_path_cost,
-                    self.second_best_path
-                )
-            return [], float('inf'), []
-
-        return (
-            self._flatten_path(self.best_path),
-            self.best_path_cost,
-            self.best_path
-        )
 
     def _deploy_search_ants(self, start: str, num_ants: int) -> None:
         """
@@ -80,10 +60,19 @@ class ACO:
             num_ants (int): The number of ants to deploy.
         """
         for _ in range(self.num_iterations):
-          #  if self.max_iteration_improvement >= 0:
-                self._initialize_ants(start, num_ants)
-                self._deploy_forward_search()
-                self._deploy_backward_search()
+            self._initialize_ants(start, num_ants)
+            self._deploy_forward_search()
+            self._deploy_backward_search()
+            self._found_better_solution()
+
+            current_time = time.time()
+            elapsed_minutes = round((self.exec_time - current_time) / 60)
+
+            print(f"Rest time: {elapsed_minutes} minutes", end="\r", flush=True)
+
+            if self.max_iteration_improvement <= 0 or current_time >= self.exec_time:
+                break
+
 
     def _initialize_ants(self, start: str, num_ants: int):
         """
@@ -144,9 +133,11 @@ class ACO:
         if ant.path_cost < self.best_path_cost:
             self.second_best_path_cost, self.second_best_path = self.best_path_cost, self.best_path.copy()
             self.best_path_cost, self.best_path = ant.path_cost, ant.paths.copy()
+            self.current_best_path_cost = self.best_path_cost
             # ant.best_path_cost = ant.path_cost
         elif ant.path_cost < self.second_best_path_cost:
             self.second_best_path_cost, self.second_best_path = ant.path_cost, ant.paths.copy()
+            self.current_best_path_cost = self.second_best_path_cost
             # ant.best_path_cost = ant.path_cost
 
     def _deploy_backward_search(self) -> None:
@@ -156,6 +147,39 @@ class ACO:
         for ant in self.search_ants:
             if ant.is_fit:
                 ant.deposit_pheromones_on_paths()
+
+    def _found_better_solution(self):
+        if self.current_best_path_cost < self.last_best_path_cost:
+            self.last_best_path_cost = self.current_best_path_cost
+        else:
+            self.max_iteration_improvement -= 1
+
+    def _get_best_solution_found(self):
+        value = 0
+        if self.best_path.count != 0:
+            value = self.graph_api.calculate_paths_cost(self.best_path)
+
+        def are_equal(a: float, b: float) -> bool:
+            tolerance = 1e-12
+            if math.isinf(a) and math.isinf(b):
+                return True
+            return math.isclose(a, b, rel_tol=tolerance, abs_tol=tolerance)
+
+        if not self.best_path or not are_equal(value, self.best_path_cost):
+            if self.second_best_path and not math.isinf(self.second_best_path_cost):
+                return (
+                    self._flatten_path(self.second_best_path),
+                    self.second_best_path_cost,
+                    self.second_best_path
+                )
+            return [], float('inf'), []
+
+        return (
+            self._flatten_path(self.best_path),
+            self.best_path_cost,
+            self.best_path
+        )
+
 
     @staticmethod
     def _are_valid_paths(paths: List[Path]) -> bool:

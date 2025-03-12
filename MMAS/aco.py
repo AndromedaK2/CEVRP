@@ -1,8 +1,10 @@
+import itertools
 import math
 import time
 from dataclasses import dataclass, field
 from typing import List, Tuple
 import networkx as nx
+
 from MMAS.ant import Ant
 from Shared.cevrp import CEVRP
 from Shared.graph_api import GraphApi
@@ -194,4 +196,4 @@ class ACO:
         """
         Flatten the nodes in the provided paths into a single list
         """
-        return [node for path in paths for node in path.nodes]
+        return list(itertools.chain.from_iterable(path.nodes for path in paths))

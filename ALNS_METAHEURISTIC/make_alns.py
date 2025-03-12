@@ -90,7 +90,6 @@ def make_alns(
 
     result.plot_operator_counts()
     plt.subplots_adjust(left=0.4)
-    #plt.title("Operator Usage Frequency", fontsize=16)
     plt.show()
 
     # Extract the best solution state

@@ -353,25 +353,25 @@ def block_insertion_local_search(state: CevrpState, rng: Optional[np.random.Rand
         if path.nodes[-1] != depot:
             continue  # Ensure paths are well-formed
 
-        # Determine feasible block size (2 ≤ size ≤ min(4, len(path.nodes)-2))
-        max_block_size = min(4, len(path.nodes) - 2)
+        # Key Fix 1: Adjust max_block_size to prevent invalid indices
+        max_block_size = min(4, len(path.nodes) - 3)  # Was "-2", now "-3"
         if max_block_size < 2:
             continue
         block_size = rng.integers(2, max_block_size + 1)
 
-        # Select block start index (avoiding depot at 0 and end)
-        start_idx = rng.integers(1, len(path.nodes) - block_size - 1)
+        # Key Fix 2: Corrected high parameter for start_idx
+        start_idx = rng.integers(1, len(path.nodes) - block_size)
 
         # Extract block and create remaining nodes
         block = path.nodes[start_idx:start_idx + block_size]
         remaining_nodes = path.nodes[:start_idx] + path.nodes[start_idx + block_size:]
 
-        # Ensure the depot is preserved at the start and end
+        # Ensure the depot is preserved at start/end
         if remaining_nodes[0] != depot or remaining_nodes[-1] != depot:
             continue
 
-        # Choose insertion point in remaining nodes (avoiding depot at start and before last)
-        insert_idx = rng.integers(1, len(remaining_nodes) - 1)
+        # Key Fix 3: Corrected insertion index range
+        insert_idx = rng.integers(1, len(remaining_nodes))  # Removed "-1" from high
 
         # Reconstruct path with block inserted
         new_nodes = remaining_nodes[:insert_idx] + block + remaining_nodes[insert_idx:]
@@ -389,7 +389,6 @@ def block_insertion_local_search(state: CevrpState, rng: Optional[np.random.Rand
             path.nodes[:] = new_nodes
             path.path_cost = new_cost
             path.energy = new_energy
-
 
 def search_reverse_location_local_search(state: CevrpState, rng: Optional[np.random.RandomState] = None) -> None:
     """

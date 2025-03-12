@@ -104,18 +104,6 @@ class CEVRP:
             depot_section=depot_section
         )
 
-    @staticmethod
-    def drain_battery(current_battery: float, distance_cost: int, energy_consumption: float) -> float:
-        """
-        Reduces the remaining battery based on the distance cost and energy consumption.
-
-        :param current_battery: Current battery level.
-        :param distance_cost: Distance traveled.
-        :param energy_consumption: Energy consumption rate.
-        :return: Updated battery level.
-        """
-        new_current_battery = current_battery - (distance_cost * energy_consumption)
-        return max(0.0, new_current_battery)
 
     def add_charging_stations_to_nodes(self):
         """

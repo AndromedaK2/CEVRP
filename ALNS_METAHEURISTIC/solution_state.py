@@ -77,12 +77,10 @@ class CevrpState:
 
     def calculate_path_energy(self, nodes, charging_stations = None):
         """Calculates total energy usage for a path with resets at charging stations."""
+        stations = set(charging_stations or self.cevrp.charging_stations)
+        get_energy = self.get_edge_energy_consumption
         energy = 0
-        if charging_stations is None:
-            charging_stations = self.cevrp.charging_stations
-        for i in range(1, len(nodes)):
-            if nodes[i - 1] in charging_stations:
-                energy = 0
-            energy += self.get_edge_energy_consumption(nodes[i - 1], nodes[i])
-        return energy
 
+        for prev, curr in zip(nodes, nodes[1:]):
+            energy = get_energy(prev, curr) if prev in stations else energy + get_energy(prev, curr)
+        return energy

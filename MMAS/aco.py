@@ -26,6 +26,7 @@ class ACO:
     last_best_path_cost: float = float('inf')
     cevrp: CEVRP = field(default_factory=CEVRP)
     max_iteration_improvement: int = 100
+    max_iteration_improvement_counter: int = 0
     exec_time: float = 0.0
     use_route_construction: bool = False
 
@@ -34,6 +35,7 @@ class ACO:
         if not self.graph:
             raise ValueError("Graph must be provided.")
         self.graph_api = GraphApi(self.graph)
+        self.max_iteration_improvement_counter = self.max_iteration_improvement
         self._initialize_pheromones()
 
     def _initialize_pheromones(self):
@@ -70,7 +72,7 @@ class ACO:
 
             print(f"Rest time: {elapsed_minutes} minutes", end="\r", flush=True)
 
-            if self.max_iteration_improvement <= 0 or current_time >= self.exec_time:
+            if self.max_iteration_improvement_counter <= 0 or current_time >= self.exec_time:
                 break
 
 
@@ -112,7 +114,6 @@ class ACO:
 
         for _ in range(self.max_ant_steps):
             ant.take_step()  # Use step-by-step exploration strategy
-            # Stop Criteria:
             if ant.reached_destination(self.use_route_construction):
                 if self._are_valid_paths(ant.paths):
                     ant.is_fit = True
@@ -133,12 +134,10 @@ class ACO:
         if ant.path_cost < self.best_path_cost:
             self.second_best_path_cost, self.second_best_path = self.best_path_cost, self.best_path.copy()
             self.best_path_cost, self.best_path = ant.path_cost, ant.paths.copy()
-            self.current_best_path_cost = self.best_path_cost
-            # ant.best_path_cost = ant.path_cost
         elif ant.path_cost < self.second_best_path_cost:
             self.second_best_path_cost, self.second_best_path = ant.path_cost, ant.paths.copy()
             self.current_best_path_cost = self.second_best_path_cost
-            # ant.best_path_cost = ant.path_cost
+
 
     def _deploy_backward_search(self) -> None:
         """
@@ -151,6 +150,7 @@ class ACO:
     def _found_better_solution(self):
         if self.current_best_path_cost < self.last_best_path_cost:
             self.last_best_path_cost = self.current_best_path_cost
+            self.max_iteration_improvement_counter = self.max_iteration_improvement
         else:
             self.max_iteration_improvement -= 1
 

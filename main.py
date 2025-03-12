@@ -78,16 +78,18 @@ def compute_execution_params(instance_name: str) -> tuple:
 
     # Determine problem category and theta value
     if 22 <= dimension <= 101:
+        max_no_improve = 1000
         theta = 1
-        max_no_improve = 500  # Small instances
     elif 143 <= dimension <= 916:
         theta = 2
-        max_no_improve = 250  # Medium instances
+        max_no_improve = 100  # Small instances
     elif dimension == 1001:
+        max_no_improve = 100  # Small instances
         theta = 3
-        max_no_improve = 100  # Large instances
     else:
         raise ValueError("Instance dimension out of expected range.")
+
+
 
     # Compute execution time in whole minutes
     exe_time_minutes = round((theta * dimension / 100) * 60)

@@ -2,7 +2,8 @@ import math
 import random
 from typing import Dict
 
-
+DEFAULT_PR = 0.05
+MIN_CUSTOMERS = 2
 
 
 
@@ -27,7 +28,7 @@ def compute_edge_desirability(
     return pow(pheromone_value, alpha) * pow(1 / edge_cost, beta)
 
 
-def roulette_wheel_selection(probabilities: Dict[str, float], seed: int = 1234) -> str:
+def roulette_wheel_selection(probabilities: Dict[str, float]) -> str:
     """
     Selects an element based on probability in a roulette wheel fashion.
     source: https://en.wikipedia.org/wiki/Fitness_proportionate_selection
@@ -38,9 +39,7 @@ def roulette_wheel_selection(probabilities: Dict[str, float], seed: int = 1234) 
     Returns:
         str: Selected element based on probability distribution.
         :param probabilities:
-        :param seed:
     """
-    random.seed(seed)
     sorted_probabilities = dict(sorted(probabilities.items(), key=lambda item: -item[1]))
     pick = random.random()
     current = 0.0
@@ -82,7 +81,7 @@ def calculate_max_phi(evaporation_rate: float, best_path_cost: float) -> float:
     return 1 / ((1 - evaporation_rate) * best_path_cost)
 
 
-def calculate_min_phi(max_level: float, total_customers: int, pr: float = 0.05) -> float:
+def calculate_min_phi(max_level: float, total_customers: int, pr: float = DEFAULT_PR) -> float:
     """
     Calculates φmin using the n-th root of pr.
 
@@ -94,7 +93,7 @@ def calculate_min_phi(max_level: float, total_customers: int, pr: float = 0.05) 
     Returns:
         float: Calculated value of φmin.
     """
-    if total_customers <= 2:
+    if total_customers <= MIN_CUSTOMERS:
         raise ValueError("The value of n must be greater than 2.")
     if not 0 < pr <= 1:
         raise ValueError("The value of pr must be in the range (0, 1].")
@@ -122,3 +121,4 @@ def calculate_pheromone_value(evaporation_rate: float, pheromone_value: float, b
     max_level = calculate_max_phi(evaporation_rate, best_path_cost)
     min_level = calculate_min_phi(max_level, total_customers)
     return validate_pheromone_levels(new_value, max_level, min_level)
+

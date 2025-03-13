@@ -11,8 +11,8 @@ from Shared.path import Path
 class Ant:
     graph_api: GraphApi
     source: str
-    alpha: float = 0.7
-    beta: float = 0.3
+    alpha: float = 1.0
+    beta: float = 2.0
     evaporation_rate: float = 0.98
     visited_nodes: Set[str] = field(default_factory=set)
     path: Path = field(default_factory=Path)

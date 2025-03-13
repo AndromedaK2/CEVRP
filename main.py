@@ -85,6 +85,10 @@ def solve_with_alns(paths: List[Path], cevrp: CEVRP, config_alns:Config) -> tupl
         destroy_operators=[remove_charging_station, worst_removal, cluster_removal],
         repair_operators=[greedy_insertion, regret_k_insertion, best_feasible_insertion],
         num_iterations= config_alns.alns_iterations,
+        rw_decay=config_alns.rw_decay,
+        rw_weights=config_alns.rw_weights,
+        autofit_end_threshold=config_alns.autofit_end_threshold,
+        autofit_start_threshold=config_alns.autofit_start_threshold,
     ), graph_api
 
 

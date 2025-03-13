@@ -2,11 +2,8 @@ import math
 import random
 from typing import Dict
 
-DEFAULT_PR = 0.05
-MIN_CUSTOMERS = 2
-PHEROMONE_RANGE_ERROR = "The value of rho must be in the range (0, 1)."
-CUSTOMERS_ERROR = "The value of n must be greater than 2."
-PR_ERROR = "The value of pr must be in the range (0, 1]."
+
+
 
 
 def compute_edge_desirability(
@@ -81,11 +78,11 @@ def calculate_max_phi(evaporation_rate: float, best_path_cost: float) -> float:
         float: Calculated value of φmax.
     """
     if not 0 < evaporation_rate < 1:
-        raise ValueError(PHEROMONE_RANGE_ERROR)
+        raise ValueError("The value of rho must be in the range (0, 1).")
     return 1 / ((1 - evaporation_rate) * best_path_cost)
 
 
-def calculate_min_phi(max_level: float, total_customers: int, pr: float = DEFAULT_PR) -> float:
+def calculate_min_phi(max_level: float, total_customers: int, pr: float = 0.05) -> float:
     """
     Calculates φmin using the n-th root of pr.
 
@@ -97,10 +94,10 @@ def calculate_min_phi(max_level: float, total_customers: int, pr: float = DEFAUL
     Returns:
         float: Calculated value of φmin.
     """
-    if total_customers <= MIN_CUSTOMERS:
-        raise ValueError(CUSTOMERS_ERROR)
+    if total_customers <= 2:
+        raise ValueError("The value of n must be greater than 2.")
     if not 0 < pr <= 1:
-        raise ValueError(PR_ERROR)
+        raise ValueError("The value of pr must be in the range (0, 1].")
     nth_root_pr = math.pow(pr, 1 / total_customers)
     numerator = 1 - (1 / nth_root_pr)
     denominator = (total_customers / 2) - 1

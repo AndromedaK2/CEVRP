@@ -47,7 +47,7 @@ CUSTOMERS: List[int] = [
 NUM_ITERATIONS: int = 50
 MAX_ITERATION_IMPROVEMENT: int = 5
 ALNS_ITERATIONS: int = 200
-CUSTOMER_LIKE_ANT: bool = False
+CUSTOMER_LIKE_ANT: bool = True
 
 # Dont Touch
 MAX_ANT_STEPS: int = 10000
@@ -89,12 +89,12 @@ class Experiment:
                 max_iteration_improvement=MAX_ITERATION_IMPROVEMENT,
                 # VARIABLES
                 num_ants= get_num_ants(cevrp_instance) if CUSTOMER_LIKE_ANT else 240 ,
-                num_iterations=600,
+                num_iterations=80,
                 rw_weights=[25, 5, 1, 0.5],
                 rw_decay=0.8,
                 autofit_start_threshold=0.02,
                 autofit_end_threshold=0,
-                alns_iterations=10,
+                alns_iterations=30,
             )
         elif EXPERIMENT_TYPE == "optimized":
             return Experiment(
@@ -102,13 +102,13 @@ class Experiment:
                 max_ant_steps=MAX_ANT_STEPS,
                 max_iteration_improvement=MAX_ITERATION_IMPROVEMENT,
                 # VARIABLES
-                num_ants= get_num_ants(cevrp_instance) if CUSTOMER_LIKE_ANT else 500 ,
+                num_ants= get_num_ants(cevrp_instance) if CUSTOMER_LIKE_ANT else 120 ,
                 num_iterations=600,
                 rw_weights=[10, 5, 1, 0.5],
                 rw_decay=0.8,
                 autofit_start_threshold=0.02,
                 autofit_end_threshold=0,
-                alns_iterations=80,
+                alns_iterations=300,
             )
         elif EXPERIMENT_TYPE == "custom":
             return Experiment(

@@ -50,6 +50,10 @@ class Config:
     aco_visualization: bool
     alns_iterations: int
     alns_visualization: bool
+    rw_weights: List[int]
+    rw_decay: float
+    autofit_start_threshold: float
+    autofit_end_threshold: float
 
     @staticmethod
     def create_experiment_config() -> "Config":
@@ -60,11 +64,15 @@ class Config:
                 default_source_node=DEFAULT_SOURCE_NODE,
                 num_ants=NUM_ANTS,
                 max_ant_steps=MAX_ANT_STEPS,
+                max_iteration_improvement=MAX_ITERATION_IMPROVEMENT,
                 # VARIABLES
                 num_iterations=50,
-                max_iteration_improvement=MAX_ITERATION_IMPROVEMENT,
+                rw_weights=[25,5,1,0.5],
+                rw_decay=0.8,
+                autofit_start_threshold=0.02,
+                autofit_end_threshold = 0,
                 aco_visualization=ACO_VISUALIZATION,
-                alns_iterations=ALNS_ITERATIONS,
+                alns_iterations=10,
                 alns_visualization=ALNS_VISUALIZATION,
             )
         elif EXPERIMENT_TYPE == "optimized":
@@ -74,11 +82,15 @@ class Config:
                 default_source_node=DEFAULT_SOURCE_NODE,
                 num_ants=NUM_ANTS,
                 max_ant_steps=MAX_ANT_STEPS,
-                # VARIABLES
-                num_iterations=NUM_ITERATIONS,
                 max_iteration_improvement=MAX_ITERATION_IMPROVEMENT,
+                # VARIABLES
+                num_iterations=100,
+                rw_weights=[25,5,1,0.5],
+                rw_decay=0.8,
+                autofit_start_threshold=0.02,
+                autofit_end_threshold = 0,
                 aco_visualization=ACO_VISUALIZATION,
-                alns_iterations=ALNS_ITERATIONS,
+                alns_iterations=80,
                 alns_visualization=ALNS_VISUALIZATION,
             )
         elif EXPERIMENT_TYPE == "custom":
@@ -88,9 +100,13 @@ class Config:
                 default_source_node=DEFAULT_SOURCE_NODE,
                 num_ants=NUM_ANTS,
                 max_ant_steps=MAX_ANT_STEPS,
-                # VARIABLES
-                num_iterations=NUM_ITERATIONS,
                 max_iteration_improvement=MAX_ITERATION_IMPROVEMENT,
+                # VARIABLES
+                num_iterations=50,
+                rw_weights=[25,5,1,0.5],
+                rw_decay=0.8,
+                autofit_start_threshold=0.02,
+                autofit_end_threshold = 0,
                 aco_visualization=ACO_VISUALIZATION,
                 alns_iterations=ALNS_ITERATIONS,
                 alns_visualization=ALNS_VISUALIZATION,
@@ -102,7 +118,11 @@ class Config:
             num_ants=NUM_ANTS,
             max_ant_steps=MAX_ANT_STEPS,
             # VARIABLES
-            num_iterations=NUM_ITERATIONS,
+            num_iterations=50,
+            rw_weights=[25, 5, 1, 0.5],
+            rw_decay=0.8,
+            autofit_start_threshold=0.02,
+            autofit_end_threshold=0,
             max_iteration_improvement=MAX_ITERATION_IMPROVEMENT,
             aco_visualization=ACO_VISUALIZATION,
             alns_iterations=ALNS_ITERATIONS,
@@ -110,14 +130,16 @@ class Config:
         )
 
 
-config = Config(
-    instance_files=INSTANCE_FILES,
-    default_source_node=DEFAULT_SOURCE_NODE,
-    num_ants=NUM_ANTS,
-    max_ant_steps=MAX_ANT_STEPS,
-    num_iterations=NUM_ITERATIONS,
-    alns_iterations=ALNS_ITERATIONS,
-    alns_visualization=ALNS_VISUALIZATION,
-    aco_visualization=ACO_VISUALIZATION,
-    max_iteration_improvement=MAX_ITERATION_IMPROVEMENT,
-)
+
+# config = Config(
+#     instance_files=INSTANCE_FILES,
+#     default_source_node=DEFAULT_SOURCE_NODE,
+#     num_ants=NUM_ANTS,
+#     max_ant_steps=MAX_ANT_STEPS,
+#     num_iterations=NUM_ITERATIONS,
+#     alns_iterations=ALNS_ITERATIONS,
+#     alns_visualization=ALNS_VISUALIZATION,
+#     aco_visualization=ACO_VISUALIZATION,
+#     max_iteration_improvement=MAX_ITERATION_IMPROVEMENT,
+# )
+

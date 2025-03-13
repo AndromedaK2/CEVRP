@@ -390,6 +390,7 @@ def block_insertion_local_search(state: CevrpState, rng: Optional[np.random.Rand
             path.path_cost = new_cost
             path.energy = new_energy
 
+
 def search_reverse_location_local_search(state: CevrpState, rng: Optional[np.random.RandomState] = None) -> None:
     """
     Applies a reverse location heuristic to improve routes in CEVRP.

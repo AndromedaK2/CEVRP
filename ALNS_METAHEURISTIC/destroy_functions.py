@@ -2,7 +2,7 @@ from typing import List, Optional
 from scipy.spatial import distance
 
 from ALNS_METAHEURISTIC.solution_state import CevrpState
-from Shared.config import config
+from Shared.experiment import config
 from Shared.path import Path
 
 

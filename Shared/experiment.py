@@ -1,6 +1,9 @@
 from typing import List
 from dataclasses import dataclass
 
+from Shared.cevrp import CEVRP
+
+#Const
 INSTANCE_FILES: List[str] = [
     "Shared/Instances/E-n22-k4.evrp",
     "Shared/Instances/E-n23-k3.evrp",
@@ -20,12 +23,31 @@ INSTANCE_FILES: List[str] = [
     "Shared/Instances/X-n916-k207.evrp",
     "Shared/Instances/X-n1001-k43.evrp"
 ]
+CUSTOMERS: List[int] = [
+    23,
+    24,
+    31,
+    34,
+    52,
+    76,
+    102,
+    144,
+    215,
+    352,
+    460,
+    574,
+    686,
+    750,
+    820,
+    917,
+    1002
+]
 
 # Without use
-NUM_ANTS: int = 30
 NUM_ITERATIONS: int = 50
 MAX_ITERATION_IMPROVEMENT: int = 5
 ALNS_ITERATIONS: int = 200
+CUSTOMER_LIKE_ANT: bool = False
 
 # Dont Touch
 MAX_ANT_STEPS: int = 10000
@@ -38,82 +60,72 @@ EXPERIMENT_TYPE = "baseline"
 
 
 @dataclass
-class Config:
-    instance_files: List[str]
-    default_source_node: str
+class Experiment:
     num_ants: int
     max_ant_steps: int
     num_iterations: int
     max_iteration_improvement: int
-    aco_visualization: bool
     alns_iterations: int
-    alns_visualization: bool
     rw_weights: List[int]
     rw_decay: float
     autofit_start_threshold: float
     autofit_end_threshold: float
 
+
+
     @staticmethod
-    def create_experiment_config() -> "Config":
+    def create_experiment_config(cevrp_instance:CEVRP) -> "Experiment":
+
+
+        def get_num_ants(cevrp:CEVRP):
+            num_ants = len(cevrp.node_coord_section) + 1
+            return num_ants
+
+
         if EXPERIMENT_TYPE == "baseline":
-            return Config(
+            return Experiment(
                 # CONSTANTS
-                instance_files=INSTANCE_FILES,
-                default_source_node=DEFAULT_SOURCE_NODE,
-                num_ants=NUM_ANTS,
                 max_ant_steps=MAX_ANT_STEPS,
                 max_iteration_improvement=MAX_ITERATION_IMPROVEMENT,
                 # VARIABLES
-                num_iterations=50,
+                num_ants= get_num_ants(cevrp_instance) if CUSTOMER_LIKE_ANT else 240 ,
+                num_iterations=600,
                 rw_weights=[25, 5, 1, 0.5],
                 rw_decay=0.8,
                 autofit_start_threshold=0.02,
                 autofit_end_threshold=0,
-                aco_visualization=ACO_VISUALIZATION,
                 alns_iterations=10,
-                alns_visualization=ALNS_VISUALIZATION,
             )
         elif EXPERIMENT_TYPE == "optimized":
-            return Config(
+            return Experiment(
                 # CONSTANTS
-                instance_files=INSTANCE_FILES,
-                default_source_node=DEFAULT_SOURCE_NODE,
-                num_ants=NUM_ANTS,
                 max_ant_steps=MAX_ANT_STEPS,
                 max_iteration_improvement=MAX_ITERATION_IMPROVEMENT,
                 # VARIABLES
-                num_iterations=100,
-                rw_weights=[25, 5, 1, 0.5],
+                num_ants= get_num_ants(cevrp_instance) if CUSTOMER_LIKE_ANT else 500 ,
+                num_iterations=600,
+                rw_weights=[10, 5, 1, 0.5],
                 rw_decay=0.8,
                 autofit_start_threshold=0.02,
                 autofit_end_threshold=0,
-                aco_visualization=ACO_VISUALIZATION,
                 alns_iterations=80,
-                alns_visualization=ALNS_VISUALIZATION,
             )
         elif EXPERIMENT_TYPE == "custom":
-            return Config(
+            return Experiment(
                 # CONSTANTS
-                instance_files=INSTANCE_FILES,
-                default_source_node=DEFAULT_SOURCE_NODE,
-                num_ants=NUM_ANTS,
                 max_ant_steps=MAX_ANT_STEPS,
                 max_iteration_improvement=MAX_ITERATION_IMPROVEMENT,
                 # VARIABLES
                 num_iterations=50,
+                num_ants= get_num_ants(cevrp_instance) if CUSTOMER_LIKE_ANT else 500 ,
                 rw_weights=[25, 5, 1, 0.5],
                 rw_decay=0.8,
                 autofit_start_threshold=0.02,
                 autofit_end_threshold=0,
-                aco_visualization=ACO_VISUALIZATION,
                 alns_iterations=ALNS_ITERATIONS,
-                alns_visualization=ALNS_VISUALIZATION,
             )
-        return Config(
-            # CONSTANTS
-            instance_files=INSTANCE_FILES,
-            default_source_node=DEFAULT_SOURCE_NODE,
-            num_ants=NUM_ANTS,
+        return Experiment(
+            num_ants=get_num_ants(cevrp_instance),
             max_ant_steps=MAX_ANT_STEPS,
             # VARIABLES
             num_iterations=50,
@@ -122,24 +134,21 @@ class Config:
             autofit_start_threshold=0.02,
             autofit_end_threshold=0,
             max_iteration_improvement=MAX_ITERATION_IMPROVEMENT,
-            aco_visualization=ACO_VISUALIZATION,
             alns_iterations=ALNS_ITERATIONS,
-            alns_visualization=ALNS_VISUALIZATION,
         )
 
+
+@dataclass
+class Config:
+    instance_files: List[str]
+    default_source_node: str
+    customers: List[int]
+    aco_visualization: bool
+    alns_visualization: bool
 
 config = Config(
     instance_files=INSTANCE_FILES,
     default_source_node=DEFAULT_SOURCE_NODE,
-    num_ants=NUM_ANTS,
-    max_ant_steps=MAX_ANT_STEPS,
-    num_iterations=NUM_ITERATIONS,
-    alns_iterations=ALNS_ITERATIONS,
-    alns_visualization=ALNS_VISUALIZATION,
+    customers=CUSTOMERS,
     aco_visualization=ACO_VISUALIZATION,
-    max_iteration_improvement=MAX_ITERATION_IMPROVEMENT,
-    rw_weights=[25, 5, 1, 0.5],
-    rw_decay=0.8,
-    autofit_start_threshold=0.02,
-    autofit_end_threshold=0,
-)
+    alns_visualization=ALNS_VISUALIZATION)

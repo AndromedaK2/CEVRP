@@ -3,7 +3,7 @@ from typing import Optional
 
 from ALNS_METAHEURISTIC.solution_state import CevrpState
 from ALNS_METAHEURISTIC.repair_functions import find_best_charging_station, are_paths_depot_constrained
-from Shared.config import config
+from Shared.experiment import config
 from Shared.path import Path
 
 

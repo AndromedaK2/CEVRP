@@ -1,7 +1,7 @@
 from typing import List
 
 from ALNS_METAHEURISTIC.solution_state import CevrpState
-from Shared.config import config
+from Shared.experiment import config
 from Shared.path import Path
 
 

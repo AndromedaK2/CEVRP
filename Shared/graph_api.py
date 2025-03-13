@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import List, Dict
 from itertools import cycle
 
-from Shared.config import config
+from Shared.experiment import config
 from Shared.path import Path
 from collections import defaultdict, deque
 

@@ -5,7 +5,7 @@ from sklearn.cluster import MiniBatchKMeans
 
 from ALNS_METAHEURISTIC.destroy_functions import is_path_valid, update_path, find_closest_customer
 from ALNS_METAHEURISTIC.solution_state import CevrpState
-from Shared.config import config
+from Shared.experiment import config
 from Shared.path import Path
 
 

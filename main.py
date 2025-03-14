@@ -1,3 +1,4 @@
+import os
 import time
 from typing import List
 
@@ -44,26 +45,27 @@ def solve_with_aco(cevrp: CEVRP, selected_file_instance:str, experiment_aco:Expe
     if not flatten_paths and initial_cost == float('inf') and not paths:
         raise NoSolutionFoundError("ACO did not find a valid solution.")
 
+
     # Step 4: Visualize the routes BEFORE optimization
-    aco.graph_api.visualize_graph(paths, cevrp.charging_stations, f"Initial Routes - {cevrp.name}")
+    aco.graph_api.visualize_graph(paths, cevrp.charging_stations, f"Initial Routes - {cevrp.name}", experiment_aco.directory_path)
 
     # Step 5: Apply 2-opt Optimization
     paths_2opt = [apply_2opt(path, aco.graph_api) for path in paths]
 
     # Step 6: Visualize the routes AFTER 2-opt
-    aco.graph_api.visualize_graph(paths_2opt, cevrp.charging_stations, f"After 2-opt - {cevrp.name}")
+    aco.graph_api.visualize_graph(paths_2opt, cevrp.charging_stations, f"After 2-opt - {cevrp.name}",experiment_aco.directory_path)
 
     # Step 7: Apply 2-opt-star Optimization
     paths_2opt_star = apply_2opt_star(paths_2opt, aco.graph_api, cevrp)
 
     # Step 8: Visualize the routes AFTER 2-opt-star
-    aco.graph_api.visualize_graph(paths_2opt_star, cevrp.charging_stations, f"After 2-opt-star - {cevrp.name}")
+    aco.graph_api.visualize_graph(paths_2opt_star, cevrp.charging_stations, f"After 2-opt-star - {cevrp.name}",experiment_aco.directory_path)
 
     # Step 9: Apply node-shift Optimization
     paths_node_shift = apply_node_shift(paths_2opt_star, aco.graph_api, cevrp)
 
     # Step 10: Visualize the routes AFTER 2-opt
-    aco.graph_api.visualize_graph(paths_node_shift, cevrp.charging_stations, f"After node-shift - {cevrp.name}")
+    aco.graph_api.visualize_graph(paths_node_shift, cevrp.charging_stations, f"After node-shift - {cevrp.name}",experiment_aco.directory_path)
 
     # Step 11: Compute optimized cost only if paths changed
     optimized_cost = aco.graph_api.calculate_paths_cost(paths_node_shift) if paths_node_shift != paths else initial_cost
@@ -89,6 +91,7 @@ def solve_with_alns(paths: List[Path], cevrp: CEVRP, experiment_alns:Experiment)
         rw_weights=experiment_alns.rw_weights,
         autofit_end_threshold=experiment_alns.autofit_end_threshold,
         autofit_start_threshold=experiment_alns.autofit_start_threshold,
+        directory_path=experiment_alns.directory_path
     ), graph_api
 
 
@@ -96,11 +99,19 @@ if __name__ == '__main__':
     try:
 
         selected_file = select_instance(config.instance_files)
-        print(f"Selected instance: {selected_file}")
+
+
         cevrp_instance = create_cevrp_instance(selected_file)
+        experiment = Experiment.create_experiment_config(cevrp_instance,selected_file)
+        log_filename = os.path.join(experiment.directory_path, "execution_log.txt")
 
-        experiment = Experiment.create_experiment_config(cevrp_instance)
+        def log(message):
+            print(message)
+            with open(log_filename, "a", encoding="utf-8") as log_file:
+                log_file.write("\n" + message + "\n")
 
+
+        log(f"Selected instance: {selected_file}")
 
         # Solve using ACO
         start_time = time.time()
@@ -108,22 +119,24 @@ if __name__ == '__main__':
             cevrp_instance, selected_file, experiment, start_time)
 
         execution_time = time.time() - start_time
-        print(f"⏱ ACO Solution Execution time: {int(execution_time // 60)}m {execution_time % 60:.2f}s")
-        print(f"ACO - Initial routes:\n{format_path(aco_paths)}")
-        print(f"ACO - Initial total cost: {aco_cost}")
-        aco_graph_api.visualize_graph(aco_paths, cevrp_instance.charging_stations, cevrp_instance.name)
+        log(f"⏱ ACO Solution Execution time: {int(execution_time // 60)}m {execution_time % 60:.2f}s")
+        log(f"ACO - Initial routes:\n{format_path(aco_paths)}")
+        log(f"ACO - Initial total cost: {aco_cost}")
 
         # Apply ALNS
         start_time = time.time()
-        (best_state, best_cost, best_paths, unassigned_nodes), alns_graph_api \
-            = solve_with_alns(aco_paths, cevrp_instance, experiment)
+        (best_state, best_cost, best_paths, unassigned_nodes), alns_graph_api = solve_with_alns(aco_paths,
+                                                                                                cevrp_instance,
+                                                                                                experiment)
 
         execution_time = time.time() - start_time
-        print(f"⏱ ALNS Optimization Execution time: {int(execution_time // 60)}m {execution_time % 60:.2f}s")
-        print(f"ALNS - Final routes:\n{format_path(best_paths)}")
-        print(f"ALNS - Final total cost: {best_cost}")
+        log(f"⏱ ALNS Optimization Execution time: {int(execution_time // 60)}m {execution_time % 60:.2f}s")
+        log(f"ALNS - Final routes:\n{format_path(best_paths)}")
+        log(f"ALNS - Final total cost: {best_cost}")
+        log(f"================================================================================================")
 
-        alns_graph_api.visualize_graph(best_paths, cevrp_instance.charging_stations, cevrp_instance.name)
+        alns_graph_api.visualize_graph(best_paths, cevrp_instance.charging_stations, cevrp_instance.name, experiment.directory_path)
+
 
     except NoSolutionFoundError as e:
         print(e)

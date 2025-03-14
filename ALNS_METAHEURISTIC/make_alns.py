@@ -4,7 +4,7 @@ from alns.accept import RecordToRecordTravel
 from alns.select import RouletteWheel
 from alns.stop import MaxIterations
 from matplotlib import pyplot as plt, colors
-
+import uuid
 from ALNS_METAHEURISTIC.destroy_operators import remove_overcapacity_nodes
 from ALNS_METAHEURISTIC.repair_functions import insert_charging_stations_after_each_node
 from ALNS_METAHEURISTIC.repair_operators import smart_reinsertion
@@ -21,11 +21,13 @@ def make_alns(
     rw_weights: list = None,
     rw_decay: float = 0.8,
     autofit_start_threshold: float = 0.02,
-    autofit_end_threshold: float = 0
+    autofit_end_threshold: float = 0,
+    directory_path: str = ""
 ) -> tuple :
     """
     Configures and runs the ALNS algorithm for the CEVRP problem.
 
+    :param directory_path: Directory path to save experiments
     :param initial_state: Initial solution state for the CEVRP problem.
     :param num_iterations: Maximum number of iterations for the algorithm.
     :param destroy_operators: List of destroy operators to use.
@@ -86,7 +88,9 @@ def make_alns(
     ax.yaxis.set_tick_params(labelsize=14)
 
     plt.title("Objective Value Progress", fontsize=16)
-    plt.show()
+    plt.show(block=False)
+
+    plt.savefig(f"./{directory_path}/operator_count-{result.best_state.objective()}.png")
 
     fig, ax = plt.subplots(figsize=(12, 12))
 
@@ -101,7 +105,9 @@ def make_alns(
         bottom=0.1
     )
 
-    plt.show()
+    plt.show(block=False)
+
+    plt.savefig(f"./{directory_path}/objective_value_progress-{result.best_state.objective()}.png")
 
     # Extract the best solution state
     best_state = result.best_state

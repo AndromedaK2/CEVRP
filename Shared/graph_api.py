@@ -1,4 +1,5 @@
 import operator
+import os
 from dataclasses import dataclass
 from typing import List, Dict
 from itertools import cycle
@@ -88,9 +89,9 @@ class GraphApi:
         # Incremental cost
         return insertion_cost - original_cost
 
-
-    def visualize_graph(self, paths: List[Path], charging_stations, name: str) -> None:
+    def visualize_graph(self, paths: List[Path], charging_stations, name: str, directory_path="") -> None:
         """Enhanced interactive visualization of the graph using Plotly with custom styling."""
+
         # Get node positions
         node_positions = nx.get_node_attributes(self.graph, "pos")
         if not node_positions:
@@ -141,13 +142,17 @@ class GraphApi:
                            opacity=0.8,
                            name=f'Path {idx + 1}'))
 
+        total_cost = sum(path.path_cost for path in paths)
+
         # Set layout with enhanced aesthetics
-        fig.update_layout(title=f"{name} - Total Cost: {sum(path.path_cost for path in paths):.2f}",
+        fig.update_layout(title=f"{name} - Total Cost: {total_cost:.2f}",
                           xaxis=dict(title='X-axis', showgrid=True, zeroline=False),
                           yaxis=dict(title='Y-axis', showgrid=True, zeroline=False),
                           plot_bgcolor='rgba(240,240,240,0.9)',
                           showlegend=True)
-
+        final_path = f"./{directory_path}/{name}-{total_cost}.html"
+        os.makedirs(os.path.dirname(final_path), exist_ok=True)
+        fig.write_html(final_path)
         fig.show()
 
     def calculate_path_cost(self, nodes: list[str]) -> float:

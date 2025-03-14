@@ -43,11 +43,13 @@ CUSTOMERS: List[int] = [
     1002
 ]
 
+
+
 # Without use
 NUM_ITERATIONS: int = 50
 MAX_ITERATION_IMPROVEMENT: int = 5
 ALNS_ITERATIONS: int = 200
-CUSTOMER_LIKE_ANT: bool = True
+CUSTOMER_LIKE_ANT: bool = False
 
 # Dont Touch
 MAX_ANT_STEPS: int = 10000
@@ -56,7 +58,7 @@ DEFAULT_SOURCE_NODE: str = "1"
 # Variable
 ACO_VISUALIZATION: bool = False
 ALNS_VISUALIZATION: bool = False
-EXPERIMENT_TYPE = "baseline"
+EXPERIMENT_TYPE = "optimized"
 
 
 @dataclass
@@ -70,17 +72,21 @@ class Experiment:
     rw_decay: float
     autofit_start_threshold: float
     autofit_end_threshold: float
+    directory_path:str
 
 
 
     @staticmethod
-    def create_experiment_config(cevrp_instance:CEVRP) -> "Experiment":
+    def create_experiment_config(cevrp_instance:CEVRP, selected_file:str) -> "Experiment":
 
 
         def get_num_ants(cevrp:CEVRP):
             num_ants = len(cevrp.node_coord_section) + 1
             return num_ants
 
+
+        selected_file_path = selected_file.replace("Shared/Instances/", "").replace(".evrp", "")
+        directory_path = f"experiments/{EXPERIMENT_TYPE}/{selected_file_path}"
 
         if EXPERIMENT_TYPE == "baseline":
             return Experiment(
@@ -95,6 +101,7 @@ class Experiment:
                 autofit_start_threshold=0.02,
                 autofit_end_threshold=0,
                 alns_iterations=30,
+                directory_path=directory_path
             )
         elif EXPERIMENT_TYPE == "optimized":
             return Experiment(
@@ -102,13 +109,14 @@ class Experiment:
                 max_ant_steps=MAX_ANT_STEPS,
                 max_iteration_improvement=MAX_ITERATION_IMPROVEMENT,
                 # VARIABLES
-                num_ants= get_num_ants(cevrp_instance) if CUSTOMER_LIKE_ANT else 120 ,
-                num_iterations=600,
-                rw_weights=[10, 5, 1, 0.5],
+                num_ants= get_num_ants(cevrp_instance) if CUSTOMER_LIKE_ANT else 10 ,
+                num_iterations=10,
+                rw_weights=[8, 5, 1, 0.5],
                 rw_decay=0.8,
                 autofit_start_threshold=0.02,
                 autofit_end_threshold=0,
-                alns_iterations=300,
+                alns_iterations=50,
+                directory_path=directory_path
             )
         elif EXPERIMENT_TYPE == "custom":
             return Experiment(
@@ -123,6 +131,7 @@ class Experiment:
                 autofit_start_threshold=0.02,
                 autofit_end_threshold=0,
                 alns_iterations=ALNS_ITERATIONS,
+                directory_path=directory_path
             )
         return Experiment(
             num_ants=get_num_ants(cevrp_instance),
@@ -135,6 +144,7 @@ class Experiment:
             autofit_end_threshold=0,
             max_iteration_improvement=MAX_ITERATION_IMPROVEMENT,
             alns_iterations=ALNS_ITERATIONS,
+            directory_path=directory_path
         )
 
 

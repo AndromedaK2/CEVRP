@@ -100,8 +100,8 @@ class Experiment:
                 max_ant_steps=MAX_ANT_STEPS,
                 max_iteration_improvement=MAX_ITERATION_IMPROVEMENT,
                 # VARIABLES
-                num_ants= get_num_ants(cevrp_instance) if CUSTOMER_LIKE_ANT else 240 ,
-                num_iterations=80,
+                num_ants= get_num_ants(cevrp_instance),
+                num_iterations=30,
                 rw_weights=[25, 5, 1, 0.5],
                 rw_decay=0.8,
                 autofit_start_threshold=0.02,

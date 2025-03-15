@@ -1,3 +1,5 @@
+import os
+from datetime import datetime
 from typing import List
 from dataclasses import dataclass
 
@@ -49,7 +51,7 @@ CUSTOMERS: List[int] = [
 NUM_ITERATIONS: int = 50
 MAX_ITERATION_IMPROVEMENT: int = 5
 ALNS_ITERATIONS: int = 200
-CUSTOMER_LIKE_ANT: bool = False
+CUSTOMER_LIKE_ANT: bool = True
 
 # Dont Touch
 MAX_ANT_STEPS: int = 10000
@@ -58,7 +60,7 @@ DEFAULT_SOURCE_NODE: str = "1"
 # Variable
 ACO_VISUALIZATION: bool = False
 ALNS_VISUALIZATION: bool = False
-EXPERIMENT_TYPE = "optimized"
+EXPERIMENT_TYPE = "baseline"
 
 
 @dataclass
@@ -86,7 +88,11 @@ class Experiment:
 
 
         selected_file_path = selected_file.replace("Shared/Instances/", "").replace(".evrp", "")
-        directory_path = f"experiments/{EXPERIMENT_TYPE}/{selected_file_path}"
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+        directory_path = f"experiments/{EXPERIMENT_TYPE}/{selected_file_path}/{timestamp}"
+        if not os.path.exists(directory_path):
+            os.makedirs(directory_path, exist_ok=True)
 
         if EXPERIMENT_TYPE == "baseline":
             return Experiment(

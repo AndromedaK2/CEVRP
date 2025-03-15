@@ -88,7 +88,6 @@ def make_alns(
     ax.yaxis.set_tick_params(labelsize=14)
 
     plt.title("Objective Value Progress", fontsize=16)
-    plt.show(block=False)
 
     plt.savefig(f"./{directory_path}/operator_count-{result.best_state.objective()}.png")
 
@@ -105,7 +104,6 @@ def make_alns(
         bottom=0.1
     )
 
-    plt.show(block=False)
 
     plt.savefig(f"./{directory_path}/objective_value_progress-{result.best_state.objective()}.png")
 

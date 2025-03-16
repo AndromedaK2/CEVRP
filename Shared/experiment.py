@@ -60,7 +60,7 @@ DEFAULT_SOURCE_NODE: str = "1"
 # Variable
 ACO_VISUALIZATION: bool = False
 ALNS_VISUALIZATION: bool = False
-EXPERIMENT_TYPE = "custom"
+EXPERIMENT_TYPE = "refactored"
 
 
 @dataclass
@@ -137,6 +137,21 @@ class Experiment:
                 autofit_start_threshold=0.02,
                 autofit_end_threshold=0,
                 alns_iterations=70,
+                directory_path=directory_path
+            )
+        elif EXPERIMENT_TYPE == "refactored":
+            return Experiment(
+                # CONSTANTS
+                max_ant_steps=MAX_ANT_STEPS,
+                max_iteration_improvement=MAX_ITERATION_IMPROVEMENT,
+                # VARIABLES
+                num_iterations=10,
+                num_ants= 120,
+                rw_weights=[20, 5, 1, 0.5],
+                rw_decay=0.5,
+                autofit_start_threshold=0.02,
+                autofit_end_threshold=0,
+                alns_iterations=80,
                 directory_path=directory_path
             )
         return Experiment(

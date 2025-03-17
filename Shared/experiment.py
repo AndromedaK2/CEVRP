@@ -60,7 +60,7 @@ DEFAULT_SOURCE_NODE: str = "1"
 # Variable
 ACO_VISUALIZATION: bool = False
 ALNS_VISUALIZATION: bool = False
-EXPERIMENT_TYPE = "refactored"
+EXPERIMENT_TYPE = "custom"
 
 
 @dataclass

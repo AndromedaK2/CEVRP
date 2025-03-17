@@ -60,7 +60,7 @@ DEFAULT_SOURCE_NODE: str = "1"
 # Variable
 ACO_VISUALIZATION: bool = False
 ALNS_VISUALIZATION: bool = False
-EXPERIMENT_TYPE = "baseline"
+EXPERIMENT_TYPE = "refactored"
 
 
 @dataclass
@@ -115,7 +115,7 @@ class Experiment:
                 max_ant_steps=MAX_ANT_STEPS,
                 max_iteration_improvement=MAX_ITERATION_IMPROVEMENT,
                 # VARIABLES
-                num_ants= get_num_ants(cevrp_instance) if CUSTOMER_LIKE_ANT else 10 ,
+                num_ants= 10 ,
                 num_iterations=10,
                 rw_weights=[8, 5, 1, 0.5],
                 rw_decay=0.8,
@@ -130,13 +130,28 @@ class Experiment:
                 max_ant_steps=MAX_ANT_STEPS,
                 max_iteration_improvement=MAX_ITERATION_IMPROVEMENT,
                 # VARIABLES
-                num_iterations=50,
-                num_ants= get_num_ants(cevrp_instance) if CUSTOMER_LIKE_ANT else 500 ,
+                num_iterations=15,
+                num_ants= 80,
                 rw_weights=[25, 5, 1, 0.5],
                 rw_decay=0.8,
                 autofit_start_threshold=0.02,
                 autofit_end_threshold=0,
-                alns_iterations=ALNS_ITERATIONS,
+                alns_iterations=70,
+                directory_path=directory_path
+            )
+        elif EXPERIMENT_TYPE == "refactored":
+            return Experiment(
+                # CONSTANTS
+                max_ant_steps=MAX_ANT_STEPS,
+                max_iteration_improvement=MAX_ITERATION_IMPROVEMENT,
+                # VARIABLES
+                num_iterations=10,
+                num_ants= 120,
+                rw_weights=[20, 5, 1, 0.5],
+                rw_decay=0.5,
+                autofit_start_threshold=0.02,
+                autofit_end_threshold=0,
+                alns_iterations=80,
                 directory_path=directory_path
             )
         return Experiment(

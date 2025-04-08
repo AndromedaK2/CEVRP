@@ -5,7 +5,7 @@ python_executable = os.path.join(os.getcwd(), '.venv', 'Scripts', 'python.exe')
 
 def run_main_in_parallel():
     try:
-        param = input("Select instance 1 to 17: ").strip()
+        instance_number = input("Select instance (1 to 17): ").strip()
         n = int(input("How many parallel runs of main.py do you want? "))
     except ValueError:
         print("❌ Invalid input. Please enter valid numbers.")
@@ -14,8 +14,11 @@ def run_main_in_parallel():
     processes = []
 
     for i in range(n):
-        print(f"🚀 Launching parallel run #{i + 1} with param {param}")
-        process = subprocess.Popen([python_executable, "main.py", param])
+        run_id = str(i + 1)
+        print(f"🚀 Launching Run #{run_id} for Instance {instance_number}")
+        process = subprocess.Popen([
+            python_executable, "main.py", instance_number, run_id
+        ])
         processes.append(process)
 
     print("\n⏳ Waiting for all runs to finish...\n")

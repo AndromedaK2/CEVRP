@@ -98,17 +98,19 @@ def solve_with_alns(paths: List[Path], cevrp: CEVRP, experiment_alns:Experiment)
 
 if __name__ == '__main__':
     try:
-        if len(sys.argv) > 1:
-            instance_index = int(sys.argv[1]) - 1  # User provides 1-based index, adjust to 0-based
-            if instance_index < 0 or instance_index >= len(config.instance_files):
-                raise ValueError("❌ Invalid instance index passed via command-line.")
+        if len(sys.argv) >= 3:
+            instance_index = int(sys.argv[1]) - 1
+            run_id = sys.argv[2]
             selected_file = config.instance_files[instance_index]
         else:
             selected_file = select_instance(config.instance_files)
+            run_id = 0
 
         cevrp_instance = create_cevrp_instance(selected_file)
-        experiment = Experiment.create_experiment_config(cevrp_instance,selected_file)
-        log_filename = os.path.join(experiment.directory_path, "execution_log.txt")
+        experiment = Experiment.create_experiment_config(cevrp_instance, selected_file, run_id)
+        os.makedirs(experiment.directory_path, exist_ok=True)
+
+        log_filename = os.path.join(experiment.directory_path, f"execution_log.txt")
 
         def log(message):
             print(message)

@@ -79,7 +79,7 @@ class Experiment:
 
 
     @staticmethod
-    def create_experiment_config(cevrp_instance:CEVRP, selected_file:str) -> "Experiment":
+    def create_experiment_config(cevrp_instance:CEVRP, selected_file:str, run_id = 0) -> "Experiment":
 
 
         def get_num_ants(cevrp:CEVRP):
@@ -88,7 +88,10 @@ class Experiment:
 
 
         selected_file_path = selected_file.replace("Shared/Instances/", "").replace(".evrp", "")
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        if run_id:
+            timestamp = datetime.now().strftime(f"%Y%m%d_%H%M%S{run_id}")
+        else:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
         directory_path = f"experiments/{EXPERIMENT_TYPE}/{selected_file_path}/{timestamp}"
         if not os.path.exists(directory_path):
